@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Bot } from "lucide-react";
+import { Menu, X, Shield } from "lucide-react";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,13 +14,13 @@ const Navigation = () => {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+    <nav className="fixed top-0 left-0 right-0 z-50 nav-glass">
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-primary to-accent p-2 rounded-lg">
-              <Bot className="h-6 w-6 text-white" />
+            <div className="bg-gradient-primary p-2 rounded-lg">
+              <Shield className="h-6 w-6 text-primary-foreground" />
             </div>
             <div className="text-2xl font-bold">
               <span className="text-gradient">Gllarix</span>
@@ -33,7 +33,7 @@ const Navigation = () => {
               <a
                 key={item.name}
                 href={item.href}
-                className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+                className="text-muted-foreground hover:text-primary transition-colors font-medium"
               >
                 {item.name}
               </a>
@@ -42,7 +42,7 @@ const Navigation = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" className="text-muted-foreground hover:text-primary font-medium">
               Sign In
             </Button>
             <Button className="btn-hero">
@@ -65,13 +65,13 @@ const Navigation = () => {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="md:hidden border-t border-border">
+          <div className="md:hidden border-t border-border/50">
             <div className="py-4 space-y-4">
               {navItems.map((item) => (
                 <a
                   key={item.name}
                   href={item.href}
-                  className="block text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                  className="block text-muted-foreground hover:text-primary transition-colors font-medium py-2"
                   onClick={() => setIsOpen(false)}
                 >
                   {item.name}
