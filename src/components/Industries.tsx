@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { 
   Home, 
   Heart, 
@@ -13,8 +14,13 @@ import {
   Calendar,
   MessageSquare
 } from "lucide-react";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const Industries = () => {
+  const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation(0.2);
+  const { ref: gridRef, isVisible: gridVisible } = useScrollAnimation(0.1);
+  const { ref: featuresRef, isVisible: featuresVisible } = useScrollAnimation(0.2);
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
   const industries = [
     {
       icon: Home,
@@ -82,11 +88,16 @@ const Industries = () => {
   ];
 
   return (
-    <section className="py-24 section-accent">
+    <section className="py-24 section-accent overflow-hidden">
       <div className="container mx-auto px-6">
         <div className="max-w-7xl mx-auto">
           {/* Section Header */}
-          <div className="text-center mb-16">
+          <div 
+            ref={headerRef}
+            className={`text-center mb-16 transition-all duration-1000 ${
+              headerVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}
+          >
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
               <span className="text-gradient">Industry-Specific</span> AI Solutions
             </h2>
@@ -94,19 +105,33 @@ const Industries = () => {
               Our AI agents are trained for your specific industry, understanding the nuances 
               and requirements of your business.
             </p>
+            <div className={`progress-bar mx-auto mt-4 ${headerVisible ? 'animate' : ''}`}></div>
           </div>
 
           {/* Industries Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+          <div 
+            ref={gridRef}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
+          >
             {industries.map((industry, index) => (
-              <div key={index} className="card-industry group">
+              <div 
+                key={index} 
+                className={`card-interactive card-industry group cursor-pointer transition-all duration-700 ${
+                  gridVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                }`}
+                style={{ transitionDelay: `${index * 100}ms` }}
+                onMouseEnter={() => setHoveredCard(index)}
+                onMouseLeave={() => setHoveredCard(null)}
+              >
                 <div className="relative">
                   {/* Icon with gradient background */}
-                  <div className={`bg-gradient-to-br ${industry.color} p-4 rounded-xl w-fit mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300`}>
+                  <div className={`bg-gradient-to-br ${industry.color} p-4 rounded-xl w-fit mb-6 shadow-lg group-hover:shadow-xl transition-all duration-500 ${
+                    hoveredCard === index ? 'scale-110 rotate-3' : ''
+                  }`}>
                     <industry.icon className="h-8 w-8 text-white" />
                   </div>
                   
-                  <h3 className="text-2xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
+                  <h3 className="text-2xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors duration-300">
                     {industry.title}
                   </h3>
                   
@@ -117,17 +142,27 @@ const Industries = () => {
                   {/* Features */}
                   <div className="space-y-2 mb-6">
                     {industry.features.map((feature, i) => (
-                      <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                        <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                      <div 
+                        key={i} 
+                        className={`flex items-center gap-2 text-sm text-muted-foreground group-hover:text-foreground transition-all duration-300 ${
+                          hoveredCard === index ? 'translate-x-2' : ''
+                        }`}
+                        style={{ transitionDelay: `${i * 50}ms` }}
+                      >
+                        <div className={`w-1.5 h-1.5 bg-primary rounded-full transition-all duration-300 ${
+                          hoveredCard === index ? 'w-3 h-3' : ''
+                        }`}></div>
                         {feature}
                       </div>
                     ))}
                   </div>
                   
                   {/* CTA */}
-                  <div className="flex items-center text-primary font-semibold text-sm group-hover:gap-3 gap-2 transition-all">
+                  <div className="flex items-center text-primary font-semibold text-sm group-hover:gap-3 gap-2 transition-all duration-300">
                     Learn More
-                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className={`h-4 w-4 group-hover:translate-x-1 transition-transform duration-300 ${
+                      hoveredCard === index ? 'scale-125' : ''
+                    }`} />
                   </div>
                 </div>
               </div>
@@ -135,35 +170,48 @@ const Industries = () => {
           </div>
 
           {/* Common Features */}
-          <div className="bg-card border border-border rounded-2xl p-8 shadow-lg">
+          <div 
+            ref={featuresRef}
+            className={`bg-card border border-border rounded-2xl p-8 shadow-lg card-interactive transition-all duration-1000 ${
+              featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}
+          >
             <h3 className="text-2xl font-bold text-center text-foreground mb-8">
               Every AI Agent Includes These Core Features
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="bg-primary/10 p-4 rounded-xl w-fit mx-auto mb-4">
-                  <Phone className="h-8 w-8 text-primary" />
+              {[
+                {
+                  icon: Phone,
+                  title: "Voice Calls",
+                  description: "Handle inbound and outbound calls with natural conversation"
+                },
+                {
+                  icon: Calendar,
+                  title: "Smart Scheduling",
+                  description: "Book, reschedule, and manage appointments automatically"
+                },
+                {
+                  icon: MessageSquare,
+                  title: "24/7 Chat Support",
+                  description: "Answer questions and assist customers around the clock"
+                }
+              ].map((feature, index) => (
+                <div 
+                  key={index}
+                  className={`text-center transition-all duration-700 hover:scale-105 ${
+                    featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                  }`}
+                  style={{ transitionDelay: `${index * 200}ms` }}
+                >
+                  <div className="bg-primary/10 p-4 rounded-xl w-fit mx-auto mb-4 hover:bg-primary/20 transition-colors duration-300 hover:scale-110">
+                    <feature.icon className="h-8 w-8 text-primary" />
+                  </div>
+                  <h4 className="font-semibold text-foreground mb-2">{feature.title}</h4>
+                  <p className="text-sm text-muted-foreground">{feature.description}</p>
                 </div>
-                <h4 className="font-semibold text-foreground mb-2">Voice Calls</h4>
-                <p className="text-sm text-muted-foreground">Handle inbound and outbound calls with natural conversation</p>
-              </div>
-              
-              <div className="text-center">
-                <div className="bg-primary/10 p-4 rounded-xl w-fit mx-auto mb-4">
-                  <Calendar className="h-8 w-8 text-primary" />
-                </div>
-                <h4 className="font-semibold text-foreground mb-2">Smart Scheduling</h4>
-                <p className="text-sm text-muted-foreground">Book, reschedule, and manage appointments automatically</p>
-              </div>
-              
-              <div className="text-center">
-                <div className="bg-primary/10 p-4 rounded-xl w-fit mx-auto mb-4">
-                  <MessageSquare className="h-8 w-8 text-primary" />
-                </div>
-                <h4 className="font-semibold text-foreground mb-2">24/7 Chat Support</h4>
-                <p className="text-sm text-muted-foreground">Answer questions and assist customers around the clock</p>
-              </div>
+              ))}
             </div>
           </div>
         </div>

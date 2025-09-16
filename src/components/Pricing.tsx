@@ -1,7 +1,12 @@
+import React, { useState } from 'react';
 import { Check, Star, ArrowRight, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const Pricing = () => {
+  const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation(0.2);
+  const { ref: cardsRef, isVisible: cardsVisible } = useScrollAnimation(0.1);
+  const [hoveredPlan, setHoveredPlan] = useState<number | null>(null);
   const plans = [
     {
       name: "Starter",
@@ -62,11 +67,16 @@ const Pricing = () => {
   ];
 
   return (
-    <section className="py-24 bg-background">
+    <section className="py-24 bg-background overflow-hidden">
       <div className="container mx-auto px-6">
         <div className="max-w-7xl mx-auto">
           {/* Section Header */}
-          <div className="text-center mb-16">
+          <div 
+            ref={headerRef}
+            className={`text-center mb-16 transition-all duration-1000 ${
+              headerVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}
+          >
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
               Simple, <span className="text-gradient">Transparent</span> Pricing
             </h2>
@@ -74,19 +84,33 @@ const Pricing = () => {
               Choose the plan that fits your business size and automation needs. 
               All plans include setup assistance and training.
             </p>
-            <div className="inline-flex items-center gap-2 bg-success/10 text-success px-4 py-2 rounded-full text-sm font-medium">
+            <div className={`inline-flex items-center gap-2 bg-success/10 text-success px-4 py-2 rounded-full text-sm font-medium transition-all duration-700 ${
+              headerVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+            }`}>
               <Zap className="h-4 w-4" />
               No setup fees • Cancel anytime • 30-day money-back guarantee
             </div>
+            <div className={`progress-bar mx-auto mt-4 ${headerVisible ? 'animate' : ''}`}></div>
           </div>
 
           {/* Pricing Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          <div 
+            ref={cardsRef}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16"
+          >
             {plans.map((plan, index) => (
-              <div key={index} className={`card-pricing ${plan.popular ? 'featured' : ''}`}>
+              <div 
+                key={index} 
+                className={`card-interactive card-pricing transition-all duration-700 ${plan.popular ? 'featured scale-105' : ''} ${
+                  cardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                }`}
+                style={{ transitionDelay: `${index * 200}ms` }}
+                onMouseEnter={() => setHoveredPlan(index)}
+                onMouseLeave={() => setHoveredPlan(null)}
+              >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <div className="bg-gradient-to-r from-primary to-accent text-white px-6 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
+                    <div className="bg-gradient-to-r from-primary to-accent text-white px-6 py-2 rounded-full text-sm font-semibold flex items-center gap-2 animate-pulse-glow">
                       <Star className="h-4 w-4" />
                       Most Popular
                     </div>
@@ -94,7 +118,9 @@ const Pricing = () => {
                 )}
                 
                 <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold text-foreground mb-2">{plan.name}</h3>
+                  <h3 className={`text-2xl font-bold text-foreground mb-2 transition-colors duration-300 ${
+                    hoveredPlan === index ? 'text-primary' : ''
+                  }`}>{plan.name}</h3>
                   <div className="mb-4">
                     <span className="text-4xl font-bold text-gradient">{plan.price}</span>
                     <span className="text-muted-foreground">{plan.period}</span>
@@ -104,18 +130,30 @@ const Pricing = () => {
 
                 <div className="space-y-4 mb-8">
                   {plan.features.map((feature, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <Check className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
+                    <div 
+                      key={i} 
+                      className={`flex items-start gap-3 transition-all duration-300 ${
+                        hoveredPlan === index ? 'translate-x-2' : ''
+                      }`}
+                      style={{ transitionDelay: `${i * 50}ms` }}
+                    >
+                      <Check className={`h-5 w-5 text-success flex-shrink-0 mt-0.5 transition-all duration-300 ${
+                        hoveredPlan === index ? 'scale-125' : ''
+                      }`} />
                       <span className="text-sm text-muted-foreground">{feature}</span>
                     </div>
                   ))}
                 </div>
 
                 <Button 
-                  className={plan.popular ? "btn-hero w-full" : "btn-outline-hero w-full"}
+                  className={`${plan.popular ? "btn-hero" : "btn-outline-hero"} w-full transition-all duration-300 ${
+                    hoveredPlan === index ? 'scale-105' : ''
+                  }`}
                 >
                   {plan.cta}
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className={`ml-2 h-4 w-4 transition-transform duration-300 ${
+                    hoveredPlan === index ? 'translate-x-1' : ''
+                  }`} />
                 </Button>
               </div>
             ))}
