@@ -10,24 +10,24 @@ import Footer from "@/components/Footer";
 
 const Index = () => {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-black">
       <Navigation />
       
       <Hero />
       
-      <section id="solutions">
+      <section id="services" className="min-h-screen bg-gray-900">
         <PainSolution />
       </section>
       
-      <section id="how-it-works">
+      <section id="how-it-works" className="min-h-screen bg-black">
         <HowItWorks />
       </section>
       
-      <section id="industries">
+      <section id="industries" className="min-h-screen bg-gray-900">
         <Industries />
       </section>
       
-      <section id="pricing">
+      <section id="pricing" className="min-h-screen bg-black">
         <Pricing />
       </section>
       
