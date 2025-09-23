@@ -1,6 +1,10 @@
 import React from 'react';
-import { AlertTriangle, CheckCircle, TrendingUp, Clock, Users, Zap } from "lucide-react";
 import { useScrollAnimation, useCountUp } from "@/hooks/useScrollAnimation";
+import alertTriangleIcon from "@/assets/icons/alert-triangle.png";
+import checkCircleIcon from "@/assets/icons/check-circle.png";
+import clockIcon from "@/assets/icons/clock.png";
+import zapIcon from "@/assets/icons/zap.png";
+import trendingUpIcon from "@/assets/icons/trending-up.png";
 
 const PainSolution = () => {
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation(0.2);
@@ -42,9 +46,11 @@ const PainSolution = () => {
               <div className="text-center md:text-left mb-8">
                 <h3 className="text-3xl font-bold text-foreground mb-4 flex items-center gap-3">
                   <div className={`transition-all duration-700 ${painVisible ? 'rotate-0 scale-100' : 'rotate-12 scale-0'}`}>
-                    <AlertTriangle className="h-8 w-8 text-destructive animate-pulse-glow" />
+                    <img src={alertTriangleIcon} alt="Alert Triangle" className="h-8 w-8 animate-pulse-glow" />
                   </div>
-                  Common Business Pain Points
+                  <span className="transition-transform duration-300 hover:-translate-y-1 cursor-default">
+                    Common Business Pain Points
+                  </span>
                 </h3>
               </div>
               
@@ -92,44 +98,46 @@ const PainSolution = () => {
               <div className="text-center md:text-left mb-8">
                 <h3 className="text-3xl font-bold text-foreground mb-4 flex items-center gap-3">
                   <div className={`transition-all duration-700 ${solutionVisible ? 'rotate-0 scale-100' : '-rotate-12 scale-0'}`}>
-                    <CheckCircle className="h-8 w-8 text-success animate-pulse-glow" />
+                    <img src={checkCircleIcon} alt="Check Circle" className="h-8 w-8 animate-pulse-glow" />
                   </div>
-                  How Gllarix Solves This
+                  <span className="transition-transform duration-300 hover:-translate-y-1 cursor-default">
+                    How Gllarix Solves This
+                  </span>
                 </h3>
               </div>
               
               <div className="space-y-6">
-                {[
-                  {
-                    icon: Clock,
-                    title: "24/7 Availability",
-                    description: "AI agents never sleep - capture every lead, answer every call, handle every booking",
-                    delay: "delay-[600ms]"
-                  },
-                  {
-                    icon: Zap,
-                    title: "Perfect Consistency", 
-                    description: "Same high-quality service every time - no bad days, no forgotten steps",
-                    delay: "delay-[800ms]"
-                  },
-                  {
-                    icon: TrendingUp,
-                    title: "Focus on Growth",
-                    description: "Free your team from admin work to focus on strategy, sales, and customer relationships",
-                    delay: "delay-[1000ms]"
-                  }
-                ].map((solution, index) => (
+                 {[
+                   {
+                     icon: clockIcon,
+                     title: "24/7 Availability",
+                     description: "AI agents never sleep - capture every lead, answer every call, handle every booking",
+                     delay: "delay-[600ms]"
+                   },
+                   {
+                     icon: zapIcon,
+                     title: "Perfect Consistency", 
+                     description: "Same high-quality service every time - no bad days, no forgotten steps",
+                     delay: "delay-[800ms]"
+                   },
+                   {
+                     icon: trendingUpIcon,
+                     title: "Focus on Growth",
+                     description: "Free your team from admin work to focus on strategy, sales, and customer relationships",
+                     delay: "delay-[1000ms]"
+                   }
+                 ].map((solution, index) => (
                   <div 
                     key={index}
                     className={`card-interactive card-feature transition-all duration-700 ${solution.delay} ${
                       solutionVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                     }`}
                   >
-                    <div className="flex items-start gap-4">
-                      <div className="bg-success/10 p-2 rounded-lg hover:bg-success/20 transition-colors duration-300">
-                        <solution.icon className="h-6 w-6 text-success" />
-                      </div>
-                      <div>
+                     <div className="flex items-start gap-4">
+                       <div className="bg-success/10 p-2 rounded-lg hover:bg-success/20 transition-colors duration-300">
+                         <img src={solution.icon} alt={solution.title} className="h-6 w-6" />
+                       </div>
+                       <div>
                         <h4 className="font-semibold text-foreground mb-2">{solution.title}</h4>
                         <p className="text-muted-foreground">{solution.description}</p>
                       </div>
