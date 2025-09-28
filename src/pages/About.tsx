@@ -448,51 +448,120 @@ const About = () => {
       {/* Mission & Vision */}
       <section
         ref={missionRef}
-        className={`py-24 bg-muted/30 transition-all duration-1000 ${
+        className={`py-24 relative overflow-hidden bg-gradient-to-br from-muted/20 via-background to-muted/10 transition-all duration-1000 ${
           missionVisible
             ? "opacity-100 translate-y-0"
             : "opacity-0 translate-y-8"
         }`}
       >
-        <div className="container mx-auto px-6">
+        {/* Background Effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-0 w-64 h-64 bg-secondary/5 rounded-full blur-3xl animate-pulse delay-500"></div>
+        </div>
+        
+        <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
+            <div className="text-center mb-20">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+                <span className="w-2 h-2 bg-primary rounded-full mr-2 animate-pulse"></span>
+                Our Purpose
+              </div>
+              <h2 className="text-4xl md:text-6xl font-bold mb-6 text-gradient">
                 Mission & Vision
               </h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Driving the future of intelligent automation
+              </p>
             </div>
 
             <div className="grid lg:grid-cols-2 gap-12">
-              <Card className="p-8 hover:shadow-lg transition-shadow duration-300">
-                <div className="bg-primary/10 p-4 rounded-xl w-fit mb-6">
-                  <Target className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="text-2xl font-bold mb-4 text-foreground">
-                  Our Mission
-                </h3>
-                <p className="text-lg text-muted-foreground leading-relaxed">
-                  To empower businesses of all sizes with intelligent AI
-                  automation that eliminates repetitive tasks, reduces human
-                  error, and unlocks human potential for more strategic and
-                  creative work.
-                </p>
-              </Card>
+              {/* Mission Card */}
+              <div className="group relative">
+                <Card className="p-10 h-full hover:shadow-2xl transition-all duration-500 border-border/50 bg-card/50 backdrop-blur-sm hover:bg-card/80 hover:border-primary/30 hover:scale-[1.02] transform">
+                  {/* Animated Background */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
+                  {/* Icon Container */}
+                  <div className="relative mb-8">
+                    <div className="bg-gradient-to-br from-primary/20 to-primary/10 p-6 rounded-2xl w-fit group-hover:scale-110 transition-transform duration-300">
+                      <Target className="h-10 w-10 text-primary" />
+                    </div>
+                    {/* Floating dots */}
+                    <div className="absolute -top-2 -right-2 w-3 h-3 bg-primary/30 rounded-full animate-bounce"></div>
+                    <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-accent/40 rounded-full animate-bounce delay-300"></div>
+                  </div>
+                  
+                  <div className="relative">
+                    <h3 className="text-3xl font-bold mb-6 text-foreground group-hover:text-primary transition-colors duration-300">
+                      Our Mission
+                    </h3>
+                    <div className="w-20 h-1 bg-gradient-to-r from-primary to-accent rounded-full mb-6 group-hover:w-32 transition-all duration-500"></div>
+                    <p className="text-lg text-foreground leading-relaxed">
+                      To empower businesses of all sizes with intelligent AI
+                      automation that eliminates repetitive tasks, reduces human
+                      error, and unlocks human potential for more strategic and
+                      creative work.
+                    </p>
+                    
+                    {/* Interactive elements */}
+                    <div className="mt-8 flex items-center space-x-4 opacity-0 group-hover:opacity-100 transition-all duration-500">
+                      <div className="flex space-x-2">
+                        <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                        <div className="w-2 h-2 bg-accent rounded-full animate-pulse delay-150"></div>
+                        <div className="w-2 h-2 bg-secondary rounded-full animate-pulse delay-300"></div>
+                      </div>
+                      <span className="text-sm text-muted-foreground">Empowering Innovation</span>
+                    </div>
+                  </div>
+                </Card>
+              </div>
 
-              <Card className="p-8 hover:shadow-lg transition-shadow duration-300">
-                <div className="bg-primary/10 p-4 rounded-xl w-fit mb-6">
-                  <Globe className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="text-2xl font-bold mb-4 text-foreground">
-                  Our Vision
-                </h3>
-                <p className="text-lg text-muted-foreground leading-relaxed">
-                  A world where every business, regardless of size or industry,
-                  has access to intelligent AI agents that handle routine
-                  operations, allowing humans to focus on what they do best:
-                  innovate, create, and build relationships.
-                </p>
-              </Card>
+              {/* Vision Card */}
+              <div className="group relative">
+                <Card className="p-10 h-full hover:shadow-2xl transition-all duration-500 border-border/50 bg-card/50 backdrop-blur-sm hover:bg-card/80 hover:border-accent/30 hover:scale-[1.02] transform">
+                  {/* Animated Background */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-secondary/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
+                  {/* Icon Container */}
+                  <div className="relative mb-8">
+                    <div className="bg-gradient-to-br from-accent/20 to-accent/10 p-6 rounded-2xl w-fit group-hover:scale-110 transition-transform duration-300">
+                      <Globe className="h-10 w-10 text-accent" />
+                    </div>
+                    {/* Floating dots */}
+                    <div className="absolute -top-2 -right-2 w-3 h-3 bg-accent/30 rounded-full animate-bounce delay-150"></div>
+                    <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-primary/40 rounded-full animate-bounce delay-500"></div>
+                  </div>
+                  
+                  <div className="relative">
+                    <h3 className="text-3xl font-bold mb-6 text-foreground group-hover:text-accent transition-colors duration-300">
+                      Our Vision
+                    </h3>
+                    <div className="w-20 h-1 bg-gradient-to-r from-accent to-secondary rounded-full mb-6 group-hover:w-32 transition-all duration-500"></div>
+                    <p className="text-lg text-foreground leading-relaxed">
+                      A world where every business, regardless of size or industry,
+                      has access to intelligent AI agents that handle routine
+                      operations, allowing humans to focus on what they do best:
+                      innovate, create, and build relationships.
+                    </p>
+                    
+                    {/* Interactive elements */}
+                    <div className="mt-8 flex items-center space-x-4 opacity-0 group-hover:opacity-100 transition-all duration-500">
+                      <div className="flex space-x-2">
+                        <div className="w-2 h-2 bg-accent rounded-full animate-pulse"></div>
+                        <div className="w-2 h-2 bg-secondary rounded-full animate-pulse delay-150"></div>
+                        <div className="w-2 h-2 bg-primary rounded-full animate-pulse delay-300"></div>
+                      </div>
+                      <span className="text-sm text-muted-foreground">Shaping Tomorrow</span>
+                    </div>
+                  </div>
+                </Card>
+              </div>
             </div>
+            
+            {/* Connection line between cards */}
+            <div className="hidden lg:block absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-0.5 bg-gradient-to-r from-primary via-accent to-secondary opacity-30"></div>
           </div>
         </div>
       </section>
