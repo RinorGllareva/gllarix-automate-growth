@@ -350,47 +350,95 @@ const About = () => {
       </section>
 
       {/* Our Story */}
-      <section id="our-story" className="py-24 bg-background">
-        <div className="container mx-auto px-6">
+      <section id="our-story" className="py-24 bg-gradient-to-br from-background via-muted/20 to-background relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
+        
+        <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-6xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              <div>
-                <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
-                  Our Story
-                </h2>
-                <div className="space-y-6 text-lg text-muted-foreground">
-                  <p>
-                    Founded in 2023, Gllarix emerged from a simple observation:
-                    businesses were spending countless hours on repetitive tasks
-                    that could be automated with AI.
-                  </p>
-                  <p>
-                    Our founders, coming from backgrounds at Google, Tesla, and
-                    Microsoft, saw an opportunity to democratize AI automation
-                    for businesses of all sizes.
-                  </p>
-                  <p>
-                    Today, we're proud to serve over 500 businesses worldwide,
-                    helping them save thousands of hours and increase their
-                    efficiency by up to 300%.
-                  </p>
+            <div className="grid lg:grid-cols-2 gap-20 items-center">
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                    <span className="w-2 h-2 bg-primary rounded-full mr-2 animate-pulse"></span>
+                    Our Journey
+                  </div>
+                  <h2 className="text-4xl md:text-6xl font-bold text-gradient leading-tight">
+                    Our Story
+                  </h2>
                 </div>
-                <Button className="mt-8 btn-hero">
+                
+                <div className="space-y-6">
+                  <div className="p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:bg-card/70 transition-all duration-300">
+                    <div className="flex items-start space-x-4">
+                      <div className="w-3 h-3 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                      <p className="text-lg text-foreground leading-relaxed">
+                        Founded in 2023, Gllarix emerged from a simple observation:
+                        businesses were spending countless hours on repetitive tasks
+                        that could be automated with AI.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:bg-card/70 transition-all duration-300">
+                    <div className="flex items-start space-x-4">
+                      <div className="w-3 h-3 bg-accent rounded-full mt-2 flex-shrink-0"></div>
+                      <p className="text-lg text-foreground leading-relaxed">
+                        Our founders, coming from backgrounds at Google, Tesla, and
+                        Microsoft, saw an opportunity to democratize AI automation
+                        for businesses of all sizes.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:bg-card/70 transition-all duration-300">
+                    <div className="flex items-start space-x-4">
+                      <div className="w-3 h-3 bg-secondary rounded-full mt-2 flex-shrink-0"></div>
+                      <p className="text-lg text-foreground leading-relaxed">
+                        Today, we're proud to serve over 500 businesses worldwide,
+                        helping them save thousands of hours and increase their
+                        efficiency by up to 300%.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <Button className="btn-hero group">
                   Join Our Mission
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </div>
 
-              <div className="relative h-96">
-                <Canvas camera={{ position: [0, 0, 4], fov: 75 }}>
-                  <SceneLights />
-                  <Mission3D />
-                  <OrbitControls
-                    enableZoom={false}
-                    autoRotate
-                    autoRotateSpeed={1}
-                  />
-                </Canvas>
+              <div className="relative">
+                {/* 3D Canvas Container with enhanced styling */}
+                <div className="relative h-96 w-full rounded-3xl overflow-hidden bg-gradient-to-br from-primary/5 via-transparent to-accent/5 backdrop-blur-sm border border-border/30">
+                  {/* Decorative elements */}
+                  <div className="absolute top-4 left-4 w-3 h-3 bg-primary rounded-full animate-pulse"></div>
+                  <div className="absolute top-4 right-4 w-2 h-2 bg-accent rounded-full animate-pulse delay-75"></div>
+                  <div className="absolute bottom-4 left-4 w-2 h-2 bg-secondary rounded-full animate-pulse delay-150"></div>
+                  <div className="absolute bottom-4 right-4 w-3 h-3 bg-primary/50 rounded-full animate-pulse delay-300"></div>
+                  
+                  {/* Canvas */}
+                  <Canvas camera={{ position: [0, 0, 4], fov: 75 }}>
+                    <SceneLights />
+                    <Mission3D />
+                    <OrbitControls
+                      enableZoom={false}
+                      autoRotate
+                      autoRotateSpeed={1}
+                    />
+                  </Canvas>
+                  
+                  {/* Overlay gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-transparent pointer-events-none"></div>
+                </div>
+                
+                {/* Floating elements around 3D model */}
+                <div className="absolute -top-6 -left-6 w-12 h-12 bg-primary/20 rounded-xl rotate-12 animate-float"></div>
+                <div className="absolute -bottom-4 -right-4 w-8 h-8 bg-accent/30 rounded-lg -rotate-12 animate-float delay-1000"></div>
+                <div className="absolute top-1/2 -left-8 w-6 h-6 bg-secondary/25 rounded-full animate-float delay-500"></div>
               </div>
             </div>
           </div>
