@@ -1,5 +1,6 @@
 import { Bot, Mail, Phone, MapPin, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import img from "../../public/Gllarix_LogoPNG.png";
 
 const Footer = () => {
@@ -7,38 +8,39 @@ const Footer = () => {
     {
       title: "Solutions",
       links: [
-        { name: "AI Voice Agents", href: "#" },
-        { name: "Business Automation", href: "#" },
-        { name: "CRM Integration", href: "#" },
-        { name: "Appointment Booking", href: "#" },
+        { name: "AI Voice Agents", href: "/#services" },
+        { name: "Business Automation", href: "/#how-it-works" },
+        { name: "CRM Integration", href: "/demo" },
+        { name: "Appointment Booking", href: "/#services" },
       ],
     },
     {
       title: "Industries",
       links: [
-        { name: "Real Estate", href: "#" },
-        { name: "Healthcare", href: "#" },
-        { name: "Solar & Energy", href: "#" },
-        { name: "Automotive", href: "#" },
-        { name: "Insurance", href: "#" },
-        { name: "Hospitality", href: "#" },
+        { name: "Real Estate", href: "/#industries" },
+        { name: "Healthcare", href: "/#industries" },
+        { name: "Solar & Energy", href: "/#industries" },
+        { name: "Automotive", href: "/#industries" },
+        { name: "Insurance", href: "/#industries" },
+        { name: "Hospitality", href: "/#industries" },
       ],
     },
     {
       title: "Resources",
       links: [
-        { name: "Case Studies", href: "#" },
-        { name: "Documentation", href: "#" },
-
+        { name: "Case Studies", href: "/demo" },
+        { name: "Documentation", href: "/demo" },
+        { name: "Demo Videos", href: "/demo" },
+        { name: "API Docs", href: "/demo" },
       ],
     },
     {
       title: "Company",
       links: [
-        { name: "About Us", href: "#" },
-        { name: "Contact", href: "#" },
-        { name: "Privacy Policy", href: "#" },
-        { name: "Terms of Service", href: "#" },
+        { name: "About Us", href: "/about" },
+        { name: "Contact", href: "/contact" },
+        { name: "Privacy Policy", href: "/privacy" },
+        { name: "Terms of Service", href: "/terms" },
       ],
     },
   ];
@@ -118,12 +120,12 @@ const Footer = () => {
                 <ul className="space-y-3">
                   {section.links.map((link, linkIndex) => (
                     <li key={linkIndex}>
-                      <a
-                        href={link.href}
+                      <Link
+                        to={link.href}
                         className="text-muted-foreground hover:text-primary transition-colors text-sm"
                       >
                         {link.name}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -139,24 +141,24 @@ const Footer = () => {
               </p>
 
               <div className="flex items-center gap-6">
-                <a
-                  href="#"
+                <Link
+                  to="/privacy"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm"
                 >
                   Privacy Policy
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  to="/terms"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm"
                 >
                   Terms of Service
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  to="/cookies"
                   className="text-muted-foreground hover:text-primary transition-colors text-sm"
                 >
                   Cookie Policy
-                </a>
+                </Link>
               </div>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import img from "../../public/Gllarix_Icon PNG.png";
 
 const Navigation = () => {
@@ -18,10 +19,13 @@ const Navigation = () => {
             </div>
 
             {/* Contact Button */}
-            <button className="flex items-center gap-2 px-6 py-3 rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/10 text-primary transition-all duration-300 backdrop-blur-sm">
+            <Link 
+              to="/contact"
+              className="flex items-center gap-2 px-6 py-3 rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/10 text-primary transition-all duration-300 backdrop-blur-sm"
+            >
               <span className="text-sm font-medium">Contact us</span>
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </Link>
           </div>
         </div>
       </nav>
@@ -34,31 +38,37 @@ const Navigation = () => {
             <div className="flex items-center gap-8">
               <div className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-primary"></span>
-                <a
-                  href="#"
+                <Link
+                  to="/"
                   className="text-white hover:text-primary transition-colors text-sm font-light"
                 >
                   Home
-                </a>
+                </Link>
               </div>
-              <a
-                href="#services"
+              <Link
+                to="/#services"
                 className="text-gray-400 hover:text-primary transition-colors text-sm font-light"
               >
                 Services
-              </a>
-              <a
-                href="#about"
+              </Link>
+              <Link
+                to="/#industries"
                 className="text-gray-400 hover:text-primary transition-colors text-sm font-light"
               >
                 Product
-              </a>
-              <a
-                href="#contact"
+              </Link>
+              <Link
+                to="/about"
                 className="text-gray-400 hover:text-primary transition-colors text-sm font-light"
               >
                 About us
-              </a>
+              </Link>
+              <Link
+                to="/demo"
+                className="text-gray-400 hover:text-primary transition-colors text-sm font-light"
+              >
+                Demo
+              </Link>
             </div>
           </div>
         </div>
