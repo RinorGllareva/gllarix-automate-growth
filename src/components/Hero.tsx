@@ -30,12 +30,12 @@ const Hero = () => {
           <div className="max-w-4xl">
             {/* Split Typography */}
             <div className="space-y-4">
-              <h1 className="text-8xl md:text-9xl lg:text-[12rem] font-bold leading-[0.85] tracking-tight">
+              <h1 className="text-8xl md:text-9xl lg:text-[11rem] font-bold leading-[0.85] tracking-tight">
                 <div className="text-white font-extralight">
-                  Defending
+                  The FUTURE
                 </div>
                 <div className="text-white font-extralight -ml-2">
-                  the Digital
+                  runs ITSELF
                 </div>
               </h1>
             </div>

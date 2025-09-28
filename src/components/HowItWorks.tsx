@@ -1,25 +1,44 @@
 import { ArrowRight, Settings, Bot, Zap } from "lucide-react";
+import img from "../../public/Gllarix_NamePNG.png";
 
 const HowItWorks = () => {
   const steps = [
     {
       icon: Settings,
       title: "Connect Your Systems",
-      description: "Link Gllarix to your CRM, calendar, or lead sources in minutes. No technical expertise required.",
-      details: ["CRM Integration", "Calendar Sync", "Lead Sources", "Custom Workflows"]
+      description:
+        "Link Gllarix to your CRM, calendar, or lead sources in minutes. No technical expertise required.",
+      details: [
+        "CRM Integration",
+        "Calendar Sync",
+        "Lead Sources",
+        "Custom Workflows",
+      ],
     },
     {
       icon: Bot,
-      title: "AI Agents Go to Work", 
-      description: "Our AI agents start handling calls, bookings, reminders, and follow-ups using your business rules.",
-      details: ["Voice Calls", "Appointment Booking", "Lead Qualification", "Customer Follow-ups"]
+      title: "AI Agents Go to Work",
+      description:
+        "Our AI agents start handling calls, bookings, reminders, and follow-ups using your business rules.",
+      details: [
+        "Voice Calls",
+        "Appointment Booking",
+        "Lead Qualification",
+        "Customer Follow-ups",
+      ],
     },
     {
       icon: Zap,
       title: "Results Sync Instantly",
-      description: "All interactions and data automatically sync back to your systems in real-time.",
-      details: ["Real-time Updates", "Data Synchronization", "Automated Reports", "Performance Analytics"]
-    }
+      description:
+        "All interactions and data automatically sync back to your systems in real-time.",
+      details: [
+        "Real-time Updates",
+        "Data Synchronization",
+        "Automated Reports",
+        "Performance Analytics",
+      ],
+    },
   ];
 
   return (
@@ -28,12 +47,19 @@ const HowItWorks = () => {
         <div className="max-w-6xl mx-auto">
           {/* Section Header */}
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              How <span className="text-gradient">Gllarix</span> Works
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 flex items-center justify-center gap-3">
+              How
+              <img
+                src={img}
+                alt="Gllarix Name"
+                className="h-14 inline-block align-middle"
+              />
+              Works
             </h2>
+
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Get up and running in minutes with our simple 3-step process. 
-              No complex setup, no lengthy training periods.
+              Get up and running in minutes with our simple 3-step process. No
+              complex setup, no lengthy training periods.
             </p>
           </div>
 
@@ -45,10 +71,18 @@ const HowItWorks = () => {
                 {index < steps.length - 1 && (
                   <div className="hidden md:block absolute left-1/2 top-32 w-px h-16 bg-gradient-to-b from-border to-transparent transform -translate-x-0.5"></div>
                 )}
-                
-                <div className={`grid md:grid-cols-2 gap-12 items-center ${index % 2 === 1 ? 'md:grid-flow-dense' : ''}`}>
+
+                <div
+                  className={`grid md:grid-cols-2 gap-12 items-center ${
+                    index % 2 === 1 ? "md:grid-flow-dense" : ""
+                  }`}
+                >
                   {/* Content */}
-                  <div className={`space-y-6 ${index % 2 === 1 ? 'md:col-start-2' : ''}`}>
+                  <div
+                    className={`space-y-6 ${
+                      index % 2 === 1 ? "md:col-start-2" : ""
+                    }`}
+                  >
                     <div className="flex items-center gap-4 mb-4">
                       <div className="bg-primary/10 p-3 rounded-xl">
                         <step.icon className="h-8 w-8 text-primary" />
@@ -57,13 +91,20 @@ const HowItWorks = () => {
                         {index + 1}
                       </div>
                     </div>
-                    
-                    <h3 className="text-3xl font-bold text-foreground">{step.title}</h3>
-                    <p className="text-lg text-muted-foreground leading-relaxed">{step.description}</p>
-                    
+
+                    <h3 className="text-3xl font-bold text-foreground">
+                      {step.title}
+                    </h3>
+                    <p className="text-lg text-muted-foreground leading-relaxed">
+                      {step.description}
+                    </p>
+
                     <div className="grid grid-cols-2 gap-3">
                       {step.details.map((detail, i) => (
-                        <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <div
+                          key={i}
+                          className="flex items-center gap-2 text-sm text-muted-foreground"
+                        >
                           <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
                           {detail}
                         </div>
@@ -72,7 +113,11 @@ const HowItWorks = () => {
                   </div>
 
                   {/* Visual */}
-                  <div className={`relative ${index % 2 === 1 ? 'md:col-start-1' : ''}`}>
+                  <div
+                    className={`relative ${
+                      index % 2 === 1 ? "md:col-start-1" : ""
+                    }`}
+                  >
                     <div className="card-feature p-8 text-center relative overflow-hidden">
                       <div className="relative z-10">
                         <step.icon className="h-20 w-20 text-primary mx-auto mb-4" />
@@ -83,7 +128,7 @@ const HowItWorks = () => {
                           Step {index + 1}
                         </div>
                       </div>
-                      
+
                       {/* Background decoration */}
                       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5"></div>
                       <div className="absolute top-4 right-4 w-12 h-12 bg-primary/10 rounded-full blur-sm"></div>
@@ -111,7 +156,7 @@ const HowItWorks = () => {
               <p className="text-muted-foreground mb-6">
                 Join 500+ businesses already saving 30+ hours per week
               </p>
-              <button className="btn-hero">
+              <button className="btn-hero inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300">
                 Start Your Free Demo
                 <ArrowRight className="ml-2 h-5 w-5" />
               </button>

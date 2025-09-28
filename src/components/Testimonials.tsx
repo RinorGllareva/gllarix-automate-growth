@@ -183,7 +183,7 @@ const Testimonials = () => {
           </div>
 
           {/* Case Study CTA */}
-          <div className="mt-16 text-center">
+          {/* <div className="mt-16 text-center">
             <div className="card-feature inline-block p-8 max-w-2xl">
               <h3 className="text-2xl font-bold text-foreground mb-4">
                 Want to See Detailed Results?
@@ -201,7 +201,7 @@ const Testimonials = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </section>

@@ -1,17 +1,19 @@
 import { ArrowRight } from "lucide-react";
+import img from "../../public/Gllarix_Icon PNG.png";
 
 const Navigation = () => {
   return (
     <>
       {/* Top Header */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-transparent">
-        <div className="container mx-auto px-12 py-6">
+      <nav className="fixed top-5 left-4 right-4 z-50 bg-transparent">
+        {/*bg-white/5 backdrop-blur-md rounded-full shadow-lg border
+        border-white/5*/}
+        <div className="container mx-auto px-6 py-3">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <div className="text-primary text-xl">▲</div>
               <div className="text-xl font-light text-white tracking-wider">
-                GLLARIX
+                <img src={img} alt="Gllarix Logo" className="h-[60px] w-auto" />
               </div>
             </div>
 
@@ -32,17 +34,29 @@ const Navigation = () => {
             <div className="flex items-center gap-8">
               <div className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-primary"></span>
-                <a href="#" className="text-white hover:text-primary transition-colors text-sm font-light">
+                <a
+                  href="#"
+                  className="text-white hover:text-primary transition-colors text-sm font-light"
+                >
                   Home
                 </a>
               </div>
-              <a href="#services" className="text-gray-400 hover:text-primary transition-colors text-sm font-light">
+              <a
+                href="#services"
+                className="text-gray-400 hover:text-primary transition-colors text-sm font-light"
+              >
                 Services
               </a>
-              <a href="#about" className="text-gray-400 hover:text-primary transition-colors text-sm font-light">
+              <a
+                href="#about"
+                className="text-gray-400 hover:text-primary transition-colors text-sm font-light"
+              >
                 Product
               </a>
-              <a href="#contact" className="text-gray-400 hover:text-primary transition-colors text-sm font-light">
+              <a
+                href="#contact"
+                className="text-gray-400 hover:text-primary transition-colors text-sm font-light"
+              >
                 About us
               </a>
             </div>

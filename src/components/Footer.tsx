@@ -1,5 +1,6 @@
 import { Bot, Mail, Phone, MapPin, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import img from "../../public/Gllarix_LogoPNG.png";
 
 const Footer = () => {
   const footerSections = [
@@ -9,8 +10,8 @@ const Footer = () => {
         { name: "AI Voice Agents", href: "#" },
         { name: "Business Automation", href: "#" },
         { name: "CRM Integration", href: "#" },
-        { name: "Appointment Booking", href: "#" }
-      ]
+        { name: "Appointment Booking", href: "#" },
+      ],
     },
     {
       title: "Industries",
@@ -20,29 +21,26 @@ const Footer = () => {
         { name: "Solar & Energy", href: "#" },
         { name: "Automotive", href: "#" },
         { name: "Insurance", href: "#" },
-        { name: "Hospitality", href: "#" }
-      ]
+        { name: "Hospitality", href: "#" },
+      ],
     },
     {
       title: "Resources",
       links: [
         { name: "Case Studies", href: "#" },
         { name: "Documentation", href: "#" },
-        { name: "Blog", href: "#" },
-        { name: "Help Center", href: "#" },
-        { name: "API Reference", href: "#" }
-      ]
+
+      ],
     },
     {
       title: "Company",
       links: [
         { name: "About Us", href: "#" },
-        { name: "Careers", href: "#" },
         { name: "Contact", href: "#" },
         { name: "Privacy Policy", href: "#" },
-        { name: "Terms of Service", href: "#" }
-      ]
-    }
+        { name: "Terms of Service", href: "#" },
+      ],
+    },
   ];
 
   return (
@@ -54,17 +52,17 @@ const Footer = () => {
             {/* Company Info */}
             <div className="space-y-6">
               <div className="flex items-center gap-3">
-                <div className="bg-gradient-to-br from-primary to-accent p-3 rounded-xl">
-                  <Bot className="h-8 w-8 text-white" />
-                </div>
-                <div className="text-3xl font-bold">
-                  <span className="text-gradient">Gllarix</span>
-                </div>
+                <img
+                  src={img}
+                  alt="Gllarix Logo"
+                  className="h-12 md:h-16 w-auto object-contain"
+                />
               </div>
-              
+
               <p className="text-lg text-muted-foreground max-w-md leading-relaxed">
-                AI agents and business automations that handle calls, reservations, 
-                appointments, and workflows so businesses run smoother with less human error.
+                AI agents and business automations that handle calls,
+                reservations, appointments, and workflows so businesses run
+                smoother with less human error.
               </p>
 
               <div className="space-y-3">
@@ -74,22 +72,25 @@ const Footer = () => {
                 </div>
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <Phone className="h-5 w-5 text-primary" />
-                  <span>1-800-GLLARIX</span>
+                  <span>38349636899</span>
                 </div>
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <MapPin className="h-5 w-5 text-primary" />
-                  <span>San Francisco, CA</span>
+                  <span>Prishtinë, XKS</span>
                 </div>
               </div>
             </div>
 
             {/* Newsletter */}
             <div className="space-y-6">
-              <h3 className="text-2xl font-bold text-foreground">Stay Updated</h3>
+              <h3 className="text-2xl font-bold text-foreground">
+                Stay Updated
+              </h3>
               <p className="text-muted-foreground">
-                Get the latest updates on AI automation trends, case studies, and product features.
+                Get the latest updates on AI automation trends, case studies,
+                and product features.
               </p>
-              
+
               <div className="flex gap-3">
                 <input
                   type="email"
@@ -100,7 +101,7 @@ const Footer = () => {
                   <ArrowRight className="h-5 w-5" />
                 </Button>
               </div>
-              
+
               <p className="text-sm text-muted-foreground">
                 No spam. Unsubscribe at any time.
               </p>
@@ -111,7 +112,9 @@ const Footer = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             {footerSections.map((section, index) => (
               <div key={index}>
-                <h4 className="font-semibold text-foreground mb-4">{section.title}</h4>
+                <h4 className="font-semibold text-foreground mb-4">
+                  {section.title}
+                </h4>
                 <ul className="space-y-3">
                   {section.links.map((link, linkIndex) => (
                     <li key={linkIndex}>
@@ -132,17 +135,26 @@ const Footer = () => {
           <div className="border-t border-border pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <p className="text-muted-foreground text-sm">
-                © 2024 Gllarix. All rights reserved.
+                © 2025 Gllarix. All rights reserved.
               </p>
-              
+
               <div className="flex items-center gap-6">
-                <a href="#" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                <a
+                  href="#"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm"
+                >
                   Privacy Policy
                 </a>
-                <a href="#" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                <a
+                  href="#"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm"
+                >
                   Terms of Service
                 </a>
-                <a href="#" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                <a
+                  href="#"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm"
+                >
                   Cookie Policy
                 </a>
               </div>
