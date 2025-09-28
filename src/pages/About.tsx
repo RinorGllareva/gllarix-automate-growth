@@ -2,72 +2,200 @@ import { ArrowRight, Users, Target, Lightbulb, Award, Globe, TrendingUp } from "
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Canvas } from "@react-three/fiber";
-import { Float, Text3D, OrbitControls, Sphere } from "@react-three/drei";
-import { useRef, useEffect } from "react";
+import { Float, Text3D, OrbitControls, Sphere, Box, Torus, Plane, useTexture } from "@react-three/drei";
+import { useRef, useEffect, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useScrollAnimation, useCountUp } from "@/hooks/useScrollAnimation";
+import gllarixLogo from "@/assets/gllarix-logo.png";
 
-// 3D About Animation
-const FloatingTeam3D = () => {
+// Crazy 3D Hero Animation
+const CrazyHero3D = () => {
   const groupRef = useRef<THREE.Group>(null);
+  const [time, setTime] = useState(0);
   
   useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    setTime(t);
+    
     if (groupRef.current) {
-      groupRef.current.rotation.y = state.clock.elapsedTime * 0.2;
+      groupRef.current.rotation.y = t * 0.1;
+      groupRef.current.rotation.x = Math.sin(t * 0.3) * 0.1;
     }
   });
 
+  // Create multiple layers of animated objects
+  const createLayer = (radius: number, count: number, yOffset: number, color: string) => {
+    return [...Array(count)].map((_, i) => {
+      const angle = (i / count) * Math.PI * 2;
+      const x = Math.cos(angle + time * 0.5) * radius;
+      const z = Math.sin(angle + time * 0.5) * radius;
+      const y = yOffset + Math.sin(time * 2 + i) * 0.5;
+      
+      return (
+        <Float key={`${radius}-${i}`} speed={3 + i * 0.2} rotationIntensity={0.5} floatIntensity={0.8}>
+          <group position={[x, y, z]}>
+            {/* Main sphere */}
+            <Sphere args={[0.2, 16, 16]}>
+              <meshStandardMaterial 
+                color={color}
+                transparent
+                opacity={0.7}
+                roughness={0.1}
+                metalness={0.9}
+                envMapIntensity={1}
+              />
+            </Sphere>
+            
+            {/* Orbiting smaller spheres */}
+            <Sphere 
+              args={[0.05, 8, 8]} 
+              position={[Math.cos(time * 4 + i) * 0.4, 0, Math.sin(time * 4 + i) * 0.4]}
+            >
+              <meshStandardMaterial 
+                color="#ffffff"
+                transparent
+                opacity={0.9}
+                emissive={color}
+                emissiveIntensity={0.3}
+              />
+            </Sphere>
+          </group>
+        </Float>
+      );
+    });
+  };
+
   return (
     <group ref={groupRef}>
-      {[...Array(5)].map((_, i) => (
-        <Float key={i} speed={2 + i * 0.5} rotationIntensity={0.2} floatIntensity={0.3}>
-          <Sphere 
-            args={[0.3, 16, 16]} 
+      {/* Central glowing torus */}
+      <Float speed={1} rotationIntensity={0.2} floatIntensity={0.3}>
+        <Torus args={[1.5, 0.3, 16, 100]} rotation={[Math.PI / 2, 0, 0]}>
+          <meshStandardMaterial 
+            color="#8b5cf6"
+            transparent
+            opacity={0.6}
+            roughness={0.1}
+            metalness={0.8}
+            emissive="#8b5cf6"
+            emissiveIntensity={0.2}
+          />
+        </Torus>
+      </Float>
+
+      {/* Multiple animated layers */}
+      {createLayer(3, 8, 0, "#8b5cf6")}
+      {createLayer(4.5, 12, 1, "#a855f7")}
+      {createLayer(2, 6, -1, "#c084fc")}
+      
+      {/* Floating geometric shapes */}
+      {[...Array(6)].map((_, i) => (
+        <Float key={`box-${i}`} speed={2 + i * 0.3} rotationIntensity={0.8} floatIntensity={0.6}>
+          <Box 
+            args={[0.3, 0.3, 0.3]}
             position={[
-              Math.cos((i / 5) * Math.PI * 2) * 2,
-              Math.sin((i / 5) * Math.PI * 2) * 1,
-              Math.sin((i / 5) * Math.PI * 4) * 0.5
+              Math.cos(time * 0.8 + i * 1.2) * 5,
+              Math.sin(time * 0.6 + i * 0.8) * 2,
+              Math.sin(time * 0.4 + i * 0.6) * 3
             ]}
+            rotation={[time * 0.5 + i, time * 0.3 + i, time * 0.7 + i]}
           >
             <meshStandardMaterial 
-              color={`hsl(${240 + i * 20}, 70%, 60%)`}
+              color={`hsl(${270 + i * 15}, 80%, 70%)`}
               transparent
               opacity={0.8}
-              roughness={0.3}
+              roughness={0.2}
               metalness={0.7}
             />
-          </Sphere>
+          </Box>
         </Float>
       ))}
+
+      {/* Particle field */}
+      <points>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            count={200}
+            array={new Float32Array([...Array(600)].map(() => (Math.random() - 0.5) * 20))}
+            itemSize={3}
+          />
+        </bufferGeometry>
+        <pointsMaterial 
+          size={0.02} 
+          color="#8b5cf6" 
+          transparent 
+          opacity={0.6}
+        />
+      </points>
     </group>
   );
 };
 
-// Mission 3D Component
-const Mission3D = () => {
-  const meshRef = useRef<THREE.Mesh>(null);
+// 3D Logo Component
+const Logo3D = () => {
+  const groupRef = useRef<THREE.Group>(null);
+  const logoRef = useRef<THREE.Mesh>(null);
+  const texture = useTexture(gllarixLogo);
   
   useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.8) * 0.2;
-      meshRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.6) * 0.1;
+    const t = state.clock.elapsedTime;
+    
+    if (groupRef.current) {
+      groupRef.current.rotation.y = t * 0.8;
+      groupRef.current.rotation.x = Math.sin(t * 0.5) * 0.1;
+    }
+    
+    if (logoRef.current) {
+      logoRef.current.position.y = Math.sin(t * 2) * 0.2;
     }
   });
 
   return (
-    <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.4}>
-      <mesh ref={meshRef}>
-        <octahedronGeometry args={[1.5, 0]} />
-        <meshStandardMaterial 
-          color="#8b5cf6"
-          transparent
-          opacity={0.7}
-          roughness={0.2}
-          metalness={0.9}
-          envMapIntensity={1}
-        />
-      </mesh>
+    <Float speed={2} rotationIntensity={0.3} floatIntensity={0.5}>
+      <group ref={groupRef}>
+        {/* Main logo */}
+        <mesh ref={logoRef}>
+          <planeGeometry args={[2.5, 2.5]} />
+          <meshStandardMaterial 
+            map={texture}
+            transparent
+            alphaTest={0.1}
+            roughness={0.3}
+            metalness={0.2}
+          />
+        </mesh>
+        
+        {/* Glowing ring around logo */}
+        <Torus args={[1.8, 0.05, 8, 32]} rotation={[Math.PI / 2, 0, 0]}>
+          <meshStandardMaterial 
+            color="#8b5cf6"
+            emissive="#8b5cf6"
+            emissiveIntensity={0.5}
+            transparent
+            opacity={0.8}
+          />
+        </Torus>
+        
+        {/* Orbiting elements */}
+        {[...Array(4)].map((_, i) => (
+          <Sphere 
+            key={i}
+            args={[0.1, 16, 16]}
+            position={[
+              Math.cos((i / 4) * Math.PI * 2) * 2.2,
+              Math.sin((i / 4) * Math.PI * 2) * 0.3,
+              Math.sin((i / 4) * Math.PI * 2) * 0.5
+            ]}
+          >
+            <meshStandardMaterial 
+              color={`hsl(${270 + i * 20}, 70%, 70%)`}
+              emissive={`hsl(${270 + i * 20}, 70%, 50%)`}
+              emissiveIntensity={0.3}
+            />
+          </Sphere>
+        ))}
+      </group>
     </Float>
   );
 };
@@ -154,12 +282,13 @@ const About = () => {
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* 3D Background */}
         <div className="absolute inset-0 z-0">
-          <Canvas camera={{ position: [0, 0, 6], fov: 75 }}>
-            <ambientLight intensity={0.5} />
-            <pointLight position={[10, 10, 10]} />
-            <pointLight position={[-10, -10, -10]} color="#8b5cf6" />
-            <FloatingTeam3D />
-            <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={0.3} />
+          <Canvas camera={{ position: [0, 0, 8], fov: 75 }}>
+            <ambientLight intensity={0.3} />
+            <pointLight position={[10, 10, 10]} intensity={1.5} />
+            <pointLight position={[-10, -10, -10]} color="#8b5cf6" intensity={0.8} />
+            <spotLight position={[0, 15, 0]} angle={0.3} penumbra={1} intensity={2} color="#a855f7" />
+            <CrazyHero3D />
+            <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={0.2} />
           </Canvas>
         </div>
 
@@ -248,11 +377,13 @@ const About = () => {
               </div>
               
               <div className="relative h-96">
-                <Canvas camera={{ position: [0, 0, 4], fov: 75 }}>
+                <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
                   <ambientLight intensity={0.6} />
-                  <pointLight position={[5, 5, 5]} />
-                  <Mission3D />
-                  <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={1} />
+                  <pointLight position={[5, 5, 5]} intensity={1} />
+                  <pointLight position={[-5, -5, -5]} color="#8b5cf6" intensity={0.5} />
+                  <spotLight position={[0, 0, 8]} angle={0.2} penumbra={1} intensity={1} />
+                  <Logo3D />
+                  <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={0.5} />
                 </Canvas>
               </div>
             </div>
