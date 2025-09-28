@@ -233,11 +233,11 @@ const About = () => {
 
   const team = [
     {
-      name: "Sarah Chen",
+      name: "Rinor Gllareva",
       role: "CEO & Founder",
       description:
         "15+ years in AI and automation, former Google AI researcher",
-      image: "/api/placeholder/150/150",
+      image: "./Gllarix_Icon PNG.png",
       gradient: "from-primary via-primary/80 to-accent",
       accent: "primary",
       expertise: ["AI Research", "Strategy", "Leadership"],
@@ -496,7 +496,7 @@ const About = () => {
                     <div className="flex items-start space-x-4">
                       <div className="w-3 h-3 bg-primary rounded-full mt-2 flex-shrink-0"></div>
                       <p className="text-lg text-foreground leading-relaxed">
-                        Founded in 2023, Gllarix emerged from a simple
+                        Founded in 2025, Gllarix emerged from a simple
                         observation: businesses were spending countless hours on
                         repetitive tasks that could be automated with AI.
                       </p>
@@ -507,7 +507,7 @@ const About = () => {
                     <div className="flex items-start space-x-4">
                       <div className="w-3 h-3 bg-accent rounded-full mt-2 flex-shrink-0"></div>
                       <p className="text-lg text-foreground leading-relaxed">
-                        Our founders, coming from backgrounds at Google, Tesla,
+                        Our founder, coming from backgrounds at Google, Tesla,
                         and Microsoft, saw an opportunity to democratize AI
                         automation for businesses of all sizes.
                       </p>
