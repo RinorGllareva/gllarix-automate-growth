@@ -1,41 +1,61 @@
-import { ArrowRight, Users, Target, Lightbulb, Award, Globe, TrendingUp } from "lucide-react";
+import {
+  ArrowRight,
+  Users,
+  Target,
+  Lightbulb,
+  Award,
+  Globe,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Canvas } from "@react-three/fiber";
-import { Float, Text3D, OrbitControls, Sphere } from "@react-three/drei";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Float, OrbitControls, Sphere } from "@react-three/drei";
 import { useRef, useEffect } from "react";
-import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useScrollAnimation, useCountUp } from "@/hooks/useScrollAnimation";
 
-// 3D About Animation
+// 🌟 Floating spheres around a circle
 const FloatingTeam3D = () => {
   const groupRef = useRef<THREE.Group>(null);
-  
+
   useFrame((state) => {
     if (groupRef.current) {
       groupRef.current.rotation.y = state.clock.elapsedTime * 0.2;
     }
   });
 
+  const colors = [
+    "#ffffffff",
+    "#ffffffff",
+    "#ffffffff",
+    "#ffffffff",
+    "#ffffffff",
+  ];
+
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} scale={1.2}>
       {[...Array(5)].map((_, i) => (
-        <Float key={i} speed={2 + i * 0.5} rotationIntensity={0.2} floatIntensity={0.3}>
-          <Sphere 
-            args={[0.3, 16, 16]} 
+        <Float
+          key={i}
+          speed={2 + i * 0.5}
+          rotationIntensity={0.2}
+          floatIntensity={0.3}
+        >
+          <Sphere
+            args={[0.35, 24, 24]} // bigger + smoother
             position={[
-              Math.cos((i / 5) * Math.PI * 2) * 2,
-              Math.sin((i / 5) * Math.PI * 2) * 1,
-              Math.sin((i / 5) * Math.PI * 4) * 0.5
+              Math.cos((i / 5) * Math.PI * 2) * 2.2,
+              Math.sin((i / 5) * Math.PI * 2) * 1.2,
+              Math.sin((i / 5) * Math.PI * 4) * 0.6,
             ]}
           >
-            <meshStandardMaterial 
-              color={`hsl(${240 + i * 20}, 70%, 60%)`}
+            <meshStandardMaterial
+              color={colors[i % colors.length]}
               transparent
-              opacity={0.8}
-              roughness={0.3}
-              metalness={0.7}
+              opacity={0.9}
+              roughness={0.2}
+              metalness={0.95}
+              envMapIntensity={2}
             />
           </Sphere>
         </Float>
@@ -44,130 +64,219 @@ const FloatingTeam3D = () => {
   );
 };
 
-// Mission 3D Component
+// 🌟 Floating octahedron with wobble
 const Mission3D = () => {
   const meshRef = useRef<THREE.Mesh>(null);
-  
+
   useFrame((state) => {
     if (meshRef.current) {
-      meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.8) * 0.2;
-      meshRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.6) * 0.1;
+      meshRef.current.rotation.x =
+        Math.sin(state.clock.elapsedTime * 0.8) * 0.25;
+      meshRef.current.rotation.z =
+        Math.sin(state.clock.elapsedTime * 0.6) * 0.15;
     }
   });
 
   return (
     <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.4}>
-      <mesh ref={meshRef}>
-        <octahedronGeometry args={[1.5, 0]} />
-        <meshStandardMaterial 
-          color="#8b5cf6"
+      <mesh ref={meshRef} scale={1.3}>
+        <octahedronGeometry args={[1.8, 0]} />
+        <meshStandardMaterial
+          color="#6d33f5"
           transparent
-          opacity={0.7}
-          roughness={0.2}
-          metalness={0.9}
-          envMapIntensity={1}
+          opacity={0.85}
+          roughness={0.15}
+          metalness={1}
+          envMapIntensity={1.8}
         />
       </mesh>
     </Float>
   );
 };
 
+// 🌟 Global lighting for all Canvas scenes
+const SceneLights = () => (
+  <>
+    {/* Base ambient light */}
+    <ambientLight intensity={5} />
+
+    {/* Main directional light (white, top-right) */}
+    <directionalLight intensity={5} position={[5, 5, 5]} castShadow />
+
+    {/* Accent point light (purple, bottom-left) */}
+    <pointLight intensity={5} position={[-5, -3, -5]} color="#6d33f5" />
+
+    {/* Extra point light (blue, top-left) */}
+    <pointLight intensity={5} position={[-6, 6, 3]} color="#3b82f6" />
+
+    {/* Extra point light (pink, bottom-right) */}
+    <pointLight intensity={5} position={[6, -4, 2]} color="#ec4899" />
+
+    {/* Soft fill directional light (white, behind camera) */}
+    <directionalLight intensity={5} position={[0, 0, 8]} />
+
+    {/* --- New Lights Below --- */}
+
+    {/* Golden accent (warm glow from bottom center) */}
+    <pointLight intensity={5} position={[0, -5, 2]} color="#fbbf24" />
+
+    {/* Cool teal (side fill from left) */}
+    <pointLight intensity={5} position={[-8, 2, 4]} color="#14b8a6" />
+
+    {/* Magenta top-back rim light */}
+    <pointLight intensity={5} position={[2, 8, -3]} color="#d946ef" />
+
+    {/* Red accent (low back-right) */}
+    <spotLight
+      intensity={5}
+      position={[5, -2, -5]}
+      angle={0.4}
+      color="#ef4444"
+      castShadow
+    />
+
+    {/* Cyan fill (soft bounce from right) */}
+    <directionalLight intensity={0.4} position={[7, 3, 5]} color="#22d3ee" />
+
+    {/* White spotlight (focused, from above) */}
+    <spotLight
+      intensity={5}
+      position={[0, 10, 0]}
+      angle={0.3}
+      color="#ffffff"
+      castShadow
+    />
+  </>
+);
+
 const About = () => {
   const { ref: heroRef, isVisible: heroVisible } = useScrollAnimation(0.2);
   const { ref: statsRef, isVisible: statsVisible } = useScrollAnimation(0.3);
-  const { ref: missionRef, isVisible: missionVisible } = useScrollAnimation(0.2);
+  const { ref: missionRef, isVisible: missionVisible } =
+    useScrollAnimation(0.2);
   const { ref: teamRef, isVisible: teamVisible } = useScrollAnimation(0.2);
 
   // Count up animations
-  const { count: businessesCount, setIsActive: setBusinessesActive } = useCountUp(500, 2000);
-  const { count: hoursCount, setIsActive: setHoursActive } = useCountUp(30, 2000);
-  const { count: accuracyCount, setIsActive: setAccuracyActive } = useCountUp(99, 2000);
-  const { count: satisfactionCount, setIsActive: setSatisfactionActive } = useCountUp(98, 2000);
+  const { count: businessesCount, setIsActive: setBusinessesActive } =
+    useCountUp(500, 2000);
+  const { count: hoursCount, setIsActive: setHoursActive } = useCountUp(
+    30,
+    2000
+  );
+  const { count: accuracyCount, setIsActive: setAccuracyActive } = useCountUp(
+    99,
+    2000
+  );
+  const { count: satisfactionCount, setIsActive: setSatisfactionActive } =
+    useCountUp(98, 2000);
 
-  // Trigger count animations when stats become visible
   useEffect(() => {
-    if (statsVisible && !businessesCount && !hoursCount && !accuracyCount && !satisfactionCount) {
+    if (
+      statsVisible &&
+      !businessesCount &&
+      !hoursCount &&
+      !accuracyCount &&
+      !satisfactionCount
+    ) {
       setBusinessesActive(true);
       setHoursActive(true);
       setAccuracyActive(true);
       setSatisfactionActive(true);
     }
-  }, [statsVisible, businessesCount, hoursCount, accuracyCount, satisfactionCount, setBusinessesActive, setHoursActive, setAccuracyActive, setSatisfactionActive]);
+  }, [
+    statsVisible,
+    businessesCount,
+    hoursCount,
+    accuracyCount,
+    satisfactionCount,
+    setBusinessesActive,
+    setHoursActive,
+    setAccuracyActive,
+    setSatisfactionActive,
+  ]);
 
   const values = [
     {
       icon: Target,
       title: "Innovation First",
-      description: "We're constantly pushing the boundaries of what's possible with AI automation.",
-      color: "from-blue-500 to-blue-600"
+      description:
+        "We're constantly pushing the boundaries of what's possible with AI automation.",
+      color: "from-blue-500 to-blue-600",
     },
     {
       icon: Users,
       title: "Customer Success",
-      description: "Your success is our success. We're committed to delivering measurable results.",
-      color: "from-purple-500 to-purple-600"
+      description:
+        "Your success is our success. We're committed to delivering measurable results.",
+      color: "from-purple-500 to-purple-600",
     },
     {
       icon: Lightbulb,
       title: "Continuous Learning",
-      description: "We adapt and evolve with technology to provide cutting-edge solutions.",
-      color: "from-green-500 to-green-600"
+      description:
+        "We adapt and evolve with technology to provide cutting-edge solutions.",
+      color: "from-green-500 to-green-600",
     },
     {
       icon: Award,
       title: "Excellence",
-      description: "We maintain the highest standards in everything we do, from code to customer service.",
-      color: "from-orange-500 to-orange-600"
-    }
+      description:
+        "We maintain the highest standards in everything we do, from code to customer service.",
+      color: "from-orange-500 to-orange-600",
+    },
   ];
 
   const team = [
     {
       name: "Sarah Chen",
       role: "CEO & Founder",
-      description: "15+ years in AI and automation, former Google AI researcher",
-      image: "/api/placeholder/150/150"
+      description:
+        "15+ years in AI and automation, former Google AI researcher",
+      image: "/api/placeholder/150/150",
     },
     {
       name: "Marcus Rodriguez",
       role: "CTO",
       description: "Former Tesla AI engineer specializing in conversational AI",
-      image: "/api/placeholder/150/150"
+      image: "/api/placeholder/150/150",
     },
     {
       name: "Emily Watson",
       role: "Head of Product",
-      description: "Product strategy expert with experience at Microsoft and Amazon",
-      image: "/api/placeholder/150/150"
+      description:
+        "Product strategy expert with experience at Microsoft and Amazon",
+      image: "/api/placeholder/150/150",
     },
     {
       name: "David Kim",
       role: "Lead AI Engineer",
       description: "PhD in Machine Learning, former OpenAI research scientist",
-      image: "/api/placeholder/150/150"
-    }
+      image: "/api/placeholder/150/150",
+    },
   ];
 
   return (
     <main className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* 3D Background */}
         <div className="absolute inset-0 z-0">
           <Canvas camera={{ position: [0, 0, 6], fov: 75 }}>
-            <ambientLight intensity={0.5} />
-            <pointLight position={[10, 10, 10]} />
-            <pointLight position={[-10, -10, -10]} color="#8b5cf6" />
+            <SceneLights />
             <FloatingTeam3D />
-            <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={0.3} />
+            <OrbitControls
+              enableZoom={false}
+              autoRotate
+              autoRotateSpeed={0.3}
+            />
           </Canvas>
         </div>
 
-        {/* Content */}
-        <div 
+        <div
           ref={heroRef}
           className={`relative z-10 container mx-auto px-6 text-center transition-all duration-1000 ${
-            heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            heroVisible
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-8"
           }`}
         >
           <div className="max-w-4xl mx-auto">
@@ -175,13 +284,17 @@ const About = () => {
               About Gllarix
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-              We're building the future of business automation with AI agents that think, 
-              learn, and adapt to your unique business needs.
+              We're building the future of business automation with AI agents
+              that think, learn, and adapt to your unique business needs.
             </p>
-            <Button 
+            <Button
               size="lg"
               className="btn-hero"
-              onClick={() => document.getElementById('our-story')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() =>
+                document
+                  .getElementById("our-story")
+                  ?.scrollIntoView({ behavior: "smooth" })
+              }
             >
               Our Story
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -191,26 +304,44 @@ const About = () => {
       </section>
 
       {/* Stats Section */}
-      <section 
+      <section
         ref={statsRef}
         className={`py-24 bg-muted/30 transition-all duration-1000 ${
-          statsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          statsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
         }`}
       >
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
               {[
-                { number: businessesCount, suffix: "+", label: "Businesses Automated" },
-                { number: hoursCount, suffix: "+", label: "Hours Saved Weekly" },
+                {
+                  number: businessesCount,
+                  suffix: "+",
+                  label: "Businesses Automated",
+                },
+                {
+                  number: hoursCount,
+                  suffix: "+",
+                  label: "Hours Saved Weekly",
+                },
                 { number: accuracyCount, suffix: "%", label: "Accuracy Rate" },
-                { number: satisfactionCount, suffix: "%", label: "Customer Satisfaction" }
+                {
+                  number: satisfactionCount,
+                  suffix: "%",
+                  label: "Customer Satisfaction",
+                },
               ].map((stat, index) => (
-                <Card key={index} className="text-center p-8 hover:shadow-lg transition-shadow duration-300">
+                <Card
+                  key={index}
+                  className="text-center p-8 hover:shadow-lg transition-shadow duration-300"
+                >
                   <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
-                    {stat.number}{stat.suffix}
+                    {stat.number}
+                    {stat.suffix}
                   </div>
-                  <p className="text-muted-foreground font-medium">{stat.label}</p>
+                  <p className="text-muted-foreground font-medium">
+                    {stat.label}
+                  </p>
                 </Card>
               ))}
             </div>
@@ -229,16 +360,19 @@ const About = () => {
                 </h2>
                 <div className="space-y-6 text-lg text-muted-foreground">
                   <p>
-                    Founded in 2023, Gllarix emerged from a simple observation: businesses were 
-                    spending countless hours on repetitive tasks that could be automated with AI.
+                    Founded in 2023, Gllarix emerged from a simple observation:
+                    businesses were spending countless hours on repetitive tasks
+                    that could be automated with AI.
                   </p>
                   <p>
-                    Our founders, coming from backgrounds at Google, Tesla, and Microsoft, 
-                    saw an opportunity to democratize AI automation for businesses of all sizes.
+                    Our founders, coming from backgrounds at Google, Tesla, and
+                    Microsoft, saw an opportunity to democratize AI automation
+                    for businesses of all sizes.
                   </p>
                   <p>
-                    Today, we're proud to serve over 500 businesses worldwide, helping them 
-                    save thousands of hours and increase their efficiency by up to 300%.
+                    Today, we're proud to serve over 500 businesses worldwide,
+                    helping them save thousands of hours and increase their
+                    efficiency by up to 300%.
                   </p>
                 </div>
                 <Button className="mt-8 btn-hero">
@@ -246,13 +380,16 @@ const About = () => {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
-              
+
               <div className="relative h-96">
                 <Canvas camera={{ position: [0, 0, 4], fov: 75 }}>
-                  <ambientLight intensity={0.6} />
-                  <pointLight position={[5, 5, 5]} />
+                  <SceneLights />
                   <Mission3D />
-                  <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={1} />
+                  <OrbitControls
+                    enableZoom={false}
+                    autoRotate
+                    autoRotateSpeed={1}
+                  />
                 </Canvas>
               </div>
             </div>
@@ -261,10 +398,12 @@ const About = () => {
       </section>
 
       {/* Mission & Vision */}
-      <section 
+      <section
         ref={missionRef}
         className={`py-24 bg-muted/30 transition-all duration-1000 ${
-          missionVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          missionVisible
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-8"
         }`}
       >
         <div className="container mx-auto px-6">
@@ -274,29 +413,35 @@ const About = () => {
                 Mission & Vision
               </h2>
             </div>
-            
+
             <div className="grid lg:grid-cols-2 gap-12">
               <Card className="p-8 hover:shadow-lg transition-shadow duration-300">
                 <div className="bg-primary/10 p-4 rounded-xl w-fit mb-6">
                   <Target className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-2xl font-bold mb-4 text-foreground">Our Mission</h3>
+                <h3 className="text-2xl font-bold mb-4 text-foreground">
+                  Our Mission
+                </h3>
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  To empower businesses of all sizes with intelligent AI automation that eliminates 
-                  repetitive tasks, reduces human error, and unlocks human potential for more 
-                  strategic and creative work.
+                  To empower businesses of all sizes with intelligent AI
+                  automation that eliminates repetitive tasks, reduces human
+                  error, and unlocks human potential for more strategic and
+                  creative work.
                 </p>
               </Card>
-              
+
               <Card className="p-8 hover:shadow-lg transition-shadow duration-300">
                 <div className="bg-primary/10 p-4 rounded-xl w-fit mb-6">
                   <Globe className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-2xl font-bold mb-4 text-foreground">Our Vision</h3>
+                <h3 className="text-2xl font-bold mb-4 text-foreground">
+                  Our Vision
+                </h3>
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  A world where every business, regardless of size or industry, has access to 
-                  intelligent AI agents that handle routine operations, allowing humans to focus 
-                  on what they do best: innovate, create, and build relationships.
+                  A world where every business, regardless of size or industry,
+                  has access to intelligent AI agents that handle routine
+                  operations, allowing humans to focus on what they do best:
+                  innovate, create, and build relationships.
                 </p>
               </Card>
             </div>
@@ -316,11 +461,16 @@ const About = () => {
                 The principles that guide everything we do
               </p>
             </div>
-            
+
             <div className="grid md:grid-cols-2 gap-8">
               {values.map((value, index) => (
-                <Card key={index} className="p-8 hover:shadow-lg transition-all duration-300 group cursor-pointer">
-                  <div className={`bg-gradient-to-br ${value.color} p-4 rounded-xl w-fit mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110`}>
+                <Card
+                  key={index}
+                  className="p-8 hover:shadow-lg transition-all duration-300 group cursor-pointer"
+                >
+                  <div
+                    className={`bg-gradient-to-br ${value.color} p-4 rounded-xl w-fit mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110`}
+                  >
                     <value.icon className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold mb-4 text-foreground group-hover:text-primary transition-colors duration-300">
@@ -337,10 +487,10 @@ const About = () => {
       </section>
 
       {/* Team Section */}
-      <section 
+      <section
         ref={teamRef}
         className={`py-24 bg-muted/30 transition-all duration-1000 ${
-          teamVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          teamVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
         }`}
       >
         <div className="container mx-auto px-6">
@@ -350,27 +500,39 @@ const About = () => {
                 Meet Our Team
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                Industry experts dedicated to revolutionizing business automation
+                Industry experts dedicated to revolutionizing business
+                automation
               </p>
             </div>
-            
+
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {team.map((member, index) => (
-                <Card 
-                  key={index} 
+                <Card
+                  key={index}
                   className={`text-center p-6 hover:shadow-lg transition-all duration-700 ${
-                    teamVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                    teamVisible
+                      ? "opacity-100 translate-y-0"
+                      : "opacity-0 translate-y-8"
                   }`}
                   style={{ transitionDelay: `${index * 100}ms` }}
                 >
                   <div className="w-24 h-24 bg-gradient-to-br from-primary to-accent rounded-full mx-auto mb-4 flex items-center justify-center">
                     <span className="text-2xl font-bold text-white">
-                      {member.name.split(' ').map(n => n[0]).join('')}
+                      {member.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
                     </span>
                   </div>
-                  <h3 className="text-xl font-bold mb-2 text-foreground">{member.name}</h3>
-                  <p className="text-primary font-semibold mb-3">{member.role}</p>
-                  <p className="text-sm text-muted-foreground">{member.description}</p>
+                  <h3 className="text-xl font-bold mb-2 text-foreground">
+                    {member.name}
+                  </h3>
+                  <p className="text-primary font-semibold mb-3">
+                    {member.role}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {member.description}
+                  </p>
                 </Card>
               ))}
             </div>
@@ -387,14 +549,19 @@ const About = () => {
                 Ready to Transform Your Business?
               </h2>
               <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                Join hundreds of businesses already saving 30+ hours per week with Gllarix AI automation.
+                Join hundreds of businesses already saving 30+ hours per week
+                with Gllarix AI automation.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button size="lg" className="btn-hero">
                   Start Free Trial
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
-                <Button size="lg" variant="outline" className="border-primary/30 text-primary hover:bg-primary/10">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-primary/30 text-primary hover:bg-primary/10"
+                >
                   Schedule Demo
                 </Button>
               </div>
