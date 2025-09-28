@@ -46,66 +46,66 @@ const HowItWorks = () => {
       <div className="container mx-auto px-6">
         <div className="max-w-6xl mx-auto">
           {/* Section Header */}
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 flex items-center justify-center gap-3">
-              How
+          <div className="text-center mb-12 sm:mb-16 px-4 sm:px-0">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
+              <span>How</span>
               <img
                 src={img}
                 alt="Gllarix Name"
-                className="h-14 inline-block align-middle"
+                className="h-10 sm:h-12 md:h-14 inline-block align-middle"
               />
-              Works
+              <span>Works</span>
             </h2>
 
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               Get up and running in minutes with our simple 3-step process. No
               complex setup, no lengthy training periods.
             </p>
           </div>
 
           {/* Steps */}
-          <div className="space-y-16">
+          <div className="space-y-12 sm:space-y-16">
             {steps.map((step, index) => (
-              <div key={index} className="relative">
+              <div key={index} className="relative px-4 sm:px-0">
                 {/* Connection Line */}
                 {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute left-1/2 top-32 w-px h-16 bg-gradient-to-b from-border to-transparent transform -translate-x-0.5"></div>
+                  <div className="hidden lg:block absolute left-1/2 top-32 w-px h-16 bg-gradient-to-b from-border to-transparent transform -translate-x-0.5"></div>
                 )}
 
                 <div
-                  className={`grid md:grid-cols-2 gap-12 items-center ${
-                    index % 2 === 1 ? "md:grid-flow-dense" : ""
+                  className={`grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center ${
+                    index % 2 === 1 ? "lg:grid-flow-dense" : ""
                   }`}
                 >
                   {/* Content */}
                   <div
-                    className={`space-y-6 ${
-                      index % 2 === 1 ? "md:col-start-2" : ""
+                    className={`space-y-4 sm:space-y-6 ${
+                      index % 2 === 1 ? "lg:col-start-2" : ""
                     }`}
                   >
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="bg-primary/10 p-3 rounded-xl">
-                        <step.icon className="h-8 w-8 text-primary" />
+                    <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+                      <div className="bg-primary/10 p-2 sm:p-3 rounded-xl">
+                        <step.icon className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
                       </div>
-                      <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">
+                      <div className="bg-primary text-primary-foreground w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm">
                         {index + 1}
                       </div>
                     </div>
 
-                    <h3 className="text-3xl font-bold text-foreground">
+                    <h3 className="text-2xl sm:text-3xl font-bold text-foreground">
                       {step.title}
                     </h3>
-                    <p className="text-lg text-muted-foreground leading-relaxed">
+                    <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
                       {step.description}
                     </p>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                       {step.details.map((detail, i) => (
                         <div
                           key={i}
-                          className="flex items-center gap-2 text-sm text-muted-foreground"
+                          className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground"
                         >
-                          <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                          <div className="w-1.5 h-1.5 bg-primary rounded-full shrink-0"></div>
                           {detail}
                         </div>
                       ))}
@@ -115,32 +115,32 @@ const HowItWorks = () => {
                   {/* Visual */}
                   <div
                     className={`relative ${
-                      index % 2 === 1 ? "md:col-start-1" : ""
+                      index % 2 === 1 ? "lg:col-start-1" : ""
                     }`}
                   >
-                    <div className="card-feature p-8 text-center relative overflow-hidden">
+                    <div className="card-feature p-6 sm:p-8 text-center relative overflow-hidden">
                       <div className="relative z-10">
-                        <step.icon className="h-20 w-20 text-primary mx-auto mb-4" />
-                        <div className="text-6xl font-bold text-gradient mb-2">
+                        <step.icon className="h-16 w-16 sm:h-20 sm:w-20 text-primary mx-auto mb-3 sm:mb-4" />
+                        <div className="text-4xl sm:text-6xl font-bold text-gradient mb-1 sm:mb-2">
                           {index + 1}
                         </div>
-                        <div className="text-lg font-semibold text-foreground">
+                        <div className="text-base sm:text-lg font-semibold text-foreground">
                           Step {index + 1}
                         </div>
                       </div>
 
                       {/* Background decoration */}
                       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5"></div>
-                      <div className="absolute top-4 right-4 w-12 h-12 bg-primary/10 rounded-full blur-sm"></div>
-                      <div className="absolute bottom-4 left-4 w-8 h-8 bg-accent/10 rounded-full blur-sm"></div>
+                      <div className="absolute top-4 right-4 w-8 h-8 sm:w-12 sm:h-12 bg-primary/10 rounded-full blur-sm"></div>
+                      <div className="absolute bottom-4 left-4 w-6 h-6 sm:w-8 sm:h-8 bg-accent/10 rounded-full blur-sm"></div>
                     </div>
                   </div>
                 </div>
 
                 {/* Arrow between steps */}
                 {index < steps.length - 1 && (
-                  <div className="flex justify-center mt-8 md:hidden">
-                    <ArrowRight className="h-6 w-6 text-muted-foreground" />
+                  <div className="flex justify-center mt-6 sm:mt-8 lg:hidden">
+                    <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
                   </div>
                 )}
               </div>
@@ -148,17 +148,17 @@ const HowItWorks = () => {
           </div>
 
           {/* CTA */}
-          <div className="text-center mt-16">
-            <div className="card-feature inline-block p-8">
-              <h3 className="text-2xl font-bold text-foreground mb-4">
+          <div className="text-center mt-12 sm:mt-16 px-4 sm:px-0">
+            <div className="card-feature inline-block p-6 sm:p-8 max-w-md mx-auto">
+              <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-3 sm:mb-4">
                 Ready to Get Started?
               </h3>
-              <p className="text-muted-foreground mb-6">
+              <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
                 Join 500+ businesses already saving 30+ hours per week
               </p>
-              <button className="btn-hero inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300">
+              <button className="btn-hero inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 text-sm sm:text-base">
                 Start Your Free Demo
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
               </button>
             </div>
           </div>

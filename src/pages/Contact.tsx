@@ -123,9 +123,9 @@ const Contact = () => {
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Background Effects */}
         <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/5 to-accent/10"></div>
-        <div className="absolute top-20 left-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-20 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-10 w-64 h-64 bg-secondary/8 rounded-full blur-3xl animate-pulse delay-500"></div>
+        <div className="absolute top-10 sm:top-20 left-10 sm:left-20 w-48 sm:w-80 lg:w-96 h-48 sm:h-80 lg:h-96 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-10 sm:bottom-20 right-10 sm:right-20 w-40 sm:w-64 lg:w-80 h-40 sm:h-64 lg:h-80 bg-accent/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-5 sm:left-10 w-32 sm:w-48 lg:w-64 h-32 sm:h-48 lg:h-64 bg-secondary/8 rounded-full blur-3xl animate-pulse delay-500"></div>
         
         {/* 3D Background */}
         <div className="absolute inset-0 z-0">
@@ -143,55 +143,55 @@ const Contact = () => {
         <div className="absolute bottom-32 right-32 w-7 h-7 bg-primary/35 rounded-full animate-float delay-1500"></div>
 
         {/* Content */}
-        <div className="relative z-10 container mx-auto px-6 text-center">
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 text-center">
           <div className="max-w-5xl mx-auto">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-8 backdrop-blur-sm">
+            <div className="inline-flex items-center px-3 sm:px-4 py-2 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-medium mb-6 sm:mb-8 backdrop-blur-sm">
               <span className="w-2 h-2 bg-primary rounded-full mr-2 animate-pulse"></span>
               Let's Connect
             </div>
             
-            <h1 className="text-5xl md:text-8xl font-bold mb-8 text-gradient leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-bold mb-6 sm:mb-8 text-gradient leading-tight">
               Get in Touch
             </h1>
             
-            <div className="w-32 h-1 bg-gradient-to-r from-primary via-accent to-secondary rounded-full mx-auto mb-8"></div>
+            <div className="w-24 sm:w-32 h-1 bg-gradient-to-r from-primary via-accent to-secondary rounded-full mx-auto mb-6 sm:mb-8"></div>
             
-            <p className="text-xl md:text-2xl text-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-lg sm:text-xl md:text-2xl text-foreground mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed px-4 sm:px-0">
               Ready to transform your business with AI? Let's discuss how Gllarix can automate your workflows and boost productivity.
             </p>
             
-            <div className="flex flex-col sm:flex-row justify-center gap-6 mb-16">
+            <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 mb-12 sm:mb-16 px-4 sm:px-0">
               <Button 
                 size="lg"
-                className="btn-hero group"
+                className="btn-hero group w-full sm:w-auto"
                 onClick={() => document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 Start Conversation
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button 
                 size="lg"
                 variant="outline"
-                className="border-2 border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 backdrop-blur-sm"
+                className="border-2 border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 backdrop-blur-sm w-full sm:w-auto"
                 onClick={() => document.getElementById('contact-info')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 Contact Info
-                <MessageSquare className="ml-2 h-5 w-5" />
+                <MessageSquare className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </div>
             
             {/* Trust Indicators */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto">
-              <div className="flex items-center justify-center space-x-3 text-sm text-muted-foreground">
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8 max-w-2xl mx-auto px-4 sm:px-0">
+              <div className="flex items-center justify-center space-x-2 sm:space-x-3 text-xs sm:text-sm text-muted-foreground">
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full animate-pulse shrink-0"></div>
                 <span>Quick Response</span>
               </div>
-              <div className="flex items-center justify-center space-x-3 text-sm text-muted-foreground">
-                <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse delay-200"></div>
+              <div className="flex items-center justify-center space-x-2 sm:space-x-3 text-xs sm:text-sm text-muted-foreground">
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-blue-500 rounded-full animate-pulse delay-200 shrink-0"></div>
                 <span>Free Consultation</span>
               </div>
-              <div className="flex items-center justify-center space-x-3 text-sm text-muted-foreground">
-                <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse delay-400"></div>
+              <div className="flex items-center justify-center space-x-2 sm:space-x-3 text-xs sm:text-sm text-muted-foreground sm:col-span-2 md:col-span-1">
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-purple-500 rounded-full animate-pulse delay-400 shrink-0"></div>
                 <span>24/7 Support</span>
               </div>
             </div>
@@ -215,22 +215,22 @@ const Contact = () => {
           <div className="absolute top-1/2 left-10 w-64 h-64 bg-secondary/5 rounded-full blur-3xl animate-pulse delay-500"></div>
         </div>
         
-        <div className="container mx-auto px-6 relative z-10">
+        <div className="container mx-auto px-4 sm:px-6 relative z-10">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-20">
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-accent/10 text-accent text-sm font-medium mb-4">
+            <div className="text-center mb-12 sm:mb-20">
+              <div className="inline-flex items-center px-3 sm:px-4 py-2 rounded-full bg-accent/10 text-accent text-xs sm:text-sm font-medium mb-4">
                 <span className="w-2 h-2 bg-accent rounded-full mr-2 animate-pulse"></span>
                 Ready to Start?
               </div>
-              <h2 className="text-4xl md:text-6xl font-bold mb-6 text-gradient">
+              <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 text-gradient">
                 Let's Build Something Amazing
               </h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto px-4 sm:px-0">
                 Tell us about your project and let's discuss how we can help transform your business
               </p>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-20 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-20 items-start">
               {/* Enhanced Form */}
               <div className="group relative">
                 <Card className="p-10 bg-card/60 backdrop-blur-xl border border-border/50 hover:border-primary/30 shadow-2xl hover:shadow-3xl transition-all duration-700 overflow-hidden">

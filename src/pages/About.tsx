@@ -291,17 +291,17 @@ const About = () => {
 
         <div
           ref={heroRef}
-          className={`relative z-10 container mx-auto px-6 text-center transition-all duration-1000 ${
+          className={`relative z-10 container mx-auto px-4 sm:px-6 text-center transition-all duration-1000 ${
             heroVisible
               ? "opacity-100 translate-y-0"
               : "opacity-0 -translate-y-8"
           }`}
         >
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 text-gradient">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 text-gradient">
               About Gllarix
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-4 sm:px-0">
               We're building the future of business automation with AI agents
               that think, learn, and adapt to your unique business needs.
             </p>
@@ -315,7 +315,7 @@ const About = () => {
               }
             >
               Our Story
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
           </div>
         </div>
@@ -341,24 +341,24 @@ const About = () => {
           <div className="absolute bottom-24 left-40 w-5 h-5 bg-primary/15 rounded-xl rotate-12 animate-float delay-1200"></div>
         </div>
 
-        <div className="container mx-auto px-6 relative z-10">
+        <div className="container mx-auto px-4 sm:px-6 relative z-10">
           <div className="max-w-6xl mx-auto">
             {/* Section Header */}
-            <div className="text-center mb-20">
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+            <div className="text-center mb-12 sm:mb-20">
+              <div className="inline-flex items-center px-3 sm:px-4 py-2 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-medium mb-4 sm:mb-6">
                 <span className="w-2 h-2 bg-primary rounded-full mr-2 animate-pulse"></span>
                 Our Impact
               </div>
-              <h2 className="text-4xl md:text-5xl font-bold text-gradient mb-4">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gradient mb-3 sm:mb-4">
                 Proven Results
               </h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto px-4 sm:px-0">
                 Real numbers from real businesses that trust Gllarix to
                 transform their operations
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
               {[
                 {
                   number: businessesCount,

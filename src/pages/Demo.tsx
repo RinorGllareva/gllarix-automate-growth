@@ -191,35 +191,35 @@ const Demo = () => {
         {/* Content */}
         <div 
           ref={heroRef}
-          className={`relative z-10 container mx-auto px-6 text-center transition-all duration-1000 ${
+          className={`relative z-10 container mx-auto px-4 sm:px-6 text-center transition-all duration-1000 ${
             heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'
           }`}
         >
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 text-gradient">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 text-gradient">
               Demos & Documentation
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-4 sm:px-0">
               Explore interactive demos, watch implementation guides, and access comprehensive 
               documentation to get the most out of Gllarix AI automation.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center px-4 sm:px-0">
               <Button 
                 size="lg"
-                className="btn-hero"
+                className="btn-hero w-full sm:w-auto"
                 onClick={() => document.getElementById('demo-videos')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 Watch Demos
-                <Play className="ml-2 h-5 w-5" />
+                <Play className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
               <Button 
                 size="lg"
                 variant="outline"
-                className="border-primary/30 text-primary hover:bg-primary/10"
+                className="border-primary/30 text-primary hover:bg-primary/10 w-full sm:w-auto"
                 onClick={() => document.getElementById('documentation')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 View Documentation
-                <FileText className="ml-2 h-5 w-5" />
+                <FileText className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </div>
           </div>
@@ -234,18 +234,18 @@ const Demo = () => {
           videosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'
         }`}
       >
-        <div className="container mx-auto px-6">
+        <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
+            <div className="text-center mb-12 sm:mb-16">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-foreground">
                 Interactive Demos
               </h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto px-4 sm:px-0">
                 See Gllarix in action with real-world scenarios and industry-specific use cases
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               {demoVideos.map((video, index) => (
                 <Card 
                   key={video.id}
@@ -301,18 +301,18 @@ const Demo = () => {
           docsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'
         }`}
       >
-        <div className="container mx-auto px-6">
+        <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
+            <div className="text-center mb-12 sm:mb-16">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-foreground">
                 Documentation & Guides
               </h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto px-4 sm:px-0">
                 Comprehensive resources to help you implement, optimize, and scale your AI automation
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               {documentation.map((doc, index) => (
                 <Card 
                   key={index}
@@ -382,22 +382,22 @@ const Demo = () => {
 
       {/* CTA Section */}
       <section className="py-24 bg-muted/30">
-        <div className="container mx-auto px-6">
+        <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-foreground">
               Ready to Get Started?
             </h2>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-4 sm:px-0">
               Book a personalized demo to see how Gllarix can transform your specific business processes.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="btn-hero">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center px-4 sm:px-0">
+              <Button size="lg" className="btn-hero w-full sm:w-auto">
                 Schedule Live Demo
-                <Video className="ml-2 h-5 w-5" />
+                <Video className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
-              <Button size="lg" variant="outline" className="border-primary/30 text-primary hover:bg-primary/10">
+              <Button size="lg" variant="outline" className="border-primary/30 text-primary hover:bg-primary/10 w-full sm:w-auto">
                 Start Free Trial
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </div>
           </div>
