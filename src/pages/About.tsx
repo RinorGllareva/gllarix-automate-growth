@@ -319,47 +319,143 @@ const About = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* Stats Section - Enhanced */}
       <section
         ref={statsRef}
-        className={`py-24 bg-muted/30 transition-all duration-1000 ${
+        className={`py-32 relative overflow-hidden bg-gradient-to-br from-background via-muted/10 to-background transition-all duration-1000 ${
           statsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
         }`}
       >
-        <div className="container mx-auto px-6">
+        {/* Animated Background Effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-10 w-80 h-80 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-secondary/3 rounded-full blur-3xl animate-pulse delay-500"></div>
+          
+          {/* Floating Elements */}
+          <div className="absolute top-32 left-20 w-4 h-4 bg-primary/20 rounded-full animate-float"></div>
+          <div className="absolute bottom-40 right-32 w-6 h-6 bg-accent/20 rounded-lg rotate-45 animate-float delay-700"></div>
+          <div className="absolute top-48 right-16 w-3 h-3 bg-secondary/25 rounded-full animate-float delay-300"></div>
+          <div className="absolute bottom-24 left-40 w-5 h-5 bg-primary/15 rounded-xl rotate-12 animate-float delay-1200"></div>
+        </div>
+
+        <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* Section Header */}
+            <div className="text-center mb-20">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+                <span className="w-2 h-2 bg-primary rounded-full mr-2 animate-pulse"></span>
+                Our Impact
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold text-gradient mb-4">
+                Proven Results
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Real numbers from real businesses that trust Gllarix to transform their operations
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
                 {
                   number: businessesCount,
                   suffix: "+",
                   label: "Businesses Automated",
+                  description: "Companies worldwide",
+                  gradient: "from-primary via-primary/80 to-accent",
+                  accent: "primary",
+                  icon: "💼"
                 },
                 {
                   number: hoursCount,
                   suffix: "+",
                   label: "Hours Saved Weekly",
+                  description: "Per business on average",
+                  gradient: "from-accent via-accent/80 to-secondary",
+                  accent: "accent",
+                  icon: "⏱️"
                 },
-                { number: accuracyCount, suffix: "%", label: "Accuracy Rate" },
+                { 
+                  number: accuracyCount, 
+                  suffix: "%", 
+                  label: "Accuracy Rate",
+                  description: "In task completion",
+                  gradient: "from-secondary via-secondary/80 to-primary",
+                  accent: "secondary",
+                  icon: "🎯"
+                },
                 {
                   number: satisfactionCount,
                   suffix: "%",
                   label: "Customer Satisfaction",
+                  description: "Happy customers",
+                  gradient: "from-primary via-accent/60 to-secondary",
+                  accent: "primary",
+                  icon: "⭐"
                 },
               ].map((stat, index) => (
                 <Card
                   key={index}
-                  className="text-center p-8 hover:shadow-lg transition-shadow duration-300"
+                  className="group relative overflow-hidden bg-card/50 backdrop-blur-sm border border-border/50 hover:border-border transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2"
                 >
-                  <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
-                    {stat.number}
-                    {stat.suffix}
+                  {/* Animated background gradient */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}></div>
+                  
+                  {/* Content */}
+                  <div className="relative p-8 text-center">
+                    {/* Icon */}
+                    <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
+                      {stat.icon}
+                    </div>
+                    
+                    {/* Number with enhanced styling */}
+                    <div className="relative">
+                      <div className={`text-5xl md:text-6xl font-bold text-${stat.accent} mb-2 relative z-10`}>
+                        <span className="relative">
+                          {stat.number}
+                          <span className="text-3xl md:text-4xl">{stat.suffix}</span>
+                          {/* Glowing effect */}
+                          <div className={`absolute inset-0 text-${stat.accent} blur-sm opacity-50 group-hover:opacity-100 transition-opacity duration-300`}>
+                            {stat.number}{stat.suffix}
+                          </div>
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Labels */}
+                    <h3 className="text-lg font-semibold text-foreground mb-1 group-hover:text-primary transition-colors duration-300">
+                      {stat.label}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {stat.description}
+                    </p>
                   </div>
-                  <p className="text-muted-foreground font-medium">
-                    {stat.label}
-                  </p>
+                  
+                  {/* Floating orb decoration */}
+                  <div className={`absolute -top-2 -right-2 w-6 h-6 bg-${stat.accent}/20 rounded-full opacity-0 group-hover:opacity-100 transform group-hover:animate-bounce transition-all duration-300`}></div>
+                  
+                  {/* Progress bar at bottom */}
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-muted overflow-hidden">
+                    <div className={`h-full bg-gradient-to-r ${stat.gradient} transform -translate-x-full group-hover:translate-x-0 transition-transform duration-1000 ease-out`}></div>
+                  </div>
                 </Card>
               ))}
+            </div>
+
+            {/* Achievement Badges */}
+            <div className="flex justify-center items-center space-x-8 mt-20">
+              <div className="flex items-center space-x-3 px-6 py-3 rounded-full bg-card/30 backdrop-blur-sm border border-border/30">
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-muted-foreground">ISO 27001 Certified</span>
+              </div>
+              <div className="flex items-center space-x-3 px-6 py-3 rounded-full bg-card/30 backdrop-blur-sm border border-border/30">
+                <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse delay-300"></div>
+                <span className="text-sm font-medium text-muted-foreground">SOC 2 Type II</span>
+              </div>
+              <div className="flex items-center space-x-3 px-6 py-3 rounded-full bg-card/30 backdrop-blur-sm border border-border/30">
+                <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse delay-600"></div>
+                <span className="text-sm font-medium text-muted-foreground">GDPR Compliant</span>
+              </div>
             </div>
           </div>
         </div>
