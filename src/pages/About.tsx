@@ -237,12 +237,18 @@ const About = () => {
       description:
         "15+ years in AI and automation, former Google AI researcher",
       image: "/api/placeholder/150/150",
+      gradient: "from-primary via-primary/80 to-accent",
+      accent: "primary",
+      expertise: ["AI Research", "Strategy", "Leadership"]
     },
     {
       name: "Marcus Rodriguez",
       role: "CTO",
       description: "Former Tesla AI engineer specializing in conversational AI",
       image: "/api/placeholder/150/150",
+      gradient: "from-accent via-accent/80 to-secondary",
+      accent: "accent",
+      expertise: ["AI Engineering", "Architecture", "Innovation"]
     },
     {
       name: "Emily Watson",
@@ -250,12 +256,18 @@ const About = () => {
       description:
         "Product strategy expert with experience at Microsoft and Amazon",
       image: "/api/placeholder/150/150",
+      gradient: "from-secondary via-secondary/80 to-primary",
+      accent: "secondary",
+      expertise: ["Product Strategy", "UX Design", "Growth"]
     },
     {
       name: "David Kim",
       role: "Lead AI Engineer",
       description: "PhD in Machine Learning, former OpenAI research scientist",
       image: "/api/placeholder/150/150",
+      gradient: "from-primary via-accent/60 to-secondary",
+      accent: "primary",
+      expertise: ["Machine Learning", "Research", "Development"]
     },
   ];
 
@@ -665,52 +677,137 @@ const About = () => {
       {/* Team Section */}
       <section
         ref={teamRef}
-        className={`py-24 bg-muted/30 transition-all duration-1000 ${
+        className={`py-24 relative overflow-hidden bg-gradient-to-br from-muted/20 via-background to-muted/10 transition-all duration-1000 ${
           teamVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
         }`}
       >
-        <div className="container mx-auto px-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
+        {/* Background Effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-1/4 w-96 h-96 bg-primary/3 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-1/4 w-80 h-80 bg-accent/3 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-10 w-64 h-64 bg-secondary/3 rounded-full blur-3xl animate-pulse delay-500"></div>
+          <div className="absolute bottom-10 right-10 w-72 h-72 bg-primary/2 rounded-full blur-3xl animate-pulse delay-1500"></div>
+        </div>
+        
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-20">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-secondary/10 text-secondary text-sm font-medium mb-4">
+                <span className="w-2 h-2 bg-secondary rounded-full mr-2 animate-pulse"></span>
+                Leadership Team
+              </div>
+              <h2 className="text-4xl md:text-6xl font-bold mb-6 text-gradient">
                 Meet Our Team
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                Industry experts dedicated to revolutionizing business
-                automation
+                Industry experts dedicated to revolutionizing business automation
               </p>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {team.map((member, index) => (
-                <Card
-                  key={index}
-                  className={`text-center p-6 hover:shadow-lg transition-all duration-700 ${
-                    teamVisible
-                      ? "opacity-100 translate-y-0"
-                      : "opacity-0 translate-y-8"
-                  }`}
-                  style={{ transitionDelay: `${index * 100}ms` }}
-                >
-                  <div className="w-24 h-24 bg-gradient-to-br from-primary to-accent rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-white">
-                      {member.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-bold mb-2 text-foreground">
-                    {member.name}
-                  </h3>
-                  <p className="text-primary font-semibold mb-3">
-                    {member.role}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {member.description}
-                  </p>
-                </Card>
+                <div key={index} className="group relative">
+                  <Card
+                    className={`text-center p-8 h-full hover:shadow-2xl transition-all duration-700 border-border/50 bg-card/50 backdrop-blur-sm hover:bg-card/80 hover:border-primary/20 hover:scale-[1.05] transform cursor-pointer overflow-hidden ${
+                      teamVisible
+                        ? "opacity-100 translate-y-0"
+                        : "opacity-0 translate-y-8"
+                    }`}
+                    style={{ transitionDelay: `${index * 150}ms` }}
+                  >
+                    {/* Animated Background */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${member.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-700`}></div>
+                    
+                    {/* Floating Elements */}
+                    <div className="absolute -top-3 -right-3 w-16 h-16 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:scale-110"></div>
+                    <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-gradient-to-br from-accent/5 to-secondary/5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 group-hover:scale-125"></div>
+                    
+                    {/* Role Badge */}
+                    <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                      <div className="bg-primary/10 backdrop-blur-sm px-3 py-1 rounded-full">
+                        <span className="text-xs text-primary font-medium">#{index + 1}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="relative">
+                      {/* Enhanced Avatar */}
+                      <div className="relative mb-6">
+                        <div className={`w-28 h-28 bg-gradient-to-br ${member.gradient} rounded-full mx-auto flex items-center justify-center shadow-lg group-hover:shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3`}>
+                          <span className="text-3xl font-bold text-white">
+                            {member.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </span>
+                        </div>
+                        
+                        {/* Orbiting Elements */}
+                        <div className="absolute -top-2 -right-2 w-5 h-5 bg-primary/40 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:animate-bounce"></div>
+                        <div className="absolute -bottom-1 -left-1 w-4 h-4 bg-accent/50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 group-hover:animate-bounce delay-200"></div>
+                        <div className="absolute top-1/2 -right-3 w-3 h-3 bg-secondary/60 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-600 group-hover:animate-bounce delay-400"></div>
+                        
+                        {/* Status Indicator */}
+                        <div className="absolute bottom-2 right-2 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-lg animate-pulse"></div>
+                      </div>
+                      
+                      {/* Name and Role */}
+                      <div className="mb-6">
+                        <h3 className={`text-2xl font-bold mb-2 text-foreground group-hover:text-${member.accent} transition-colors duration-500`}>
+                          {member.name}
+                        </h3>
+                        
+                        {/* Role Badge */}
+                        <div className={`inline-flex items-center px-3 py-1 rounded-full bg-${member.accent}/10 text-${member.accent} text-sm font-semibold mb-4`}>
+                          <span className={`w-2 h-2 bg-${member.accent} rounded-full mr-2 animate-pulse`}></span>
+                          {member.role}
+                        </div>
+                      </div>
+                      
+                      {/* Description */}
+                      <p className="text-sm text-foreground leading-relaxed mb-6 group-hover:text-foreground/90 transition-colors duration-300">
+                        {member.description}
+                      </p>
+                      
+                      {/* Expertise Tags */}
+                      <div className="flex flex-wrap justify-center gap-2 mb-4 opacity-0 group-hover:opacity-100 transition-all duration-500">
+                        {member.expertise.map((skill, skillIndex) => (
+                          <span
+                            key={skillIndex}
+                            className="px-2 py-1 bg-muted/50 text-muted-foreground text-xs rounded-full border border-border/50"
+                            style={{ transitionDelay: `${skillIndex * 100}ms` }}
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                      
+                      {/* Social Indicators */}
+                      <div className="flex justify-center space-x-3 opacity-0 group-hover:opacity-100 transition-all duration-500">
+                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center hover:bg-primary/20 transition-colors cursor-pointer">
+                          <div className="w-3 h-3 bg-primary rounded-full"></div>
+                        </div>
+                        <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center hover:bg-accent/20 transition-colors cursor-pointer">
+                          <div className="w-3 h-3 bg-accent rounded-full"></div>
+                        </div>
+                        <div className="w-8 h-8 bg-secondary/10 rounded-full flex items-center justify-center hover:bg-secondary/20 transition-colors cursor-pointer">
+                          <div className="w-3 h-3 bg-secondary rounded-full"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                  
+                  {/* Connecting Lines */}
+                  {index < team.length - 1 && index % 2 === 0 && (
+                    <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gradient-to-r from-primary/20 to-transparent transform -translate-y-1/2"></div>
+                  )}
+                </div>
               ))}
+            </div>
+            
+            {/* Team Connection Network */}
+            <div className="hidden lg:block absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+              <div className="w-6 h-6 bg-gradient-to-br from-primary to-accent rounded-full opacity-20 animate-pulse"></div>
+              <div className="absolute top-1 left-1 w-4 h-4 bg-gradient-to-br from-accent to-secondary rounded-full opacity-30 animate-pulse delay-500"></div>
             </div>
           </div>
         </div>
