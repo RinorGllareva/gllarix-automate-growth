@@ -32,8 +32,8 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
           <img
             src="/Gllarix_LogoPNG.png"
             alt="Gllarix"
-            className={`h-24 w-auto transition-all duration-2000 ease-out ${
-              isLoading ? "animate-logo-pulse" : ""
+            className={`h-24 w-auto transition-all duration-2000 ease-out animate-logo-pulse ${
+              isLoading ? "scale-100 opacity-100" : "scale-125 opacity-0"
             }`}
           />
         </div>
