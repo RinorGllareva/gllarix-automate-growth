@@ -383,7 +383,50 @@ const About = () => {
 
               <div className="relative h-96">
                 <Canvas camera={{ position: [0, 0, 4], fov: 75 }}>
+<<<<<<< HEAD
                   <SceneLights />
+=======
+                  {/* Ambient lighting for overall illumination */}
+                  <ambientLight intensity={0.3} color="#ffffff" />
+                  
+                  {/* Key light - main bright light */}
+                  <pointLight 
+                    position={[4, 4, 2]} 
+                    intensity={1.5} 
+                    color="#ffffff"
+                    castShadow
+                  />
+                  
+                  {/* Fill light - softer secondary light */}
+                  <pointLight 
+                    position={[-3, 2, 4]} 
+                    intensity={0.8} 
+                    color="#8b5cf6"
+                  />
+                  
+                  {/* Rim light - creates edge highlights */}
+                  <pointLight 
+                    position={[0, -4, -2]} 
+                    intensity={1.2} 
+                    color="#06b6d4"
+                  />
+                  
+                  {/* Spotlight for dramatic effect */}
+                  <spotLight
+                    position={[0, 8, 0]}
+                    angle={0.4}
+                    penumbra={0.5}
+                    intensity={2}
+                    color="#ffffff"
+                    target-position={[0, 0, 0]}
+                  />
+                  
+                  {/* Hemisphere light for natural ambient */}
+                  <hemisphereLight
+                    args={["#ffffff", "#1e1e2e", 0.4]}
+                  />
+                  
+>>>>>>> 005c66f35588de255d7d1577913e74cc8e7ef5cc
                   <Mission3D />
                   <OrbitControls
                     enableZoom={false}
