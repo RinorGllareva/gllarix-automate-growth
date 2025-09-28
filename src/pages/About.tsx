@@ -44,194 +44,34 @@ const FloatingTeam3D = () => {
   );
 };
 
-// Mind-Blowing 3D Story Component
-const FlabbergastingStory3D = () => {
-  const groupRef = useRef<THREE.Group>(null);
-  const torusRef = useRef<THREE.Mesh>(null);
-  const crystalsRef = useRef<THREE.Group>(null);
-  const particlesRef = useRef<THREE.Points>(null);
-
-  // Create particle system
-  const particleCount = 200;
-  const positions = new Float32Array(particleCount * 3);
-  const colors = new Float32Array(particleCount * 3);
-
-  for (let i = 0; i < particleCount; i++) {
-    const i3 = i * 3;
-    const radius = Math.random() * 8 + 2;
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.random() * Math.PI;
-    
-    positions[i3] = radius * Math.sin(phi) * Math.cos(theta);
-    positions[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-    positions[i3 + 2] = radius * Math.cos(phi);
-    
-    colors[i3] = Math.random();
-    colors[i3 + 1] = 0.5 + Math.random() * 0.5;
-    colors[i3 + 2] = 1;
-  }
-
+// Stunning 3D Story Component with Perfect Lighting
+const StunningStory3D = () => {
+  const meshRef = useRef<THREE.Mesh>(null);
+  
   useFrame((state) => {
-    const time = state.clock.elapsedTime;
-    
-    if (groupRef.current) {
-      groupRef.current.rotation.y = time * 0.1;
-    }
-
-    if (torusRef.current) {
-      // Morphing torus with complex transformations
-      torusRef.current.rotation.x = Math.sin(time * 0.8) * 0.5;
-      torusRef.current.rotation.y = time * 0.6;
-      torusRef.current.rotation.z = Math.cos(time * 0.4) * 0.3;
-      
-      // Dynamic scaling
-      const scale = 1 + Math.sin(time * 2) * 0.3;
-      torusRef.current.scale.setScalar(scale);
-      
-      // Color shifting
-      const material = torusRef.current.material as THREE.MeshStandardMaterial;
-      material.color.setHSL(
-        (time * 0.1) % 1,
-        0.8,
-        0.6
-      );
-    }
-
-    if (crystalsRef.current) {
-      crystalsRef.current.children.forEach((crystal, index) => {
-        const mesh = crystal as THREE.Mesh;
-        mesh.rotation.x = time * (0.5 + index * 0.2);
-        mesh.rotation.y = time * (0.3 + index * 0.15);
-        
-        // Orbital motion
-        const radius = 3 + index * 0.5;
-        const angle = time * (0.5 + index * 0.2) + (index * Math.PI * 2) / 6;
-        mesh.position.x = Math.cos(angle) * radius;
-        mesh.position.z = Math.sin(angle) * radius;
-        mesh.position.y = Math.sin(time * 2 + index) * 0.5;
-        
-        // Pulsing scale
-        const pulseScale = 1 + Math.sin(time * 3 + index) * 0.2;
-        mesh.scale.setScalar(pulseScale);
-      });
-    }
-
-    if (particlesRef.current) {
-      const positions = particlesRef.current.geometry.attributes.position.array as Float32Array;
-      const colors = particlesRef.current.geometry.attributes.color.array as Float32Array;
-      
-      for (let i = 0; i < particleCount; i++) {
-        const i3 = i * 3;
-        
-        // Swirling motion
-        const swirl = time * 0.5 + i * 0.1;
-        positions[i3] += Math.sin(swirl) * 0.02;
-        positions[i3 + 1] += Math.cos(swirl) * 0.02;
-        positions[i3 + 2] += Math.sin(swirl * 0.5) * 0.02;
-        
-        // Color animation
-        colors[i3] = (Math.sin(time + i * 0.1) + 1) * 0.5;
-        colors[i3 + 1] = (Math.cos(time * 1.5 + i * 0.1) + 1) * 0.5;
-        colors[i3 + 2] = (Math.sin(time * 2 + i * 0.1) + 1) * 0.5;
-      }
-      
-      particlesRef.current.geometry.attributes.position.needsUpdate = true;
-      particlesRef.current.geometry.attributes.color.needsUpdate = true;
+    if (meshRef.current) {
+      // Subtle elegant rotation
+      meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.3) * 0.1;
+      meshRef.current.rotation.y = state.clock.elapsedTime * 0.2;
+      meshRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.2) * 0.05;
     }
   });
 
   return (
-    <group ref={groupRef}>
-      {/* Central morphing torus */}
-      <Float speed={2} rotationIntensity={0.3} floatIntensity={0.5}>
-        <mesh ref={torusRef}>
-          <torusGeometry args={[1.5, 0.6, 16, 100]} />
-          <meshStandardMaterial
-            color="#8b5cf6"
-            transparent
-            opacity={0.8}
-            roughness={0.1}
-            metalness={0.9}
-            emissive="#4338ca"
-            emissiveIntensity={0.2}
-          />
-        </mesh>
-      </Float>
-
-      {/* Orbiting crystals */}
-      <group ref={crystalsRef}>
-        {[...Array(6)].map((_, i) => (
-          <Float key={i} speed={1 + i * 0.3} rotationIntensity={0.4} floatIntensity={0.2}>
-            <mesh>
-              <octahedronGeometry args={[0.3, 0]} />
-              <meshStandardMaterial
-                color={`hsl(${240 + i * 30}, 70%, 60%)`}
-                transparent
-                opacity={0.9}
-                roughness={0.2}
-                metalness={0.8}
-                emissive={`hsl(${240 + i * 30}, 50%, 30%)`}
-                emissiveIntensity={0.3}
-              />
-            </mesh>
-          </Float>
-        ))}
-      </group>
-
-      {/* Particle system */}
-      <points ref={particlesRef}>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            count={particleCount}
-            array={positions}
-            itemSize={3}
-          />
-          <bufferAttribute
-            attach="attributes-color"
-            count={particleCount}
-            array={colors}
-            itemSize={3}
-          />
-        </bufferGeometry>
-        <pointsMaterial
-          size={0.05}
-          vertexColors
+    <Float speed={1.5} rotationIntensity={0.1} floatIntensity={0.2}>
+      <mesh ref={meshRef}>
+        <dodecahedronGeometry args={[2, 2]} />
+        <meshStandardMaterial 
+          color="#8b5cf6"
           transparent
-          opacity={0.8}
-          blending={THREE.AdditiveBlending}
+          opacity={0.85}
+          roughness={0.1}
+          metalness={0.95}
+          emissive="#4c1d95"
+          emissiveIntensity={0.3}
         />
-      </points>
-
-      {/* Additional geometric elements */}
-      <Float speed={0.8} rotationIntensity={0.1} floatIntensity={0.3}>
-        <mesh position={[0, 0, 0]}>
-          <icosahedronGeometry args={[2.5, 1]} />
-          <meshStandardMaterial
-            color="#6366f1"
-            transparent
-            opacity={0.15}
-            roughness={0.3}
-            metalness={0.7}
-            wireframe
-          />
-        </mesh>
-      </Float>
-
-      <Float speed={1.2} rotationIntensity={0.2} floatIntensity={0.4}>
-        <mesh position={[0, 0, 0]}>
-          <dodecahedronGeometry args={[1.8, 0]} />
-          <meshStandardMaterial
-            color="#a855f7"
-            transparent
-            opacity={0.2}
-            roughness={0.1}
-            metalness={0.9}
-            wireframe
-          />
-        </mesh>
-      </Float>
-    </group>
+      </mesh>
+    </Float>
   );
 };
 
@@ -411,26 +251,61 @@ const About = () => {
               </div>
               
               <div className="relative h-96">
-                <Canvas camera={{ position: [0, 0, 8], fov: 60 }}>
-                  <ambientLight intensity={0.4} />
-                  <pointLight position={[10, 10, 10]} intensity={1.5} />
-                  <pointLight position={[-10, -10, -10]} color="#8b5cf6" intensity={1} />
-                  <pointLight position={[0, 10, 0]} color="#06b6d4" intensity={0.8} />
-                  <spotLight
-                    position={[0, 0, 10]}
-                    angle={0.3}
-                    penumbra={1}
-                    intensity={2}
-                    color="#a855f7"
+                <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
+                  {/* Perfect lighting setup */}
+                  <ambientLight intensity={0.2} />
+                  
+                  {/* Key light - main illumination */}
+                  <directionalLight
+                    position={[10, 10, 5]}
+                    intensity={2.5}
+                    color="#ffffff"
+                    castShadow
+                    shadow-mapSize-width={2048}
+                    shadow-mapSize-height={2048}
                   />
-                  <FlabbergastingStory3D />
+                  
+                  {/* Fill light - softer purple glow */}
+                  <pointLight 
+                    position={[-8, 2, 3]} 
+                    intensity={1.8} 
+                    color="#8b5cf6" 
+                    distance={20}
+                    decay={2}
+                  />
+                  
+                  {/* Rim light - edge highlighting */}
+                  <pointLight 
+                    position={[0, -5, -8]} 
+                    intensity={2.2} 
+                    color="#a855f7" 
+                    distance={15}
+                    decay={1.5}
+                  />
+                  
+                  {/* Top accent light */}
+                  <spotLight
+                    position={[0, 12, 0]}
+                    target-position={[0, 0, 0]}
+                    angle={Math.PI / 4}
+                    penumbra={0.5}
+                    intensity={1.5}
+                    color="#06b6d4"
+                    distance={25}
+                    decay={2}
+                  />
+                  
+                  {/* Environment lighting */}
+                  <hemisphereLight
+                    args={["#4338ca", "#1e1b4b", 0.6]}
+                  />
+
+                  <StunningStory3D />
                   <OrbitControls 
                     enableZoom={false} 
                     autoRotate 
-                    autoRotateSpeed={0.5}
+                    autoRotateSpeed={0.4}
                     enablePan={false}
-                    maxPolarAngle={Math.PI / 1.5}
-                    minPolarAngle={Math.PI / 3}
                   />
                 </Canvas>
               </div>
