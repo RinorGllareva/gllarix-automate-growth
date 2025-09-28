@@ -373,14 +373,13 @@ const About = () => {
               </div>
               
               <div className="relative h-96">
-                <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
-                  <ambientLight intensity={0.6} />
-                  <pointLight position={[5, 5, 5]} intensity={1} />
-                  <pointLight position={[-5, -5, -5]} color="#8b5cf6" intensity={0.5} />
-                  <spotLight position={[0, 0, 8]} angle={0.2} penumbra={1} intensity={1} />
-                  <Logo3D />
-                  <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={0.5} />
-                </Canvas>
+                <iframe 
+                  src='https://my.spline.design/untitled-MZNSF7V35CldtE1kENQp7R8S/' 
+                  frameBorder='0' 
+                  width='100%' 
+                  height='100%'
+                  className="rounded-lg"
+                />
               </div>
             </div>
           </div>
