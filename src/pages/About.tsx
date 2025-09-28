@@ -144,6 +144,7 @@ const Logo3D = () => {
     if (groupRef.current) {
       groupRef.current.rotation.y = t * 0.8;
       groupRef.current.rotation.x = Math.sin(t * 0.5) * 0.1;
+      groupRef.current.rotation.z = Math.sin(t * 0.3) * 0.15;
     }
     
     if (logoRef.current) {
@@ -176,25 +177,6 @@ const Logo3D = () => {
             opacity={0.8}
           />
         </Torus>
-        
-        {/* Orbiting elements */}
-        {[...Array(4)].map((_, i) => (
-          <Sphere 
-            key={i}
-            args={[0.1, 16, 16]}
-            position={[
-              Math.cos((i / 4) * Math.PI * 2) * 2.2,
-              Math.sin((i / 4) * Math.PI * 2) * 0.3,
-              Math.sin((i / 4) * Math.PI * 2) * 0.5
-            ]}
-          >
-            <meshStandardMaterial 
-              color={`hsl(${270 + i * 20}, 70%, 70%)`}
-              emissive={`hsl(${270 + i * 20}, 70%, 50%)`}
-              emissiveIntensity={0.3}
-            />
-          </Sphere>
-        ))}
       </group>
     </Float>
   );
