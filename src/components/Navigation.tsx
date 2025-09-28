@@ -19,7 +19,7 @@ const Navigation = () => {
             </div>
 
             {/* Contact Button */}
-            <Link 
+            <Link
               to="/contact"
               className="flex items-center gap-2 px-6 py-3 rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/10 text-primary transition-all duration-300 backdrop-blur-sm"
             >
@@ -51,12 +51,7 @@ const Navigation = () => {
               >
                 Services
               </Link>
-              <Link
-                to="/#industries"
-                className="text-gray-400 hover:text-primary transition-colors text-sm font-light"
-              >
-                Product
-              </Link>
+
               <Link
                 to="/about"
                 className="text-gray-400 hover:text-primary transition-colors text-sm font-light"

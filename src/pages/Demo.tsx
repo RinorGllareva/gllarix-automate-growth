@@ -7,6 +7,7 @@ import { useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import Navigation from "@/components/Navigation";
 
 // 3D Demo Animation
 const FloatingDemo3D = () => {
@@ -174,6 +175,7 @@ const Demo = () => {
 
   return (
     <main className="min-h-screen bg-background">
+      <Navigation></Navigation>
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* 3D Background */}
