@@ -44,31 +44,28 @@ const FloatingTeam3D = () => {
   );
 };
 
-// Stunning 3D Story Component with Perfect Lighting
-const StunningStory3D = () => {
+// Mission 3D Component
+const Mission3D = () => {
   const meshRef = useRef<THREE.Mesh>(null);
   
   useFrame((state) => {
     if (meshRef.current) {
-      // Subtle elegant rotation
-      meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.3) * 0.1;
-      meshRef.current.rotation.y = state.clock.elapsedTime * 0.2;
-      meshRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.2) * 0.05;
+      meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.8) * 0.2;
+      meshRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.6) * 0.1;
     }
   });
 
   return (
-    <Float speed={1.5} rotationIntensity={0.1} floatIntensity={0.2}>
+    <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.4}>
       <mesh ref={meshRef}>
-        <dodecahedronGeometry args={[2, 2]} />
+        <octahedronGeometry args={[1.5, 0]} />
         <meshStandardMaterial 
           color="#8b5cf6"
           transparent
-          opacity={0.85}
-          roughness={0.1}
-          metalness={0.95}
-          emissive="#4c1d95"
-          emissiveIntensity={0.3}
+          opacity={0.7}
+          roughness={0.2}
+          metalness={0.9}
+          envMapIntensity={1}
         />
       </mesh>
     </Float>
@@ -251,62 +248,11 @@ const About = () => {
               </div>
               
               <div className="relative h-96">
-                <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
-                  {/* Perfect lighting setup */}
-                  <ambientLight intensity={0.2} />
-                  
-                  {/* Key light - main illumination */}
-                  <directionalLight
-                    position={[10, 10, 5]}
-                    intensity={2.5}
-                    color="#ffffff"
-                    castShadow
-                    shadow-mapSize-width={2048}
-                    shadow-mapSize-height={2048}
-                  />
-                  
-                  {/* Fill light - softer purple glow */}
-                  <pointLight 
-                    position={[-8, 2, 3]} 
-                    intensity={1.8} 
-                    color="#8b5cf6" 
-                    distance={20}
-                    decay={2}
-                  />
-                  
-                  {/* Rim light - edge highlighting */}
-                  <pointLight 
-                    position={[0, -5, -8]} 
-                    intensity={2.2} 
-                    color="#a855f7" 
-                    distance={15}
-                    decay={1.5}
-                  />
-                  
-                  {/* Top accent light */}
-                  <spotLight
-                    position={[0, 12, 0]}
-                    target-position={[0, 0, 0]}
-                    angle={Math.PI / 4}
-                    penumbra={0.5}
-                    intensity={1.5}
-                    color="#06b6d4"
-                    distance={25}
-                    decay={2}
-                  />
-                  
-                  {/* Environment lighting */}
-                  <hemisphereLight
-                    args={["#4338ca", "#1e1b4b", 0.6]}
-                  />
-
-                  <StunningStory3D />
-                  <OrbitControls 
-                    enableZoom={false} 
-                    autoRotate 
-                    autoRotateSpeed={0.4}
-                    enablePan={false}
-                  />
+                <Canvas camera={{ position: [0, 0, 4], fov: 75 }}>
+                  <ambientLight intensity={0.6} />
+                  <pointLight position={[5, 5, 5]} />
+                  <Mission3D />
+                  <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={1} />
                 </Canvas>
               </div>
             </div>
