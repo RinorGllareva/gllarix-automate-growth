@@ -192,7 +192,7 @@ const Demo = () => {
         <div 
           ref={heroRef}
           className={`relative z-10 container mx-auto px-6 text-center transition-all duration-1000 ${
-            heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'
           }`}
         >
           <div className="max-w-4xl mx-auto">
@@ -231,7 +231,7 @@ const Demo = () => {
         id="demo-videos"
         ref={videosRef}
         className={`py-24 bg-muted/30 transition-all duration-1000 ${
-          videosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          videosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'
         }`}
       >
         <div className="container mx-auto px-6">
@@ -250,7 +250,7 @@ const Demo = () => {
                 <Card 
                   key={video.id}
                   className={`overflow-hidden hover:shadow-lg transition-all duration-700 cursor-pointer group ${
-                    videosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                    videosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'
                   }`}
                   style={{ transitionDelay: `${index * 100}ms` }}
                   onClick={() => setSelectedVideo(video.id)}
@@ -298,7 +298,7 @@ const Demo = () => {
         id="documentation"
         ref={docsRef}
         className={`py-24 bg-background transition-all duration-1000 ${
-          docsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          docsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'
         }`}
       >
         <div className="container mx-auto px-6">
@@ -317,7 +317,7 @@ const Demo = () => {
                 <Card 
                   key={index}
                   className={`p-6 hover:shadow-lg transition-all duration-700 group cursor-pointer ${
-                    docsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                    docsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'
                   }`}
                   style={{ transitionDelay: `${index * 100}ms` }}
                 >
