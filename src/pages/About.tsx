@@ -142,13 +142,13 @@ const Logo3D = () => {
     const t = state.clock.elapsedTime;
     
     if (groupRef.current) {
-      groupRef.current.rotation.y = t * 0.8;
-      groupRef.current.rotation.x = Math.sin(t * 0.5) * 0.1;
-      groupRef.current.rotation.z = Math.sin(t * 0.3) * 0.15;
+      groupRef.current.rotation.y = t * 0.6;
+      groupRef.current.rotation.x = Math.sin(t * 0.4) * 0.1;
+      groupRef.current.rotation.z = Math.sin(t * 0.8) * 0.05;
     }
     
     if (logoRef.current) {
-      logoRef.current.position.y = Math.sin(t * 2) * 0.2;
+      logoRef.current.position.y = Math.sin(t * 2) * 0.1;
     }
   });
 
@@ -191,17 +191,6 @@ const Logo3D = () => {
             metalness={0.1}
           />
         </mesh>
-        
-        {/* Glowing ring around logo */}
-        <Torus args={[1.8, 0.05, 8, 32]} rotation={[Math.PI / 2, 0, 0]}>
-          <meshStandardMaterial 
-            color="#8b5cf6"
-            emissive="#8b5cf6"
-            emissiveIntensity={0.5}
-            transparent
-            opacity={0.8}
-          />
-        </Torus>
       </group>
     </Float>
   );
