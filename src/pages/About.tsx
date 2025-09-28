@@ -814,31 +814,122 @@ const About = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-background">
-        <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto text-center">
-            <Card className="p-12 bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
-                Ready to Transform Your Business?
-              </h2>
-              <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                Join hundreds of businesses already saving 30+ hours per week
-                with Gllarix AI automation.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="btn-hero">
-                  Start Free Trial
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-primary/30 text-primary hover:bg-primary/10"
-                >
-                  Schedule Demo
-                </Button>
-              </div>
-            </Card>
+      <section className="py-32 relative overflow-hidden bg-gradient-to-br from-background via-primary/5 to-accent/10">
+        {/* Background Effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-0 w-64 h-64 bg-secondary/8 rounded-full blur-3xl animate-pulse delay-500"></div>
+          <div className="absolute top-0 right-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse delay-1500"></div>
+        </div>
+        
+        {/* Floating Elements */}
+        <div className="absolute top-20 left-20 w-6 h-6 bg-primary/30 rounded-full animate-float"></div>
+        <div className="absolute top-40 right-32 w-4 h-4 bg-accent/40 rounded-lg rotate-45 animate-float delay-1000"></div>
+        <div className="absolute bottom-32 left-16 w-8 h-8 bg-secondary/25 rounded-xl rotate-12 animate-float delay-500"></div>
+        <div className="absolute bottom-20 right-20 w-5 h-5 bg-primary/35 rounded-full animate-float delay-1500"></div>
+        
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="max-w-5xl mx-auto text-center">
+            <div className="group relative">
+              <Card className="p-16 bg-gradient-to-br from-card/60 via-card/80 to-card/60 backdrop-blur-xl border border-primary/20 hover:border-primary/40 shadow-2xl hover:shadow-3xl transition-all duration-700 overflow-hidden">
+                {/* Card Background Effects */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-1000 group-hover:scale-150"></div>
+                <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-gradient-to-br from-accent/10 to-secondary/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-1000 group-hover:scale-125"></div>
+                
+                {/* Content Badge */}
+                <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-8 group-hover:bg-primary/20 transition-colors duration-300">
+                  <span className="w-2 h-2 bg-primary rounded-full mr-2 animate-pulse"></span>
+                  Ready to Get Started?
+                </div>
+                
+                <div className="relative">
+                  <h2 className="text-5xl md:text-7xl font-bold mb-8 text-gradient group-hover:scale-105 transition-transform duration-500">
+                    Ready to Transform Your Business?
+                  </h2>
+                  
+                  {/* Animated Underline */}
+                  <div className="w-32 h-1 bg-gradient-to-r from-primary via-accent to-secondary rounded-full mx-auto mb-8 group-hover:w-48 transition-all duration-700"></div>
+                  
+                  <p className="text-xl md:text-2xl text-foreground mb-12 max-w-3xl mx-auto leading-relaxed group-hover:text-foreground/90 transition-colors duration-300">
+                    Join hundreds of businesses already saving 30+ hours per week
+                    with Gllarix AI automation.
+                  </p>
+                  
+                  {/* Stats Row */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                    <div className="group/stat text-center">
+                      <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/60 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg group-hover/stat:shadow-2xl group-hover/stat:scale-110 transition-all duration-300">
+                        <span className="text-2xl font-bold text-white">30+</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground font-medium">Hours Saved Weekly</p>
+                    </div>
+                    <div className="group/stat text-center">
+                      <div className="w-16 h-16 bg-gradient-to-br from-accent to-accent/60 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg group-hover/stat:shadow-2xl group-hover/stat:scale-110 transition-all duration-300">
+                        <span className="text-2xl font-bold text-white">500+</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground font-medium">Happy Businesses</p>
+                    </div>
+                    <div className="group/stat text-center">
+                      <div className="w-16 h-16 bg-gradient-to-br from-secondary to-secondary/60 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg group-hover/stat:shadow-2xl group-hover/stat:scale-110 transition-all duration-300">
+                        <span className="text-2xl font-bold text-white">99%</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground font-medium">Accuracy Rate</p>
+                    </div>
+                  </div>
+                  
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                    <Button size="lg" className="btn-hero group/btn relative overflow-hidden">
+                      <span className="relative z-10 flex items-center">
+                        Start Free Trial
+                        <ArrowRight className="ml-2 h-5 w-5 group-hover/btn:translate-x-1 transition-transform duration-300" />
+                      </span>
+                      {/* Button Background Effect */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
+                    </Button>
+                    
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="border-2 border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 group/btn relative overflow-hidden backdrop-blur-sm"
+                    >
+                      <span className="relative z-10 flex items-center">
+                        Schedule Demo
+                        <div className="ml-2 w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                          <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                        </div>
+                      </span>
+                    </Button>
+                  </div>
+                  
+                  {/* Trust Indicators */}
+                  <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-muted-foreground opacity-0 group-hover:opacity-100 transition-all duration-700">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                      <span>No Credit Card Required</span>
+                    </div>
+                    <div className="hidden sm:block w-1 h-4 bg-border rounded-full"></div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse delay-200"></div>
+                      <span>Setup in 5 Minutes</span>
+                    </div>
+                    <div className="hidden sm:block w-1 h-4 bg-border rounded-full"></div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse delay-400"></div>
+                      <span>24/7 Support</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+              
+              {/* Orbiting Elements Around Card */}
+              <div className="absolute -top-8 -left-8 w-16 h-16 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:animate-spin"></div>
+              <div className="absolute -bottom-6 -right-6 w-12 h-12 bg-gradient-to-br from-accent/20 to-secondary/20 rounded-xl rotate-45 opacity-0 group-hover:opacity-100 transition-all duration-700 group-hover:animate-pulse"></div>
+              <div className="absolute top-1/2 -left-6 w-8 h-8 bg-gradient-to-br from-secondary/20 to-primary/20 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-600 group-hover:animate-bounce"></div>
+              <div className="absolute top-1/4 -right-4 w-6 h-6 bg-gradient-to-br from-primary/30 to-accent/30 rounded-lg rotate-12 opacity-0 group-hover:opacity-100 transition-all duration-800 group-hover:animate-ping"></div>
+            </div>
           </div>
         </div>
       </section>
