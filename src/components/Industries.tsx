@@ -111,7 +111,7 @@ const Industries = () => {
           {/* Industries Grid */}
           <div 
             ref={gridRef}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-16"
           >
             {industries.map((industry, index) => (
               <div 
@@ -180,7 +180,7 @@ const Industries = () => {
               Every AI Agent Includes These Core Features
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 justify-center">
               {[
                 {
                   icon: Phone,

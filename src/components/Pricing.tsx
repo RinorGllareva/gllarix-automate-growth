@@ -107,7 +107,7 @@ const Pricing = () => {
           {/* Pricing Cards */}
           <div
             ref={cardsRef}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16"
+            className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-16"
           >
             {plans.map((plan, index) => (
               <div

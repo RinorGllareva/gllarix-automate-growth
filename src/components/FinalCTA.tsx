@@ -36,29 +36,29 @@ const FinalCTA = () => {
           </div>
 
           {/* Trust Indicators */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-12 px-4 sm:px-0">
-            <div className="card-feature text-center p-4 sm:p-6">
-              <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-success mx-auto mb-2 sm:mb-3" />
-              <h4 className="font-semibold text-foreground mb-1 sm:mb-2 text-sm sm:text-base">Free Setup</h4>
-              <p className="text-xs sm:text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-8 sm:mb-12 px-4 sm:px-0">
+            <div className="card-feature text-center p-3 sm:p-4 flex-1">
+              <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-success mx-auto mb-2" />
+              <h4 className="font-semibold text-foreground mb-1 text-xs sm:text-sm">Free Setup</h4>
+              <p className="text-xs text-muted-foreground">
                 No hidden fees or setup costs
               </p>
             </div>
-            <div className="card-feature text-center p-4 sm:p-6">
-              <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-success mx-auto mb-2 sm:mb-3" />
-              <h4 className="font-semibold text-foreground mb-1 sm:mb-2 text-sm sm:text-base">
+            <div className="card-feature text-center p-3 sm:p-4 flex-1">
+              <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-success mx-auto mb-2" />
+              <h4 className="font-semibold text-foreground mb-1 text-xs sm:text-sm">
                 Lifetime Support
               </h4>
-              <p className="text-xs sm:text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Always here to help
               </p>
             </div>
-            <div className="card-feature text-center p-4 sm:p-6 sm:col-span-2 md:col-span-1">
-              <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-success mx-auto mb-2 sm:mb-3" />
-              <h4 className="font-semibold text-foreground mb-1 sm:mb-2 text-sm sm:text-base">
+            <div className="card-feature text-center p-3 sm:p-4 flex-1">
+              <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-success mx-auto mb-2" />
+              <h4 className="font-semibold text-foreground mb-1 text-xs sm:text-sm">
                 Expert Support
               </h4>
-              <p className="text-xs sm:text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Dedicated success team
               </p>
             </div>

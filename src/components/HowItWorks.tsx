@@ -120,11 +120,11 @@ const HowItWorks = () => {
                   >
                     <div className="card-feature p-6 sm:p-8 text-center relative overflow-hidden">
                       <div className="relative z-10">
-                        <step.icon className="h-16 w-16 sm:h-20 sm:w-20 text-primary mx-auto mb-3 sm:mb-4" />
-                        <div className="text-4xl sm:text-6xl font-bold text-gradient mb-1 sm:mb-2">
+                        <step.icon className="h-12 w-12 sm:h-16 sm:w-16 text-primary mx-auto mb-2 sm:mb-3" />
+                        <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-gradient mb-1 sm:mb-2">
                           {index + 1}
                         </div>
-                        <div className="text-base sm:text-lg font-semibold text-foreground">
+                        <div className="text-sm sm:text-base font-semibold text-foreground">
                           Step {index + 1}
                         </div>
                       </div>
