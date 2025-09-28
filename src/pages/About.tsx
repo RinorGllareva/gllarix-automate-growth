@@ -294,7 +294,7 @@ const About = () => {
           className={`relative z-10 container mx-auto px-6 text-center transition-all duration-1000 ${
             heroVisible
               ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-8"
+              : "opacity-0 -translate-y-8"
           }`}
         >
           <div className="max-w-4xl mx-auto">
@@ -325,7 +325,7 @@ const About = () => {
       <section
         ref={statsRef}
         className={`py-32 relative overflow-hidden bg-gradient-to-br from-background via-muted/10 to-background transition-all duration-1000 ${
-          statsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          statsVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-8"
         }`}
       >
         {/* Animated Background Effects */}
@@ -803,7 +803,7 @@ const About = () => {
       <section
         ref={teamRef}
         className={`py-24 relative overflow-hidden bg-gradient-to-br from-muted/20 via-background to-muted/10 transition-all duration-1000 ${
-          teamVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          teamVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-8"
         }`}
       >
         {/* Background Effects */}
@@ -837,7 +837,7 @@ const About = () => {
                     className={`text-center p-8 h-full hover:shadow-2xl transition-all duration-700 border-border/50 bg-card/50 backdrop-blur-sm hover:bg-card/80 hover:border-primary/20 hover:scale-[1.05] transform cursor-pointer overflow-hidden ${
                       teamVisible
                         ? "opacity-100 translate-y-0"
-                        : "opacity-0 translate-y-8"
+                        : "opacity-0 -translate-y-8"
                     }`}
                     style={{ transitionDelay: `${index * 150}ms` }}
                   >
