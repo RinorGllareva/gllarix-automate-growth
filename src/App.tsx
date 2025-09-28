@@ -36,20 +36,24 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        
-        {isLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
-        
-        <BrowserRouter>
-          <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/demo" element={<Demo />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+
+        {isLoading ? (
+          // Show only the loading screen
+          <LoadingScreen onComplete={handleLoadingComplete} />
+        ) : (
+          // Show the actual app once loading is done
+          <BrowserRouter>
+            <ScrollToTop />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/demo" element={<Demo />} />
+              {/* Catch-all route for 404 */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        )}
       </TooltipProvider>
     </QueryClientProvider>
   );
