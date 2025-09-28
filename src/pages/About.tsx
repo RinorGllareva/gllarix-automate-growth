@@ -155,15 +155,40 @@ const Logo3D = () => {
   return (
     <Float speed={2} rotationIntensity={0.3} floatIntensity={0.5}>
       <group ref={groupRef}>
-        {/* Main logo */}
+        {/* Main logo with thickness for 3D effect */}
         <mesh ref={logoRef}>
-          <planeGeometry args={[2.5, 2.5]} />
+          <boxGeometry args={[2.5, 2.5, 0.1]} />
           <meshStandardMaterial 
             map={texture}
             transparent
             alphaTest={0.1}
             roughness={0.3}
             metalness={0.2}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+        
+        {/* Front face with logo */}
+        <mesh ref={logoRef} position={[0, 0, 0.051]}>
+          <planeGeometry args={[2.5, 2.5]} />
+          <meshStandardMaterial 
+            map={texture}
+            transparent
+            alphaTest={0.1}
+            roughness={0.2}
+            metalness={0.1}
+          />
+        </mesh>
+        
+        {/* Back face with logo */}
+        <mesh ref={logoRef} position={[0, 0, -0.051]} rotation={[0, Math.PI, 0]}>
+          <planeGeometry args={[2.5, 2.5]} />
+          <meshStandardMaterial 
+            map={texture}
+            transparent
+            alphaTest={0.1}
+            roughness={0.2}
+            metalness={0.1}
           />
         </mesh>
         
