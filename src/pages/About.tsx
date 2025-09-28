@@ -201,28 +201,32 @@ const About = () => {
       title: "Innovation First",
       description:
         "We're constantly pushing the boundaries of what's possible with AI automation.",
-      color: "from-blue-500 to-blue-600",
+      gradient: "from-primary via-primary/80 to-accent",
+      accent: "primary",
     },
     {
       icon: Users,
       title: "Customer Success",
       description:
         "Your success is our success. We're committed to delivering measurable results.",
-      color: "from-purple-500 to-purple-600",
+      gradient: "from-accent via-accent/80 to-secondary",
+      accent: "accent",
     },
     {
       icon: Lightbulb,
       title: "Continuous Learning",
       description:
         "We adapt and evolve with technology to provide cutting-edge solutions.",
-      color: "from-green-500 to-green-600",
+      gradient: "from-secondary via-secondary/80 to-primary",
+      accent: "secondary",
     },
     {
       icon: Award,
       title: "Excellence",
       description:
         "We maintain the highest standards in everything we do, from code to customer service.",
-      color: "from-orange-500 to-orange-600",
+      gradient: "from-primary via-accent/60 to-secondary",
+      accent: "primary",
     },
   ];
 
@@ -567,11 +571,22 @@ const About = () => {
       </section>
 
       {/* Values */}
-      <section className="py-24 bg-background">
-        <div className="container mx-auto px-6">
+      <section className="py-24 relative overflow-hidden bg-gradient-to-br from-background via-muted/10 to-background">
+        {/* Background Effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-10 left-10 w-72 h-72 bg-primary/3 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-10 right-10 w-80 h-80 bg-accent/3 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 right-1/4 w-64 h-64 bg-secondary/3 rounded-full blur-3xl animate-pulse delay-500"></div>
+        </div>
+        
+        <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
+            <div className="text-center mb-20">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-accent/10 text-accent text-sm font-medium mb-4">
+                <span className="w-2 h-2 bg-accent rounded-full mr-2 animate-pulse"></span>
+                Core Principles
+              </div>
+              <h2 className="text-4xl md:text-6xl font-bold mb-6 text-gradient">
                 Our Values
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
@@ -581,24 +596,68 @@ const About = () => {
 
             <div className="grid md:grid-cols-2 gap-8">
               {values.map((value, index) => (
-                <Card
-                  key={index}
-                  className="p-8 hover:shadow-lg transition-all duration-300 group cursor-pointer"
-                >
-                  <div
-                    className={`bg-gradient-to-br ${value.color} p-4 rounded-xl w-fit mb-6 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110`}
-                  >
-                    <value.icon className="h-8 w-8 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-4 text-foreground group-hover:text-primary transition-colors duration-300">
-                    {value.title}
-                  </h3>
-                  <p className="text-lg text-muted-foreground leading-relaxed">
-                    {value.description}
-                  </p>
-                </Card>
+                <div key={index} className="group relative">
+                  <Card className="p-10 h-full hover:shadow-2xl transition-all duration-700 border-border/50 bg-card/50 backdrop-blur-sm hover:bg-card/80 hover:border-primary/20 hover:scale-[1.03] transform cursor-pointer overflow-hidden">
+                    {/* Animated Background Gradient */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${value.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-700`}></div>
+                    
+                    {/* Floating Background Elements */}
+                    <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:scale-110"></div>
+                    <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-gradient-to-br from-accent/5 to-secondary/5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 group-hover:scale-125"></div>
+                    
+                    {/* Icon Container */}
+                    <div className="relative mb-8">
+                      <div className={`bg-gradient-to-br ${value.gradient} p-6 rounded-2xl w-fit shadow-lg group-hover:shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3`}>
+                        <value.icon className="h-10 w-10 text-white" />
+                      </div>
+                      
+                      {/* Orbiting Elements */}
+                      <div className="absolute -top-2 -right-2 w-4 h-4 bg-primary/40 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:animate-bounce"></div>
+                      <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-accent/50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 group-hover:animate-bounce delay-200"></div>
+                      <div className="absolute top-1/2 -right-3 w-2 h-2 bg-secondary/60 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-600 group-hover:animate-bounce delay-400"></div>
+                    </div>
+                    
+                    <div className="relative">
+                      <h3 className={`text-3xl font-bold mb-6 text-foreground group-hover:text-${value.accent} transition-colors duration-500`}>
+                        {value.title}
+                      </h3>
+                      
+                      {/* Animated Underline */}
+                      <div className={`w-16 h-1 bg-gradient-to-r ${value.gradient} rounded-full mb-6 group-hover:w-24 transition-all duration-500`}></div>
+                      
+                      <p className="text-lg text-foreground leading-relaxed group-hover:text-foreground/90 transition-colors duration-300">
+                        {value.description}
+                      </p>
+                      
+                      {/* Interactive Progress Indicators */}
+                      <div className="mt-8 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all duration-500">
+                        <div className="flex space-x-2">
+                          <div className={`w-3 h-3 bg-${value.accent} rounded-full animate-pulse`}></div>
+                          <div className={`w-2 h-2 bg-${value.accent}/60 rounded-full animate-pulse delay-150`}></div>
+                          <div className={`w-2 h-2 bg-${value.accent}/40 rounded-full animate-pulse delay-300`}></div>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-sm text-muted-foreground">Core Value #{index + 1}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Hover Arrow */}
+                      <div className="absolute top-4 right-4 w-6 h-6 text-primary/30 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">
+                        <ArrowRight className="w-full h-full" />
+                      </div>
+                    </div>
+                  </Card>
+                  
+                  {/* Connecting Lines Between Cards */}
+                  {index < values.length - 1 && (
+                    <div className="hidden md:block absolute -bottom-4 left-1/2 w-0.5 h-8 bg-gradient-to-b from-primary/20 to-transparent transform -translate-x-1/2"></div>
+                  )}
+                </div>
               ))}
             </div>
+            
+            {/* Central Connection Hub */}
+            <div className="hidden md:block absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full opacity-20 animate-pulse"></div>
           </div>
         </div>
       </section>
