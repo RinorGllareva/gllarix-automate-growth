@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Canvas } from "@react-three/fiber";
 import { Float, Text3D, OrbitControls, Sphere } from "@react-three/drei";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useScrollAnimation, useCountUp } from "@/hooks/useScrollAnimation";
@@ -85,12 +85,14 @@ const About = () => {
   const { count: satisfactionCount, setIsActive: setSatisfactionActive } = useCountUp(98, 2000);
 
   // Trigger count animations when stats become visible
-  if (statsVisible && !businessesCount && !hoursCount && !accuracyCount && !satisfactionCount) {
-    setBusinessesActive(true);
-    setHoursActive(true);
-    setAccuracyActive(true);
-    setSatisfactionActive(true);
-  }
+  useEffect(() => {
+    if (statsVisible && !businessesCount && !hoursCount && !accuracyCount && !satisfactionCount) {
+      setBusinessesActive(true);
+      setHoursActive(true);
+      setAccuracyActive(true);
+      setSatisfactionActive(true);
+    }
+  }, [statsVisible, businessesCount, hoursCount, accuracyCount, satisfactionCount, setBusinessesActive, setHoursActive, setAccuracyActive, setSatisfactionActive]);
 
   const values = [
     {
