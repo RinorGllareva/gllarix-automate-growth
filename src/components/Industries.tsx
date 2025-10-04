@@ -74,28 +74,34 @@ const Industries = () => {
     { icon: MessageSquare, title: "24/7 Support", description: "Always available" }
   ];
 
+  const itemsPerView = 2;
+  const maxIndex = Math.ceil(industries.length / itemsPerView) - 1;
+
   useEffect(() => {
     if (!isAutoPlaying) return;
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % industries.length);
+      setCurrentIndex((prev) => {
+        if (prev >= maxIndex) return 0;
+        return prev + 1;
+      });
     }, 4000);
     return () => clearInterval(interval);
-  }, [isAutoPlaying, industries.length]);
+  }, [isAutoPlaying, maxIndex]);
 
   const nextSlide = () => {
     setIsAutoPlaying(false);
-    setCurrentIndex((prev) => (prev + 1) % industries.length);
+    setCurrentIndex((prev) => Math.min(prev + 1, maxIndex));
   };
 
   const prevSlide = () => {
     setIsAutoPlaying(false);
-    setCurrentIndex((prev) => (prev - 1 + industries.length) % industries.length);
+    setCurrentIndex((prev) => Math.max(prev - 1, 0));
   };
 
   return (
     <section className="relative py-16 bg-gradient-to-b from-gray-900 via-black to-gray-900 overflow-hidden">
       <div className="container mx-auto px-6 relative z-10">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div 
             ref={headerRef}
@@ -114,32 +120,31 @@ const Industries = () => {
             </p>
           </div>
 
-          {/* Carousel Container */}
-          <div className="relative mb-12">
-            {/* Main Card */}
+          {/* Side-by-Side Carousel Container */}
+          <div className="relative mb-8">
             <div className="relative overflow-hidden">
               <div 
-                className="flex transition-transform duration-500 ease-in-out"
-                style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+                className="flex transition-transform duration-500 ease-in-out gap-6"
+                style={{ transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)` }}
               >
                 {industries.map((industry, index) => (
-                  <div key={index} className="w-full flex-shrink-0 px-2">
-                    <div className="relative p-8 md:p-12 bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl overflow-hidden group hover:border-primary/30 transition-all">
+                  <div key={index} className="w-[calc(50%-12px)] flex-shrink-0">
+                    <div className="relative p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden group hover:border-primary/30 transition-all h-full">
                       {/* Gradient Background */}
                       <div className={`absolute inset-0 bg-gradient-to-br ${industry.color} opacity-10 group-hover:opacity-20 transition-opacity`} />
                       
-                      <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+                      <div className="relative z-10">
                         {/* Icon */}
-                        <div className={`bg-gradient-to-br ${industry.color} p-8 rounded-2xl shadow-2xl shrink-0`}>
-                          <industry.icon className="h-16 w-16 text-white" />
+                        <div className={`bg-gradient-to-br ${industry.color} p-6 rounded-xl shadow-xl w-fit mb-4`}>
+                          <industry.icon className="h-10 w-10 text-white" />
                         </div>
                         
                         {/* Content */}
-                        <div className="flex-1 text-center md:text-left">
-                          <h3 className="text-3xl md:text-4xl font-bold text-white mb-3">
+                        <div>
+                          <h3 className="text-2xl font-bold text-white mb-2">
                             {industry.title}
                           </h3>
-                          <p className="text-gray-300 text-lg leading-relaxed">
+                          <p className="text-gray-300 text-sm leading-relaxed">
                             {industry.description}
                           </p>
                         </div>
@@ -153,14 +158,16 @@ const Industries = () => {
             {/* Navigation Arrows */}
             <Button
               onClick={prevSlide}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full p-3 backdrop-blur-sm z-10"
+              disabled={currentIndex === 0}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full p-3 backdrop-blur-sm z-10 disabled:opacity-50"
               size="icon"
             >
               <ChevronLeft className="h-6 w-6 text-white" />
             </Button>
             <Button
               onClick={nextSlide}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full p-3 backdrop-blur-sm z-10"
+              disabled={currentIndex >= maxIndex}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full p-3 backdrop-blur-sm z-10 disabled:opacity-50"
               size="icon"
             >
               <ChevronRight className="h-6 w-6 text-white" />
@@ -168,7 +175,7 @@ const Industries = () => {
 
             {/* Dots Navigation */}
             <div className="flex justify-center gap-2 mt-6">
-              {industries.map((_, index) => (
+              {Array.from({ length: maxIndex + 1 }).map((_, index) => (
                 <button
                   key={index}
                   onClick={() => {
