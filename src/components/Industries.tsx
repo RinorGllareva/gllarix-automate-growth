@@ -15,56 +15,119 @@ const Industries = () => {
     {
       icon: Home,
       title: "AI Realtor",
-      description: "Handles inquiries, books tours, and qualifies leads automatically",
-      color: "from-blue-500 to-blue-600"
+      description: "Intelligent property assistant that streamlines real estate operations",
+      color: "from-blue-500 to-blue-600",
+      automations: [
+        "Lead Qualification",
+        "Property Tours Booking",
+        "Follow-up Calls",
+        "Market Updates",
+        "Document Management"
+      ]
     },
     {
       icon: Heart,
       title: "AI Receptionist",
-      description: "Books/reschedules patients, follow-ups, insurance verification",
-      color: "from-red-500 to-pink-600"
+      description: "Smart healthcare assistant for seamless patient management",
+      color: "from-red-500 to-pink-600",
+      automations: [
+        "Appointment Booking",
+        "Patient Reminders",
+        "Insurance Verification",
+        "Prescription Alerts",
+        "Follow-up Scheduling"
+      ]
     },
     {
       icon: Sun,
       title: "AI Solar Assistant",
-      description: "Lead qualification, site surveys, and incentive guidance",
-      color: "from-yellow-500 to-orange-600"
+      description: "Renewable energy consultant for solar installations",
+      color: "from-yellow-500 to-orange-600",
+      automations: [
+        "Lead Qualification",
+        "Site Survey Scheduling",
+        "Incentive Guidance",
+        "ROI Calculations",
+        "Installation Updates"
+      ]
     },
     {
       icon: Users,
       title: "AI Recruiter",
-      description: "Screening, interview scheduling, and follow-up reminders",
-      color: "from-green-500 to-emerald-600"
+      description: "Automated talent acquisition and candidate management",
+      color: "from-green-500 to-emerald-600",
+      automations: [
+        "Candidate Screening",
+        "Interview Scheduling",
+        "Follow-up Reminders",
+        "Background Checks",
+        "Onboarding Support"
+      ]
     },
     {
       icon: Car,
       title: "AI Sales Agent",
-      description: "Test drives, customer follow-ups, loan pre-qualifications",
-      color: "from-purple-500 to-violet-600"
+      description: "Automotive sales automation for dealerships",
+      color: "from-purple-500 to-violet-600",
+      automations: [
+        "Test Drive Booking",
+        "Customer Follow-ups",
+        "Loan Pre-qualification",
+        "Trade-in Valuation",
+        "Delivery Coordination"
+      ]
     },
     {
       icon: CreditCard,
       title: "AI Loan Officer",
-      description: "Loan intake, document reminders, payment workflows",
-      color: "from-indigo-500 to-blue-600"
+      description: "Financial services automation for lending operations",
+      color: "from-indigo-500 to-blue-600",
+      automations: [
+        "Loan Application Intake",
+        "Document Collection",
+        "Payment Reminders",
+        "Credit Analysis",
+        "Approval Notifications"
+      ]
     },
     {
       icon: Hotel,
       title: "AI Concierge",
-      description: "Reservations, check-ins, and feedback collection",
-      color: "from-teal-500 to-cyan-600"
+      description: "Hospitality automation for enhanced guest experiences",
+      color: "from-teal-500 to-cyan-600",
+      automations: [
+        "Reservation Management",
+        "Check-in Assistance",
+        "Guest Requests",
+        "Feedback Collection",
+        "Loyalty Programs"
+      ]
     },
     {
       icon: Shield,
       title: "AI Insurance Assistant",
-      description: "Renewals, claims, quotes, and payment reminders",
-      color: "from-orange-500 to-red-600"
+      description: "Insurance automation for policy and claims management",
+      color: "from-orange-500 to-red-600",
+      automations: [
+        "Policy Renewals",
+        "Claims Processing",
+        "Quote Generation",
+        "Payment Reminders",
+        "Coverage Reviews"
+      ]
     },
     {
       icon: GraduationCap,
       title: "AI Student Assistant",
-      description: "Registration, tuition reminders, and feedback collection",
-      color: "from-emerald-500 to-teal-600"
+      description: "Educational support for student services and administration",
+      color: "from-emerald-500 to-teal-600",
+      automations: [
+        "Course Registration",
+        "Tuition Reminders",
+        "Grade Notifications",
+        "Event Registration",
+        "Feedback Collection"
+      ]
     }
   ];
 
@@ -129,24 +192,52 @@ const Industries = () => {
               >
                 {industries.map((industry, index) => (
                   <div key={index} className="w-[calc(50%-12px)] flex-shrink-0">
-                    <div className="relative p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden group hover:border-primary/30 transition-all h-full">
+                    <div className="relative p-8 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden group hover:border-primary/30 hover:bg-white/[0.07] transition-all duration-300 h-full">
                       {/* Gradient Background */}
-                      <div className={`absolute inset-0 bg-gradient-to-br ${industry.color} opacity-10 group-hover:opacity-20 transition-opacity`} />
+                      <div className={`absolute inset-0 bg-gradient-to-br ${industry.color} opacity-5 group-hover:opacity-10 transition-opacity duration-300`} />
                       
-                      <div className="relative z-10">
-                        {/* Icon */}
-                        <div className={`bg-gradient-to-br ${industry.color} p-6 rounded-xl shadow-xl w-fit mb-4`}>
-                          <industry.icon className="h-10 w-10 text-white" />
+                      <div className="relative z-10 flex flex-col lg:flex-row gap-6 lg:gap-8">
+                        {/* Left Side - Service Info */}
+                        <div className="flex-shrink-0 lg:w-[45%]">
+                          {/* Icon */}
+                          <div className={`bg-gradient-to-br ${industry.color} p-5 rounded-xl shadow-lg w-fit mb-4 group-hover:scale-105 transition-transform duration-300`}>
+                            <industry.icon className="h-9 w-9 text-white" />
+                          </div>
+                          
+                          {/* Title & Description */}
+                          <div>
+                            <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-primary transition-colors duration-300">
+                              {industry.title}
+                            </h3>
+                            <p className="text-gray-400 text-sm leading-relaxed">
+                              {industry.description}
+                            </p>
+                          </div>
                         </div>
-                        
-                        {/* Content */}
-                        <div>
-                          <h3 className="text-2xl font-bold text-white mb-2">
-                            {industry.title}
-                          </h3>
-                          <p className="text-gray-300 text-sm leading-relaxed">
-                            {industry.description}
-                          </p>
+
+                        {/* Divider */}
+                        <div className="hidden lg:block w-px bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+
+                        {/* Right Side - Automations List */}
+                        <div className="flex-1">
+                          <h4 className="text-xs font-semibold text-primary uppercase tracking-wider mb-4">
+                            Key Automations
+                          </h4>
+                          <ul className="space-y-3">
+                            {industry.automations.map((automation, idx) => (
+                              <li 
+                                key={idx}
+                                className="flex items-start gap-3 text-gray-300 text-sm group/item"
+                              >
+                                <div className="flex-shrink-0 mt-1">
+                                  <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-br ${industry.color} group-hover/item:scale-125 transition-transform duration-200`} />
+                                </div>
+                                <span className="group-hover/item:text-white group-hover/item:translate-x-1 transition-all duration-200">
+                                  {automation}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
                       </div>
                     </div>
