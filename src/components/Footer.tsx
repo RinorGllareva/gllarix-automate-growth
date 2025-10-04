@@ -46,11 +46,22 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-background border-t border-border">
+    <footer className="relative bg-black border-t border-white/10 overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: 'linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px), linear-gradient(hsl(var(--primary)) 1px, transparent 1px)',
+          backgroundSize: '50px 50px'
+        }} />
+      </div>
+
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black via-black to-gray-900 pointer-events-none" />
+
       {/* Main Footer */}
-      <div className="container mx-auto px-6 py-16">
+      <div className="container mx-auto px-6 py-16 relative z-10">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
             {/* Company Info */}
             <div className="space-y-6">
               <div className="flex items-center gap-3">
@@ -61,23 +72,29 @@ const Footer = () => {
                 />
               </div>
 
-              <p className="text-base lg:text-lg text-muted-foreground max-w-md leading-relaxed">
+              <p className="text-base lg:text-lg text-gray-400 max-w-md leading-relaxed">
                 AI agents and business automations that handle calls,
                 reservations, appointments, and workflows so businesses run
                 smoother with less human error.
               </p>
 
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-muted-foreground text-sm sm:text-base">
-                  <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 text-gray-400 text-sm sm:text-base group hover:text-primary transition-colors">
+                  <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                    <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+                  </div>
                   <span>hello@gllarix.com</span>
                 </div>
-                <div className="flex items-center gap-3 text-muted-foreground text-sm sm:text-base">
-                  <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+                <div className="flex items-center gap-3 text-gray-400 text-sm sm:text-base group hover:text-primary transition-colors">
+                  <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                    <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+                  </div>
                   <span>38349636899</span>
                 </div>
-                <div className="flex items-center gap-3 text-muted-foreground text-sm sm:text-base">
-                  <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+                <div className="flex items-center gap-3 text-gray-400 text-sm sm:text-base group hover:text-primary transition-colors">
+                  <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                    <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+                  </div>
                   <span>Prishtinë, XKS</span>
                 </div>
               </div>
@@ -85,10 +102,10 @@ const Footer = () => {
 
             {/* Newsletter */}
             <div className="space-y-6">
-              <h3 className="text-xl sm:text-2xl font-bold text-foreground">
+              <h3 className="text-xl sm:text-2xl font-bold text-white">
                 Stay Updated
               </h3>
-              <p className="text-sm sm:text-base text-muted-foreground">
+              <p className="text-sm sm:text-base text-gray-400">
                 Get the latest updates on AI automation trends, case studies,
                 and product features.
               </p>
@@ -97,33 +114,35 @@ const Footer = () => {
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="flex-1 px-4 py-3 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm sm:text-base"
+                  className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary/50 outline-none text-sm sm:text-base text-white placeholder:text-gray-500 transition-all"
                 />
-                <Button className="btn-hero px-4 sm:px-6 shrink-0">
-                  <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+                <Button className="bg-primary hover:bg-primary/90 text-white px-4 sm:px-6 rounded-xl shrink-0 transition-all hover:scale-105">
+                  Subscribe
+                  <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </div>
 
-              <p className="text-xs sm:text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-gray-500">
                 No spam. Unsubscribe at any time.
               </p>
             </div>
           </div>
 
           {/* Footer Links */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mb-12">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             {footerSections.map((section, index) => (
               <div key={index}>
-                <h4 className="font-semibold text-foreground mb-3 sm:mb-4 text-sm sm:text-base">
+                <h4 className="font-semibold text-white mb-4 text-sm sm:text-base">
                   {section.title}
                 </h4>
-                <ul className="space-y-2 sm:space-y-3">
+                <ul className="space-y-3">
                   {section.links.map((link, linkIndex) => (
                     <li key={linkIndex}>
                       <Link
                         to={link.href}
-                        className="text-muted-foreground hover:text-primary transition-colors text-xs sm:text-sm"
+                        className="text-gray-400 hover:text-primary transition-colors text-xs sm:text-sm inline-flex items-center gap-2 group"
                       >
+                        <span className="w-0 h-0.5 bg-primary group-hover:w-4 transition-all duration-300" />
                         {link.name}
                       </Link>
                     </li>
@@ -134,28 +153,28 @@ const Footer = () => {
           </div>
 
           {/* Bottom Bar */}
-          <div className="border-t border-border pt-6 sm:pt-8">
+          <div className="border-t border-white/10 pt-8">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-              <p className="text-muted-foreground text-xs sm:text-sm text-center sm:text-left">
+              <p className="text-gray-400 text-xs sm:text-sm text-center sm:text-left">
                 © 2025 Gllarix. All rights reserved.
               </p>
 
-              <div className="flex flex-wrap justify-center sm:justify-end items-center gap-4 sm:gap-6">
+              <div className="flex flex-wrap justify-center sm:justify-end items-center gap-6">
                 <Link
                   to="/privacy"
-                  className="text-muted-foreground hover:text-primary transition-colors text-xs sm:text-sm"
+                  className="text-gray-400 hover:text-primary transition-colors text-xs sm:text-sm"
                 >
                   Privacy Policy
                 </Link>
                 <Link
                   to="/terms"
-                  className="text-muted-foreground hover:text-primary transition-colors text-xs sm:text-sm"
+                  className="text-gray-400 hover:text-primary transition-colors text-xs sm:text-sm"
                 >
                   Terms of Service
                 </Link>
                 <Link
                   to="/cookies"
-                  className="text-muted-foreground hover:text-primary transition-colors text-xs sm:text-sm"
+                  className="text-gray-400 hover:text-primary transition-colors text-xs sm:text-sm"
                 >
                   Cookie Policy
                 </Link>
