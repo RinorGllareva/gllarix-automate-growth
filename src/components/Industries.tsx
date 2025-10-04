@@ -1,26 +1,17 @@
 import React, { useState } from 'react';
 import { 
-  Home, 
-  Heart, 
-  Sun, 
-  Users, 
-  Car, 
-  CreditCard, 
-  Hotel, 
-  Shield, 
-  GraduationCap,
-  ArrowRight,
-  Phone,
-  Calendar,
-  MessageSquare
+  Home, Heart, Sun, Users, Car, CreditCard, Hotel, Shield, GraduationCap,
+  ArrowRight, Phone, Calendar, MessageSquare
 } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { Floating3DOrb } from "./Floating3DOrb";
 
 const Industries = () => {
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation(0.2);
   const { ref: gridRef, isVisible: gridVisible } = useScrollAnimation(0.1);
   const { ref: featuresRef, isVisible: featuresVisible } = useScrollAnimation(0.2);
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+
   const industries = [
     {
       icon: Home,
@@ -88,35 +79,41 @@ const Industries = () => {
   ];
 
   return (
-    <section className="py-24 section-accent overflow-hidden">
-      <div className="container mx-auto px-6">
+    <section className="relative py-32 bg-gradient-to-b from-gray-900 via-black to-gray-900 overflow-hidden">
+      {/* 3D Background Element */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none">
+        <Floating3DOrb color="#9b87f5" />
+      </div>
+
+      <div className="container mx-auto px-6 relative z-10">
         <div className="max-w-7xl mx-auto">
-          {/* Section Header */}
+          {/* Header */}
           <div 
             ref={headerRef}
-            className={`text-center mb-16 transition-all duration-1000 ${
+            className={`text-center mb-24 transition-all duration-1000 ${
               headerVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              <span className="text-gradient">Industry-Specific</span> AI Solutions
+            <div className="inline-block px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-6">
+              <span className="text-primary text-sm font-medium">Industry Solutions</span>
+            </div>
+            <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-white to-primary bg-clip-text text-transparent">
+              Built for Your Industry
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Our AI agents are trained for your specific industry, understanding the nuances 
-              and requirements of your business.
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+              AI agents trained for your specific industry, understanding the nuances of your business.
             </p>
-            <div className={`progress-bar mx-auto mt-4 ${headerVisible ? 'animate' : ''}`}></div>
           </div>
 
           {/* Industries Grid */}
           <div 
             ref={gridRef}
-            className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-16"
+            className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20"
           >
             {industries.map((industry, index) => (
               <div 
                 key={index} 
-                className={`card-interactive card-industry group cursor-pointer transition-all duration-700 ${
+                className={`group relative p-8 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl hover:bg-white/10 hover:border-primary/30 transition-all duration-700 hover:scale-105 cursor-pointer ${
                   gridVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                 }`}
                 style={{ transitionDelay: `${index * 100}ms` }}
@@ -124,27 +121,27 @@ const Industries = () => {
                 onMouseLeave={() => setHoveredCard(null)}
               >
                 <div className="relative">
-                  {/* Icon with gradient background */}
+                  {/* Icon with gradient */}
                   <div className={`bg-gradient-to-br ${industry.color} p-4 rounded-xl w-fit mb-6 shadow-lg group-hover:shadow-xl transition-all duration-500 ${
                     hoveredCard === index ? 'scale-110 rotate-3' : ''
                   }`}>
                     <industry.icon className="h-8 w-8 text-white" />
                   </div>
                   
-                  <h3 className="text-2xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors duration-300">
+                  <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-primary transition-colors duration-300">
                     {industry.title}
                   </h3>
                   
-                  <p className="text-muted-foreground mb-6 leading-relaxed">
+                  <p className="text-gray-400 mb-6 leading-relaxed">
                     {industry.description}
                   </p>
                   
                   {/* Features */}
-                  <div className="space-y-2 mb-6">
+                  <div className="space-y-3 mb-6">
                     {industry.features.map((feature, i) => (
                       <div 
                         key={i} 
-                        className={`flex items-center gap-2 text-sm text-muted-foreground group-hover:text-foreground transition-all duration-300 ${
+                        className={`flex items-center gap-3 text-sm text-gray-300 group-hover:text-white transition-all duration-300 ${
                           hoveredCard === index ? 'translate-x-2' : ''
                         }`}
                         style={{ transitionDelay: `${i * 50}ms` }}
@@ -172,15 +169,15 @@ const Industries = () => {
           {/* Common Features */}
           <div 
             ref={featuresRef}
-            className={`bg-card border border-border rounded-2xl p-8 shadow-lg card-interactive transition-all duration-1000 ${
+            className={`relative p-10 bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl transition-all duration-1000 ${
               featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}
           >
-            <h3 className="text-2xl font-bold text-center text-foreground mb-8">
-              Every AI Agent Includes These Core Features
+            <h3 className="text-3xl font-bold text-center text-white mb-12">
+              Every AI Agent Includes
             </h3>
             
-            <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 justify-center">
+            <div className="grid md:grid-cols-3 gap-8">
               {[
                 {
                   icon: Phone,
@@ -200,16 +197,16 @@ const Industries = () => {
               ].map((feature, index) => (
                 <div 
                   key={index}
-                  className={`text-center transition-all duration-700 hover:scale-105 ${
+                  className={`text-center p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-primary/30 transition-all duration-700 hover:scale-105 ${
                     featuresVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                   }`}
                   style={{ transitionDelay: `${index * 200}ms` }}
                 >
-                  <div className="bg-primary/10 p-4 rounded-xl w-fit mx-auto mb-4 hover:bg-primary/20 transition-colors duration-300 hover:scale-110">
+                  <div className="bg-primary/10 p-5 rounded-xl w-fit mx-auto mb-4 hover:bg-primary/20 transition-colors duration-300 hover:scale-110">
                     <feature.icon className="h-8 w-8 text-primary" />
                   </div>
-                  <h4 className="font-semibold text-foreground mb-2">{feature.title}</h4>
-                  <p className="text-sm text-muted-foreground">{feature.description}</p>
+                  <h4 className="font-bold text-white mb-3 text-lg">{feature.title}</h4>
+                  <p className="text-gray-400">{feature.description}</p>
                 </div>
               ))}
             </div>

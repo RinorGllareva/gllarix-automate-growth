@@ -65,30 +65,31 @@ const Testimonials = () => {
   ];
 
   return (
-    <section className="py-24 section-gradient overflow-hidden" id="testimonials">
-      <div className="container mx-auto px-6">
+    <section className="relative py-32 bg-gradient-to-b from-gray-900 via-black to-gray-900 overflow-hidden" id="testimonials">
+      <div className="container mx-auto px-6 relative z-10">
         <div className="max-w-7xl mx-auto">
-          {/* Section Header */}
+          {/* Header */}
           <div 
             ref={headerRef}
-            className={`text-center mb-16 transition-all duration-1000 ${
+            className={`text-center mb-24 transition-all duration-1000 ${
               headerVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Trusted by <span className="text-gradient">500+ Businesses</span>
+            <div className="inline-block px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-6">
+              <span className="text-primary text-sm font-medium">Success Stories</span>
+            </div>
+            <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-white to-primary bg-clip-text text-transparent">
+              Trusted by 500+
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              See how companies across industries are saving time, reducing costs, 
-              and growing revenue with Gllarix AI automation.
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+              See how companies are saving time and growing revenue with AI automation.
             </p>
-            <div className={`progress-bar mx-auto mt-4 ${headerVisible ? 'animate' : ''}`}></div>
           </div>
 
           {/* Stats */}
           <div 
             ref={statsRef}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16"
+            className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-20"
           >
             {stats.map((stat, index) => {
               const numericValue = parseInt(stat.number.replace(/[^\d]/g, '')) || 0;
@@ -104,12 +105,12 @@ const Testimonials = () => {
               return (
                 <div 
                   key={index} 
-                  className={`stat-card text-center transition-all duration-700 ${
+                  className={`text-center p-8 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl hover:bg-white/10 transition-all duration-700 hover:scale-105 ${
                     statsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                   }`}
                   style={{ transitionDelay: `${index * 100}ms` }}
                 >
-                  <div className="text-4xl md:text-5xl font-bold text-gradient mb-2">
+                  <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent mb-2">
                     {statsVisible ? (
                       stat.number.includes('%') ? `${count}%` :
                       stat.number.includes('+') ? `${count}+` :
@@ -117,7 +118,7 @@ const Testimonials = () => {
                       count
                     ) : stat.number}
                   </div>
-                  <div className="text-muted-foreground text-sm md:text-base">
+                  <div className="text-gray-400 text-sm">
                     {stat.label}
                   </div>
                 </div>
@@ -133,14 +134,14 @@ const Testimonials = () => {
             {testimonials.map((testimonial, index) => (
               <div 
                 key={index} 
-                className={`card-interactive card-feature relative transition-all duration-700 hover:scale-105 ${
+                className={`group relative p-8 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl hover:bg-white/10 hover:border-primary/30 transition-all duration-700 hover:scale-105 ${
                   testimonialsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                 }`}
                 style={{ transitionDelay: `${index * 150}ms` }}
               >
                 {/* Quote Icon */}
-                <div className="absolute -top-2 -left-2 bg-primary p-2 rounded-full transition-all duration-300 hover:scale-110 hover:rotate-12">
-                  <Quote className="h-4 w-4 text-primary-foreground" />
+                <div className="absolute -top-3 -left-3 p-3 bg-primary rounded-full transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
+                  <Quote className="h-5 w-5 text-white" />
                 </div>
 
                 {/* Rating */}
@@ -155,7 +156,7 @@ const Testimonials = () => {
                 </div>
 
                 {/* Testimonial Text */}
-                <p className="text-muted-foreground mb-6 leading-relaxed">
+                <p className="text-gray-300 mb-6 leading-relaxed text-base">
                   "{testimonial.text}"
                 </p>
 
@@ -164,16 +165,16 @@ const Testimonials = () => {
                   <img
                     src={testimonial.image}
                     alt={`${testimonial.name} portrait`}
-                    className="w-12 h-12 rounded-full object-cover transition-all duration-300 hover:scale-110"
+                    className="w-14 h-14 rounded-full object-cover border-2 border-primary/30 transition-all duration-300 group-hover:scale-110"
                   />
                   <div>
-                    <div className="font-semibold text-foreground">
+                    <div className="font-bold text-white text-lg">
                       {testimonial.name}
                     </div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-sm text-gray-400">
                       {testimonial.title}
                     </div>
-                    <div className="text-sm text-primary font-medium">
+                    <div className="text-sm text-primary font-semibold">
                       {testimonial.company}
                     </div>
                   </div>

@@ -1,248 +1,186 @@
 import React from "react";
 import { useScrollAnimation, useCountUp } from "@/hooks/useScrollAnimation";
-import alertTriangleIcon from "@/assets/icons/alert-triangle.png";
-import checkCircleIcon from "@/assets/icons/check-circle.png";
-import clockIcon from "@/assets/icons/clock.png";
-import zapIcon from "@/assets/icons/zap.png";
-import trendingUpIcon from "@/assets/icons/trending-up.png";
+import { AlertTriangle, CheckCircle2, Clock, Zap, TrendingUp } from "lucide-react";
+import { Floating3DOrb } from "./Floating3DOrb";
 
 const PainSolution = () => {
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation(0.2);
-  const { ref: painRef, isVisible: painVisible } = useScrollAnimation(0.3);
-  const { ref: solutionRef, isVisible: solutionVisible } =
-    useScrollAnimation(0.3);
+  const { ref: contentRef, isVisible: contentVisible } = useScrollAnimation(0.3);
   const { ref: statsRef, isVisible: statsVisible } = useScrollAnimation(0.2);
 
   return (
-    <section className="py-24 section-gradient overflow-hidden">
-      <div className="container mx-auto px-6">
-        <div className="max-w-6xl mx-auto">
-          {/* Section Header */}
+    <section className="relative py-32 bg-gradient-to-b from-gray-900 via-black to-gray-900 overflow-hidden">
+      {/* Background Grid Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0" style={{
+          backgroundImage: 'linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px), linear-gradient(hsl(var(--primary)) 1px, transparent 1px)',
+          backgroundSize: '50px 50px'
+        }} />
+      </div>
+
+      <div className="container mx-auto px-6 relative z-10">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
           <div
             ref={headerRef}
-            className={`text-center mb-16 transition-all duration-1000 ${
-              headerVisible
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-8"
+            className={`text-center mb-24 transition-all duration-1000 ${
+              headerVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
             }`}
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              <span className="text-gradient">Stop Losing Money</span> to Manual
-              Tasks
+            <div className="inline-block px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-6">
+              <span className="text-primary text-sm font-medium">The Problem & Solution</span>
+            </div>
+            <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-white to-primary bg-clip-text text-transparent">
+              Stop Losing Revenue
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Every missed call, forgotten follow-up, and manual error costs
-              your business revenue. Here's how we solve it.
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+              Every missed call and manual error costs your business. Here's how we solve it.
             </p>
-            <div
-              className={`progress-bar mx-auto mt-4 ${
-                headerVisible ? "animate" : ""
-              }`}
-            ></div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-16 items-center">
+          <div
+            ref={contentRef}
+            className="grid lg:grid-cols-2 gap-16 items-center mb-24"
+          >
             {/* Pain Points */}
-            <div
-              ref={painRef}
-              className={`space-y-8 transition-all duration-1000 delay-200 ${
-                painVisible
-                  ? "opacity-100 translate-x-0"
-                  : "opacity-0 -translate-x-8"
-              }`}
-            >
-              <div className="text-center md:text-left mb-8">
-                <h3 className="text-3xl font-bold text-foreground mb-4 flex items-center gap-3 ">
-                  <div
-                    className={`transition-all duration-700 ${
-                      painVisible ? "rotate-0 scale-100" : "rotate-12 scale-0"
-                    }`}
-                  >
-                    <img
-                      src={alertTriangleIcon}
-                      alt="Alert Triangle"
-                      className="h-10 w-10"
-                    />
-                  </div>
-                  <span className="transition-transform duration-300 hover:-translate-y-1 cursor-default">
-                    Common Business Pain Points
-                  </span>
-                </h3>
+            <div className={`space-y-8 transition-all duration-1000 ${
+              contentVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"
+            }`}>
+              <div className="flex items-center gap-4 mb-8">
+                <div className="p-3 bg-red-500/10 rounded-xl">
+                  <AlertTriangle className="h-8 w-8 text-red-500" />
+                </div>
+                <h3 className="text-3xl font-bold text-white">Common Pain Points</h3>
               </div>
 
-              <div className="space-y-6">
-                {[
-                  {
-                    title: "Missed Opportunities",
-                    description:
-                      "Calls go unanswered, leads slip through cracks, appointments get forgotten",
-                    delay: "delay-[400ms]",
-                  },
-                  {
-                    title: "Human Error & Inconsistency",
-                    description:
-                      "Manual data entry mistakes, inconsistent customer service, forgotten follow-ups",
-                    delay: "delay-[600ms]",
-                  },
-                  {
-                    title: "Time Drain on Staff",
-                    description:
-                      "Your team spends hours on repetitive admin tasks instead of growing the business",
-                    delay: "delay-[800ms]",
-                  },
-                ].map((pain, index) => (
-                  <div
-                    key={index}
-                    className={`card-interactive flex items-start gap-4 p-4 bg-destructive/5 border border-destructive/20 rounded-lg transition-all duration-700 ${
-                      pain.delay
-                    } ${
-                      painVisible
-                        ? "opacity-100 translate-y-0"
-                        : "opacity-0 translate-y-4"
-                    }`}
-                  >
-                    <div className="w-2 h-2 bg-destructive rounded-full mt-3 flex-shrink-0 animate-pulse"></div>
+              {[
+                {
+                  title: "Missed Opportunities",
+                  description: "Calls go unanswered, leads slip away, appointments forgotten",
+                },
+                {
+                  title: "Human Error & Inconsistency",
+                  description: "Manual mistakes, inconsistent service, forgotten follow-ups",
+                },
+                {
+                  title: "Time Drain on Staff",
+                  description: "Hours wasted on repetitive tasks instead of growth",
+                },
+              ].map((pain, index) => (
+                <div
+                  key={index}
+                  className="group p-6 bg-red-500/5 border border-red-500/20 rounded-2xl hover:bg-red-500/10 transition-all duration-300 hover:scale-105"
+                  style={{ transitionDelay: `${index * 100}ms` }}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-2 h-2 bg-red-500 rounded-full mt-2 animate-pulse" />
                     <div>
-                      <h4 className="font-semibold text-foreground mb-2">
-                        {pain.title}
-                      </h4>
-                      <p className="text-muted-foreground">
-                        {pain.description}
-                      </p>
+                      <h4 className="font-bold text-white mb-2 text-lg">{pain.title}</h4>
+                      <p className="text-gray-400">{pain.description}</p>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
 
             {/* Solutions */}
-            <div
-              ref={solutionRef}
-              className={`space-y-8 transition-all duration-1000 delay-400 ${
-                solutionVisible
-                  ? "opacity-100 translate-x-0"
-                  : "opacity-0 translate-x-8"
-              }`}
-            >
-              <div className="text-center md:text-left mb-8">
-                <h3 className="text-3xl font-bold text-foreground mb-4 flex items-center gap-3">
-                  <div
-                    className={`transition-all duration-700 ${
-                      solutionVisible
-                        ? "rotate-0 scale-100"
-                        : "-rotate-12 scale-0"
-                    }`}
-                  >
-                    <img
-                      src={checkCircleIcon}
-                      alt="Check Circle"
-                      className="h-10 w-10"
-                    />
-                  </div>
-                  <span className="transition-transform duration-300 hover:-translate-y-1 cursor-default">
-                    How Gllarix Solves This
-                  </span>
-                </h3>
+            <div className={`space-y-8 transition-all duration-1000 ${
+              contentVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"
+            }`}>
+              <div className="flex items-center gap-4 mb-8">
+                <div className="p-3 bg-green-500/10 rounded-xl">
+                  <CheckCircle2 className="h-8 w-8 text-green-500" />
+                </div>
+                <h3 className="text-3xl font-bold text-white">How Gllarix Solves This</h3>
               </div>
 
-              <div className="space-y-6">
-                {[
-                  {
-                    icon: clockIcon,
-                    title: "24/7 Availability",
-                    description:
-                      "AI agents never sleep - capture every lead, answer every call, handle every booking",
-                    delay: "delay-[600ms]",
-                  },
-                  {
-                    icon: zapIcon,
-                    title: "Perfect Consistency",
-                    description:
-                      "Same high-quality service every time - no bad days, no forgotten steps",
-                    delay: "delay-[800ms]",
-                  },
-                  {
-                    icon: trendingUpIcon,
-                    title: "Focus on Growth",
-                    description:
-                      "Free your team from admin work to focus on strategy, sales, and customer relationships",
-                    delay: "delay-[1000ms]",
-                  },
-                ].map((solution, index) => (
+              {[
+                {
+                  icon: Clock,
+                  title: "24/7 Availability",
+                  description: "AI agents never sleep - capture every opportunity instantly",
+                  color: "text-blue-400",
+                  bgColor: "bg-blue-500/10",
+                  borderColor: "border-blue-500/20",
+                },
+                {
+                  icon: Zap,
+                  title: "Perfect Consistency",
+                  description: "Same high-quality service every single time, guaranteed",
+                  color: "text-purple-400",
+                  bgColor: "bg-purple-500/10",
+                  borderColor: "border-purple-500/20",
+                },
+                {
+                  icon: TrendingUp,
+                  title: "Focus on Growth",
+                  description: "Free your team to focus on strategy and relationships",
+                  color: "text-green-400",
+                  bgColor: "bg-green-500/10",
+                  borderColor: "border-green-500/20",
+                },
+              ].map((solution, index) => {
+                const Icon = solution.icon;
+                return (
                   <div
                     key={index}
-                    className={`card-interactive card-feature transition-all duration-700 ${
-                      solution.delay
-                    } ${
-                      solutionVisible
-                        ? "opacity-100 translate-y-0"
-                        : "opacity-0 translate-y-4"
-                    }`}
+                    className={`group p-6 ${solution.bgColor} border ${solution.borderColor} rounded-2xl hover:scale-105 transition-all duration-300`}
+                    style={{ transitionDelay: `${index * 100}ms` }}
                   >
                     <div className="flex items-start gap-4">
-                      <div className="bg-success/10 p-3 rounded-xl hover:bg-success/20 transition-colors duration-300">
-                        <img
-                          src={solution.icon}
-                          alt={solution.title}
-                          className="h-10 w-14"
-                        />
+                      <div className={`p-3 ${solution.bgColor} rounded-xl`}>
+                        <Icon className={`h-6 w-6 ${solution.color}`} />
                       </div>
                       <div>
-                        <h4 className="font-semibold text-foreground mb-2">
-                          {solution.title}
-                        </h4>
-                        <p className="text-muted-foreground">
-                          {solution.description}
-                        </p>
+                        <h4 className="font-bold text-white mb-2 text-lg">{solution.title}</h4>
+                        <p className="text-gray-400">{solution.description}</p>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
           </div>
 
-          {/* Results Stats */}
-          <div
-            ref={statsRef}
-            className="mt-20 grid grid-cols-1 md:grid-cols-4 gap-8"
-          >
-            {[
-              { value: 40, suffix: "%", label: "More Leads Captured" },
-              { value: 60, suffix: "%", label: "Faster Response Time" },
-              { value: 90, suffix: "%", label: "Fewer No-Shows" },
-              { value: 30, suffix: "hrs", label: "Saved Per Week" },
-            ].map((stat, index) => {
-              const { count, setIsActive } = useCountUp(stat.value, 2000, 0);
+          {/* Stats Section with 3D Element */}
+          <div ref={statsRef} className="relative">
+            {/* 3D Orb Background */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30 pointer-events-none">
+              <Floating3DOrb color="#9b87f5" />
+            </div>
 
-              React.useEffect(() => {
-                if (statsVisible) {
-                  const timer = setTimeout(
-                    () => setIsActive(true),
-                    index * 200
-                  );
-                  return () => clearTimeout(timer);
-                }
-              }, [statsVisible, setIsActive, index]);
+            <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-6">
+              {[
+                { value: 40, suffix: "%", label: "More Leads Captured" },
+                { value: 60, suffix: "%", label: "Faster Response" },
+                { value: 90, suffix: "%", label: "Fewer No-Shows" },
+                { value: 30, suffix: "hrs", label: "Saved Per Week" },
+              ].map((stat, index) => {
+                const { count, setIsActive } = useCountUp(stat.value, 2000, 0);
 
-              return (
-                <div
-                  key={index}
-                  className={`stat-card text-center transition-all duration-700 ${
-                    statsVisible
-                      ? "opacity-100 translate-y-0"
-                      : "opacity-0 translate-y-8"
-                  }`}
-                  style={{ transitionDelay: `${index * 100}ms` }}
-                >
-                  <div className="text-4xl font-bold text-gradient mb-2">
-                    {statsVisible ? count : 0}
-                    {stat.suffix}
+                React.useEffect(() => {
+                  if (statsVisible) {
+                    const timer = setTimeout(() => setIsActive(true), index * 200);
+                    return () => clearTimeout(timer);
+                  }
+                }, [statsVisible, setIsActive, index]);
+
+                return (
+                  <div
+                    key={index}
+                    className={`text-center p-8 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl hover:bg-white/10 transition-all duration-700 hover:scale-105 ${
+                      statsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+                    }`}
+                    style={{ transitionDelay: `${index * 100}ms` }}
+                  >
+                    <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent mb-2">
+                      {statsVisible ? count : 0}{stat.suffix}
+                    </div>
+                    <div className="text-gray-400 text-sm">{stat.label}</div>
                   </div>
-                  <div className="text-muted-foreground">{stat.label}</div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
