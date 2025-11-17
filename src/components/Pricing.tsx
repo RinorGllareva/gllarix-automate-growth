@@ -193,7 +193,7 @@ const Pricing = () => {
                 <p className="text-gray-400 text-base sm:text-lg">No matter your complexity, these are standard</p>
               </div>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 {[
                   "Free setup & onboarding",
                   "24/7 AI agent availability",
@@ -216,23 +216,25 @@ const Pricing = () => {
           </div>
 
           {/* Final CTA */}
-          <div className="mt-16 sm:mt-20 text-center px-4">
-            <div className="inline-block bg-gradient-to-r from-primary/20 to-purple-500/20 border border-primary/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 max-w-3xl w-full">
-              <div className="mb-4 sm:mb-6">
+          <div className="mt-16 sm:mt-20 flex justify-center px-4">
+            <div className="bg-gradient-to-r from-primary/20 to-purple-500/20 border border-primary/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 max-w-3xl w-full">
+              <div className="mb-4 sm:mb-6 text-center">
                 <span className="text-4xl sm:text-5xl">💬</span>
               </div>
-              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4">
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4 text-center">
                 Let's Build Your Perfect Solution
               </h3>
-              <p className="text-gray-400 mb-6 text-sm sm:text-base md:text-lg">
+              <p className="text-gray-400 mb-6 text-sm sm:text-base md:text-lg text-center">
                 Book a free consultation to discuss your needs and get a custom quote tailored to your business.
               </p>
-              <Button asChild className="bg-primary hover:bg-primary/90 text-white px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg rounded-xl font-semibold transition-all hover:scale-105 w-full sm:w-auto">
-                <Link to="/book-meeting">
-                  Get Your Custom Quote
-                  <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
-                </Link>
-              </Button>
+              <div className="flex justify-center">
+                <Button asChild className="bg-primary hover:bg-primary/90 text-white px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg rounded-xl font-semibold transition-all hover:scale-105 w-full sm:w-auto">
+                  <Link to="/book-meeting">
+                    Start Your Free Demo
+                    <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
