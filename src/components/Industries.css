@@ -1,0 +1,29 @@
+/* Embla Carousel Center Focus Styles */
+.embla-slide-content {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Non-centered slides are scaled down and blurred */
+.embla__slide:not(.is-snapped) .embla-slide-content {
+  transform: scale(0.85);
+  filter: blur(2px);
+  opacity: 0.5;
+}
+
+/* Centered slide is full size and sharp */
+.embla__slide.is-snapped .embla-slide-content {
+  transform: scale(1);
+  filter: blur(0);
+  opacity: 1;
+}
+
+/* Smooth touch interactions */
+.embla__container {
+  backface-visibility: hidden;
+  touch-action: pan-y pinch-zoom;
+}
+
+.embla__slide {
+  transform: translate3d(0, 0, 0);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}

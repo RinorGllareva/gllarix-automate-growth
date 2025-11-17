@@ -1,34 +1,44 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { 
   Home, Heart, Sun, Users, Car, CreditCard, Hotel, Shield, GraduationCap,
   Phone, Calendar, MessageSquare, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { Button } from "@/components/ui/button";
+import useEmblaCarousel from 'embla-carousel-react';
+import type { EmblaOptionsType } from 'embla-carousel';
+import './Industries.css';
 
 const Industries = () => {
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation(0.2);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
+  
+  const options: EmblaOptionsType = {
+    loop: true,
+    align: 'center',
+    containScroll: 'trimSnaps',
+    slidesToScroll: 1,
+  };
+  
+  const [emblaRef, emblaApi] = useEmblaCarousel(options);
 
-  // Check screen size for responsive carousel
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
+
+  // Auto-play functionality
   useEffect(() => {
-    const checkMobile = () => {
-      const wasMobile = isMobile;
-      const nowMobile = window.innerWidth < 768;
-      setIsMobile(nowMobile);
-      
-      // Reset carousel when switching between mobile/desktop
-      if (wasMobile !== nowMobile) {
-        setCurrentIndex(0);
-      }
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, [isMobile]);
+    if (!emblaApi) return;
+
+    const interval = setInterval(() => {
+      emblaApi.scrollNext();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [emblaApi]);
 
   const industries = [
     {
@@ -156,30 +166,6 @@ const Industries = () => {
     { icon: MessageSquare, title: "24/7 Support", description: "Always available" }
   ];
 
-  const itemsPerView = isMobile ? 1 : 2;
-  const maxIndex = Math.ceil(industries.length / itemsPerView) - 1;
-
-  useEffect(() => {
-    if (!isAutoPlaying) return;
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => {
-        if (prev >= maxIndex) return 0;
-        return prev + 1;
-      });
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [isAutoPlaying, maxIndex]);
-
-  const nextSlide = () => {
-    setIsAutoPlaying(false);
-    setCurrentIndex((prev) => Math.min(prev + 1, maxIndex));
-  };
-
-  const prevSlide = () => {
-    setIsAutoPlaying(false);
-    setCurrentIndex((prev) => Math.max(prev - 1, 0));
-  };
-
   return (
     <section className="relative py-12 sm:py-16 lg:py-20 bg-gradient-to-b from-gray-900 via-black to-gray-900 overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
@@ -202,18 +188,16 @@ const Industries = () => {
             </p>
           </div>
 
-          {/* Carousel Container - Responsive */}
+          {/* Carousel Container with Center Focus */}
           <div className="relative mb-8">
-            <div className="relative overflow-hidden">
-              <div 
-                className="flex transition-transform duration-500 ease-in-out gap-4 md:gap-6"
-                style={{ 
-                  transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`
-                }}
-              >
+            <div className="overflow-hidden" ref={emblaRef}>
+              <div className="flex touch-pan-y touch-pinch-zoom">
                 {industries.map((industry, index) => (
-                  <div key={index} className="w-full md:w-[calc(50%-12px)] flex-shrink-0 px-1">
-                    <div className="relative p-5 sm:p-6 lg:p-8 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl sm:rounded-2xl overflow-hidden group hover:border-primary/30 active:border-primary/40 hover:bg-white/[0.07] transition-all duration-300 h-full min-h-[400px] sm:min-h-[380px]">
+                  <div 
+                    key={index} 
+                    className="flex-[0_0_85%] sm:flex-[0_0_70%] md:flex-[0_0_60%] lg:flex-[0_0_50%] min-w-0 pl-4"
+                  >
+                    <div className="embla-slide-content relative p-5 sm:p-6 lg:p-8 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl sm:rounded-2xl overflow-hidden group hover:border-primary/30 transition-all duration-500 h-full min-h-[420px] sm:min-h-[400px]">
                       {/* Gradient Background */}
                       <div className={`absolute inset-0 bg-gradient-to-br ${industry.color} opacity-5 group-hover:opacity-10 transition-opacity duration-300`} />
                       
@@ -236,8 +220,8 @@ const Industries = () => {
                           </div>
                         </div>
 
-                        {/* Divider - Mobile Horizontal, Desktop Vertical */}
-                        <div className="h-px lg:hidden bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                        {/* Divider */}
+                        <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
                         {/* Bottom Section - Automations List */}
                         <div className="flex-1">
@@ -267,42 +251,21 @@ const Industries = () => {
               </div>
             </div>
 
-            {/* Navigation Arrows - Responsive */}
+            {/* Navigation Arrows */}
             <Button
-              onClick={prevSlide}
-              disabled={currentIndex === 0}
-              className="absolute left-1 sm:left-0 top-1/2 -translate-y-1/2 sm:-translate-x-4 bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/20 rounded-full p-2 sm:p-3 backdrop-blur-sm z-10 disabled:opacity-30 disabled:cursor-not-allowed transition-all touch-manipulation"
+              onClick={scrollPrev}
+              className="absolute left-2 sm:left-0 top-1/2 -translate-y-1/2 sm:-translate-x-12 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full p-2.5 sm:p-3 backdrop-blur-sm z-20 transition-all"
               size="icon"
             >
               <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </Button>
             <Button
-              onClick={nextSlide}
-              disabled={currentIndex >= maxIndex}
-              className="absolute right-1 sm:right-0 top-1/2 -translate-y-1/2 sm:translate-x-4 bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/20 rounded-full p-2 sm:p-3 backdrop-blur-sm z-10 disabled:opacity-30 disabled:cursor-not-allowed transition-all touch-manipulation"
+              onClick={scrollNext}
+              className="absolute right-2 sm:right-0 top-1/2 -translate-y-1/2 sm:translate-x-12 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full p-2.5 sm:p-3 backdrop-blur-sm z-20 transition-all"
               size="icon"
             >
               <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </Button>
-
-            {/* Dots Navigation - Responsive */}
-            <div className="flex justify-center gap-1.5 sm:gap-2 mt-5 sm:mt-6">
-              {Array.from({ length: maxIndex + 1 }).map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => {
-                    setCurrentIndex(index);
-                    setIsAutoPlaying(false);
-                  }}
-                  className={`h-1.5 sm:h-2 rounded-full transition-all touch-manipulation ${
-                    index === currentIndex 
-                      ? 'w-6 sm:w-8 bg-primary' 
-                      : 'w-1.5 sm:w-2 bg-white/30 hover:bg-white/50 active:bg-white/60'
-                  }`}
-                  aria-label={`Go to slide ${index + 1}`}
-                />
-              ))}
-            </div>
           </div>
 
           {/* Common Features - Responsive Grid */}
