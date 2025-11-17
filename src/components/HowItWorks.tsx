@@ -3,6 +3,7 @@ import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { Link2, Bot, Zap, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Floating3DOrb } from "./Floating3DOrb";
+import { Link } from "react-router-dom";
 
 const HowItWorks = () => {
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation(0.2);
@@ -161,9 +162,11 @@ const HowItWorks = () => {
                 <p className="text-gray-400 text-lg mb-8 max-w-2xl mx-auto">
                   Book a free demo and watch AI agents handle real calls and schedule appointments live.
                 </p>
-                <Button className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl font-semibold transition-all hover:scale-105">
-                  Start Your Free Demo
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                <Button asChild className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl font-semibold transition-all hover:scale-105">
+                  <Link to="/demo">
+                    Start Your Free Demo
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
                 </Button>
               </div>
             </div>
