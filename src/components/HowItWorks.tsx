@@ -162,12 +162,14 @@ const HowItWorks = () => {
                 <p className="text-gray-400 text-lg mb-8 max-w-2xl mx-auto">
                   Book a free demo and watch AI agents handle real calls and schedule appointments live.
                 </p>
-                <Button asChild className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl font-semibold transition-all hover:scale-105">
-                  <Link to="/demo">
-                    Start Your Free Demo
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
+                <div className="flex justify-center">
+                  <Button asChild className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl font-semibold transition-all hover:scale-105">
+                    <Link to="/demo">
+                      Start Your Free Demo
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Link>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
