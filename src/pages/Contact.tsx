@@ -99,10 +99,24 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Create mailto link with form data
+    const subject = encodeURIComponent(`Contact from ${formData.name} - ${formData.company || 'No Company'}`);
+    const body = encodeURIComponent(
+      `Name: ${formData.name}\n` +
+      `Email: ${formData.email}\n` +
+      `Company: ${formData.company || 'N/A'}\n\n` +
+      `Message:\n${formData.message}`
+    );
+    
+    // Open mailto link
+    window.location.href = `mailto:rinorgllareva1@gmail.com?subject=${subject}&body=${body}`;
+    
+    // Show success state
+    await new Promise(resolve => setTimeout(resolve, 1000));
     setIsSubmitting(false);
     setIsSubmitted(true);
+    
     // Reset form after 3 seconds
     setTimeout(() => {
       setFormData({ name: '', email: '', company: '', message: '' });
@@ -166,7 +180,7 @@ const Contact = () => {
                 className="btn-hero group w-full sm:w-auto"
                 onClick={() => document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' })}
               >
-                Start Conversation
+                Talk to Our Team
                 <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button 
@@ -240,7 +254,7 @@ const Contact = () => {
                   
                   <div className="relative">
                     <h3 className="text-3xl font-bold mb-8 text-foreground group-hover:text-primary transition-colors duration-500">
-                      Send us a Message
+                      Get in Touch With Us
                     </h3>
                     
                     {isSubmitted ? (
