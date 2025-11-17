@@ -1,69 +1,38 @@
-import React, { useState } from "react";
-import { Check, Star, ArrowRight, Zap } from "lucide-react";
+import React from "react";
+import { ArrowRight, Zap, TrendingUp, Users, Clock, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { Link } from "react-router-dom";
 
 const Pricing = () => {
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation(0.2);
-  const { ref: cardsRef, isVisible: cardsVisible } = useScrollAnimation(0.1);
-  const [hoveredPlan, setHoveredPlan] = useState<number | null>(null);
+  const { ref: contentRef, isVisible: contentVisible } = useScrollAnimation(0.1);
+  const { ref: factorsRef, isVisible: factorsVisible } = useScrollAnimation(0.15);
 
-  const plans = [
+  const pricingFactors = [
     {
-      name: "Starter",
-      price: "$500-1,000",
-      period: "/month",
-      description: "Perfect for small businesses looking to automate one key workflow",
-      features: [
-        "One AI automation or agent",
-        "Basic CRM integration",
-        "Email & SMS reminders",
-        "Standard voice quality",
-        "Business hours support",
-        "Up to 1,000 interactions/month",
-        "Basic analytics dashboard",
-      ],
-      cta: "Start Free Trial",
-      popular: false,
+      icon: Brain,
+      title: "AI Complexity",
+      description: "Simple workflows to advanced multi-agent systems",
+      gradient: "from-blue-500 to-cyan-500",
     },
     {
-      name: "Pro",
-      price: "$1,500-2,500",
-      period: "/month",
-      description: "Most popular for growing businesses wanting comprehensive automation",
-      features: [
-        "Multiple AI agents & automations",
-        "Advanced CRM + Calendar sync",
-        "WhatsApp, SMS, Email integration",
-        "Premium voice quality",
-        "Priority support (24/7)",
-        "Up to 5,000 interactions/month",
-        "Advanced analytics & reporting",
-        "Custom workflows",
-        "A/B testing for scripts",
-      ],
-      cta: "Book Demo",
-      popular: true,
+      icon: Users,
+      title: "Volume of Interactions",
+      description: "Pay based on your actual usage and scale",
+      gradient: "from-purple-500 to-pink-500",
     },
     {
-      name: "Enterprise",
-      price: "$3,000+",
-      period: "/month",
-      description: "Full automation suite for large businesses with custom needs",
-      features: [
-        "Unlimited AI agents & automations",
-        "Custom integrations (Salesforce, HubSpot, etc.)",
-        "Multi-language support",
-        "Ultra-premium voice quality",
-        "Dedicated account manager",
-        "Unlimited interactions",
-        "White-label options",
-        "Custom AI training",
-        "API access",
-        "SLA guarantees",
-      ],
-      cta: "Contact Sales",
-      popular: false,
+      icon: TrendingUp,
+      title: "Integration Depth",
+      description: "Basic to enterprise-level system connections",
+      gradient: "from-orange-500 to-red-500",
+    },
+    {
+      icon: Clock,
+      title: "Support Level",
+      description: "Standard to dedicated account management",
+      gradient: "from-green-500 to-emerald-500",
     },
   ];
 
@@ -82,7 +51,7 @@ const Pricing = () => {
           {/* Header */}
           <div
             ref={headerRef}
-            className={`text-center mb-24 transition-all duration-1000 ${
+            className={`text-center mb-20 transition-all duration-1000 ${
               headerVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
             }`}
           >
@@ -90,155 +59,149 @@ const Pricing = () => {
               <span className="text-primary text-sm font-medium">Flexible Pricing</span>
             </div>
             <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-white to-primary bg-clip-text text-transparent">
-              Simple, Transparent
+              Pay for What You Need
             </h2>
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-8 leading-relaxed">
-              Choose the plan that fits your business. All plans include setup and training.
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
+              No fixed packages. Your pricing adapts to your business complexity and growth.
             </p>
-            <div
-              className={`inline-flex items-center gap-2 bg-green-500/10 text-green-400 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-700 ${
-                headerVisible ? "scale-100 opacity-100" : "scale-95 opacity-0"
-              }`}
-            >
-              <Zap className="h-4 w-4" />
-              No setup fees • Cancel anytime • 30-day money-back guarantee
-            </div>
           </div>
 
-          {/* Pricing Cards */}
+          {/* Pricing Scale Visualization */}
           <div
-            ref={cardsRef}
-            className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-20"
+            ref={contentRef}
+            className={`mb-24 transition-all duration-1000 delay-200 ${
+              contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            }`}
           >
-            {plans.map((plan, index) => (
-              <div
-                key={index}
-                className={`relative p-8 bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl hover:bg-white/10 hover:border-primary/30 transition-all duration-700 hover:scale-105 ${
-                  plan.popular ? "lg:scale-110 border-primary/50" : ""
-                } ${
-                  cardsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-                }`}
-                style={{ transitionDelay: `${index * 200}ms` }}
-                onMouseEnter={() => setHoveredPlan(index)}
-                onMouseLeave={() => setHoveredPlan(null)}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <div className="bg-gradient-to-r from-primary to-purple-500 text-white px-6 py-2 rounded-full text-sm font-bold flex items-center gap-2">
-                      <Star className="h-4 w-4 fill-current" />
-                      Most Popular
-                    </div>
+            <div className="relative max-w-5xl mx-auto">
+              {/* Gradient Bar */}
+              <div className="relative h-32 rounded-3xl overflow-hidden bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 border border-primary/20 backdrop-blur-sm">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-30" />
+                
+                {/* Scale Markers */}
+                <div className="absolute inset-0 flex items-center justify-between px-4 md:px-8">
+                  <div className="text-center">
+                    <div className="text-xl md:text-2xl font-bold text-white mb-2">Simple</div>
+                    <div className="text-xs md:text-sm text-gray-400">Basic Automation</div>
                   </div>
-                )}
-
-                <div className="text-center mb-8">
-                  <h3 className={`text-2xl font-bold text-white mb-4 transition-colors duration-300 ${
-                    hoveredPlan === index ? 'text-primary' : ''
-                  }`}>
-                    {plan.name}
-                  </h3>
-                  <div className="mb-4">
-                    <span className="text-5xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
-                      {plan.price}
-                    </span>
-                    <span className="text-gray-400">{plan.period}</span>
+                  <div className="text-center">
+                    <div className="text-xl md:text-2xl font-bold text-white mb-2">Growing</div>
+                    <div className="text-xs md:text-sm text-gray-400">Multiple Agents</div>
                   </div>
-                  <p className="text-gray-400 text-sm leading-relaxed">
-                    {plan.description}
-                  </p>
+                  <div className="text-center">
+                    <div className="text-xl md:text-2xl font-bold text-white mb-2">Advanced</div>
+                    <div className="text-xs md:text-sm text-gray-400">Enterprise Scale</div>
+                  </div>
                 </div>
-
-                <div className="space-y-4 mb-8">
-                  {plan.features.map((feature, i) => (
-                    <div
-                      key={i}
-                      className={`flex items-start gap-3 transition-all duration-300 ${
-                        hoveredPlan === index ? 'translate-x-2' : ''
-                      }`}
-                      style={{ transitionDelay: `${i * 50}ms` }}
-                    >
-                      <Check className={`h-5 w-5 text-green-400 flex-shrink-0 mt-0.5 transition-all duration-300 ${
-                        hoveredPlan === index ? 'scale-125' : ''
-                      }`} />
-                      <span className="text-sm text-gray-300">{feature}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <Button
-                  className={`w-full ${
-                    plan.popular 
-                      ? 'bg-primary hover:bg-primary/90 text-white' 
-                      : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-                  } px-6 py-6 text-lg rounded-xl font-semibold transition-all duration-300 ${
-                    hoveredPlan === index ? 'scale-105' : ''
-                  }`}
-                >
-                  {plan.cta}
-                  <ArrowRight className={`ml-2 h-5 w-5 transition-transform duration-300 ${
-                    hoveredPlan === index ? 'translate-x-1' : ''
-                  }`} />
-                </Button>
               </div>
-            ))}
-          </div>
 
-          {/* Additional Info */}
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="p-8 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl">
-              <h4 className="text-2xl font-bold text-white mb-6">
-                Usage-Based Billing
-              </h4>
-              <p className="text-gray-400 mb-6">
-                Additional usage beyond your plan limits is billed at competitive rates:
-              </p>
-              <div className="space-y-4 text-gray-300">
-                <div className="flex justify-between p-3 bg-white/5 rounded-lg">
-                  <span>Voice calls:</span>
-                  <span className="font-bold text-primary">$0.15/minute</span>
-                </div>
-                <div className="flex justify-between p-3 bg-white/5 rounded-lg">
-                  <span>SMS messages:</span>
-                  <span className="font-bold text-primary">$0.05/message</span>
-                </div>
-                <div className="flex justify-between p-3 bg-white/5 rounded-lg">
-                  <span>Chat interactions:</span>
-                  <span className="font-bold text-primary">$0.02/interaction</span>
+              {/* Price Range Indicator */}
+              <div className="mt-8 text-center">
+                <div className="inline-flex flex-col md:flex-row items-center gap-4 bg-background/50 backdrop-blur-sm border border-primary/20 rounded-2xl px-8 py-6">
+                  <div>
+                    <div className="text-sm text-gray-400 mb-1">Starting from</div>
+                    <div className="text-3xl font-bold text-primary">$500</div>
+                  </div>
+                  <div className="hidden md:block h-12 w-px bg-primary/20" />
+                  <div>
+                    <div className="text-sm text-gray-400 mb-1">Scales to</div>
+                    <div className="text-3xl font-bold text-primary">$5,000+</div>
+                  </div>
+                  <div className="hidden md:block h-12 w-px bg-primary/20" />
+                  <div className="text-center md:text-left">
+                    <div className="text-sm text-gray-400 mb-1">Based on</div>
+                    <div className="text-lg font-semibold text-white">Your Needs</div>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div className="p-8 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl">
-              <h4 className="text-2xl font-bold text-white mb-6">
-                What's Included
-              </h4>
-              <div className="space-y-4">
+          {/* Pricing Factors Grid */}
+          <div
+            ref={factorsRef}
+            className={`mb-20 transition-all duration-1000 delay-300 ${
+              factorsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            }`}
+          >
+            <div className="text-center mb-16">
+              <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">What Influences Your Price?</h3>
+              <p className="text-lg text-gray-400">We tailor pricing based on these key factors</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+              {pricingFactors.map((factor, index) => {
+                const Icon = factor.icon;
+                return (
+                  <div
+                    key={index}
+                    className="group relative bg-background/30 backdrop-blur-sm border border-primary/20 rounded-2xl p-8 hover:border-primary/40 transition-all duration-300 hover:transform hover:scale-105"
+                  >
+                    {/* Gradient Background */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${factor.gradient} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300`} />
+                    
+                    <div className="relative">
+                      <div className={`inline-flex p-4 rounded-xl bg-gradient-to-br ${factor.gradient} mb-6`}>
+                        <Icon className="h-8 w-8 text-white" />
+                      </div>
+                      <h4 className="text-2xl font-bold text-white mb-3">{factor.title}</h4>
+                      <p className="text-gray-400 text-lg leading-relaxed">{factor.description}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Value Proposition */}
+          <div className="mt-24 max-w-4xl mx-auto">
+            <div className="bg-gradient-to-r from-primary/10 via-purple-500/10 to-pink-500/10 border border-primary/20 rounded-3xl p-8 md:p-12">
+              <div className="text-center mb-12">
+                <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">Always Included</h3>
+                <p className="text-gray-400 text-lg">No matter your complexity, these are standard</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[
-                  "Free setup and onboarding",
-                  "AI agent training for your business",
-                  "Integration support",
-                  "Regular performance optimization"
+                  "Free setup & onboarding",
+                  "24/7 AI agent availability",
+                  "Real-time analytics dashboard",
+                  "CRM integration",
+                  "Regular performance reports",
+                  "Ongoing AI optimization",
+                  "Multi-channel support",
+                  "Dedicated support team"
                 ].map((item, index) => (
-                  <div key={index} className="flex items-center gap-4">
-                    <Check className="h-6 w-6 text-green-400" />
-                    <span className="text-gray-300">{item}</span>
+                  <div key={index} className="flex items-center gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                      <Zap className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="text-white text-lg">{item}</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* CTA */}
-          <div className="mt-16 text-center">
-            <h3 className="text-3xl font-bold text-white mb-4">
-              Questions about pricing?
-            </h3>
-            <p className="text-gray-400 mb-8">
-              Our team can help you choose the right plan and estimate costs based on your needs.
-            </p>
-            <Button className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-6 text-lg rounded-xl font-semibold transition-all hover:scale-105">
-              Schedule Pricing Consultation
-            </Button>
+          {/* Final CTA */}
+          <div className="mt-20 text-center">
+            <div className="inline-block bg-gradient-to-r from-primary/20 to-purple-500/20 border border-primary/30 rounded-3xl p-8 md:p-12 max-w-3xl">
+              <div className="mb-6">
+                <span className="text-5xl">💬</span>
+              </div>
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+                Let's Build Your Perfect Solution
+              </h3>
+              <p className="text-gray-400 mb-6 text-lg">
+                Book a free consultation to discuss your needs and get a custom quote tailored to your business.
+              </p>
+              <Button asChild className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl font-semibold transition-all hover:scale-105">
+                <Link to="/book-meeting">
+                  Get Your Custom Quote
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
