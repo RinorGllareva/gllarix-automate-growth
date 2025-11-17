@@ -50,7 +50,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
           >
             {/* Main Logo (Pulsing) */}
             <img
-              src="/Gllarix_LogoPNG.png"
+              src="https://res.cloudinary.com/dagpc9xix/image/upload/v1763088117/Gllarix_LogoPNG2_dl4tr0.png"
               alt="Gllarix"
               className={`h-24 w-auto transition-all duration-2000 ease-out animate-logo-pulse ${
                 isLoading ? "scale-100 opacity-100" : "scale-125 opacity-0"

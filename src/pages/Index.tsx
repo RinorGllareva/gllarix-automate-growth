@@ -12,29 +12,29 @@ const Index = () => {
   return (
     <main className="min-h-screen bg-black">
       <Navigation />
-      
+
       <Hero />
-      
+
       <section id="services" className="min-h-screen bg-gray-900">
         <PainSolution />
       </section>
-      
+
       <section id="how-it-works" className="min-h-screen bg-black">
         <HowItWorks />
       </section>
-      
+
       <section id="industries" className="min-h-screen bg-gray-900">
         <Industries />
       </section>
-      
+
       <section id="pricing" className="min-h-screen bg-black">
         <Pricing />
       </section>
-      
-      <Testimonials />
-      
-      <FinalCTA />
-      
+
+      {/* <Testimonials /> */}
+
+      {/* <FinalCTA /> */}
+
       <Footer />
     </main>
   );
