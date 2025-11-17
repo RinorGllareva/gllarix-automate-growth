@@ -44,7 +44,7 @@ const Navigation = () => {
                 </Link>
               </div>
               <Link
-                to="/#services"
+                to="/#industries"
                 className="text-gray-400 hover:text-primary transition-colors text-xs sm:text-sm font-light shrink-0"
               >
                 Services
