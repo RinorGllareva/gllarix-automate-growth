@@ -105,9 +105,9 @@ const Pricing = () => {
                       </div>
                       
                       <div className="flex sm:flex-col items-center gap-2 rotate-90 sm:rotate-0">
-                        <div className="h-1 w-12 sm:w-16 bg-gradient-to-r from-primary to-purple-500 rounded-full" />
+                        <div className="hidden sm:block h-1 w-12 sm:w-16 bg-gradient-to-r from-primary to-purple-500 rounded-full" />
                         <ArrowRight className="h-6 w-6 sm:h-8 sm:w-8 text-primary animate-pulse" />
-                        <div className="h-1 w-12 sm:w-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" />
+                        <div className="hidden sm:block h-1 w-12 sm:w-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" />
                       </div>
                       
                       <div className="text-center">
