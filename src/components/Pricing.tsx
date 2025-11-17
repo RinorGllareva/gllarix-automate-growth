@@ -73,45 +73,65 @@ const Pricing = () => {
               contentVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
             }`}
           >
-            <div className="relative max-w-5xl mx-auto">
-              {/* Gradient Bar */}
-              <div className="relative h-32 rounded-3xl overflow-hidden bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 border border-primary/20 backdrop-blur-sm">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-30" />
-                
-                {/* Scale Markers */}
-                <div className="absolute inset-0 flex items-center justify-between px-4 md:px-8">
-                  <div className="text-center">
-                    <div className="text-xl md:text-2xl font-bold text-white mb-2">Simple</div>
-                    <div className="text-xs md:text-sm text-gray-400">Basic Automation</div>
+            <div className="relative max-w-6xl mx-auto">
+              {/* Three Cards Approach */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                {/* Simple */}
+                <div className="group relative bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-2 border-blue-500/30 rounded-3xl p-8 hover:border-blue-500/60 transition-all duration-500 hover:scale-105">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
+                  <div className="relative">
+                    <div className="inline-flex p-3 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 mb-4">
+                      <Zap className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-3xl font-bold text-white mb-2">Simple</h3>
+                    <p className="text-gray-400 text-sm mb-6">Basic Automation</p>
+                    <div className="text-4xl font-bold text-blue-400">$500+</div>
+                    <p className="text-gray-500 text-sm mt-1">/month</p>
                   </div>
-                  <div className="text-center">
-                    <div className="text-xl md:text-2xl font-bold text-white mb-2">Growing</div>
-                    <div className="text-xs md:text-sm text-gray-400">Multiple Agents</div>
+                </div>
+
+                {/* Growing */}
+                <div className="group relative bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-2 border-purple-500/30 rounded-3xl p-8 hover:border-purple-500/60 transition-all duration-500 hover:scale-105 md:translate-y-[-10px]">
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-sm font-semibold">
+                    Most Popular
                   </div>
-                  <div className="text-center">
-                    <div className="text-xl md:text-2xl font-bold text-white mb-2">Advanced</div>
-                    <div className="text-xs md:text-sm text-gray-400">Enterprise Scale</div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
+                  <div className="relative">
+                    <div className="inline-flex p-3 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 mb-4">
+                      <TrendingUp className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-3xl font-bold text-white mb-2">Growing</h3>
+                    <p className="text-gray-400 text-sm mb-6">Multiple Agents</p>
+                    <div className="text-4xl font-bold text-purple-400">$1,500+</div>
+                    <p className="text-gray-500 text-sm mt-1">/month</p>
+                  </div>
+                </div>
+
+                {/* Advanced */}
+                <div className="group relative bg-gradient-to-br from-orange-500/10 to-red-500/10 border-2 border-orange-500/30 rounded-3xl p-8 hover:border-orange-500/60 transition-all duration-500 hover:scale-105">
+                  <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-red-500/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
+                  <div className="relative">
+                    <div className="inline-flex p-3 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 mb-4">
+                      <Brain className="h-8 w-8 text-white" />
+                    </div>
+                    <h3 className="text-3xl font-bold text-white mb-2">Advanced</h3>
+                    <p className="text-gray-400 text-sm mb-6">Enterprise Scale</p>
+                    <div className="text-4xl font-bold text-orange-400">$5,000+</div>
+                    <p className="text-gray-500 text-sm mt-1">/month</p>
                   </div>
                 </div>
               </div>
 
-              {/* Price Range Indicator */}
-              <div className="mt-8 text-center">
+              {/* Bottom Info */}
+              <div className="text-center">
                 <div className="inline-flex flex-col md:flex-row items-center gap-4 bg-background/50 backdrop-blur-sm border border-primary/20 rounded-2xl px-8 py-6">
-                  <div>
-                    <div className="text-sm text-gray-400 mb-1">Starting from</div>
-                    <div className="text-3xl font-bold text-primary">$500</div>
-                  </div>
-                  <div className="hidden md:block h-12 w-px bg-primary/20" />
-                  <div>
-                    <div className="text-sm text-gray-400 mb-1">Scales to</div>
-                    <div className="text-3xl font-bold text-primary">$5,000+</div>
-                  </div>
-                  <div className="hidden md:block h-12 w-px bg-primary/20" />
-                  <div className="text-center md:text-left">
-                    <div className="text-sm text-gray-400 mb-1">Based on</div>
-                    <div className="text-lg font-semibold text-white">Your Needs</div>
-                  </div>
+                  <Zap className="h-6 w-6 text-primary" />
+                  <p className="text-gray-300 text-lg font-medium">
+                    Your exact price is tailored to your <span className="text-primary font-bold">complexity & scale</span>
+                  </p>
                 </div>
               </div>
             </div>
