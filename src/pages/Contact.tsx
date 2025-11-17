@@ -5,6 +5,8 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, OrbitControls, Sphere } from "@react-three/drei";
 import { useRef, useState } from "react";
 import * as THREE from "three";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 // Enhanced 3D Scene with Multiple Elements
 const ContactScene3D = () => {
@@ -133,6 +135,7 @@ const Contact = () => {
 
   return (
     <main className="min-h-screen bg-background">
+      <Navigation />
       {/* Enhanced Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Background Effects */}
@@ -640,6 +643,8 @@ const Contact = () => {
           </div>
         </div>
       </section>
+      
+      <Footer />
     </main>
   );
 };
