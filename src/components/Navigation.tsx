@@ -16,12 +16,12 @@ const Navigation = () => {
               </div>
             </div>
 
-            {/* Contact Button */}
+            {/* Book Meeting Button */}
             <Link
-              to="/contact"
+              to="/book-meeting"
               className="flex items-center gap-1 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/10 text-primary transition-all duration-300 backdrop-blur-sm"
             >
-              <span className="text-xs sm:text-sm font-medium">Contact us</span>
+              <span className="text-xs sm:text-sm font-medium">Book a Meeting</span>
               <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
             </Link>
           </div>
@@ -60,6 +60,12 @@ const Navigation = () => {
                 className="text-gray-400 hover:text-primary transition-colors text-xs sm:text-sm font-light shrink-0"
               >
                 Demo
+              </Link>
+              <Link
+                to="/contact"
+                className="text-gray-400 hover:text-primary transition-colors text-xs sm:text-sm font-light shrink-0"
+              >
+                Contact us
               </Link>
             </div>
           </div>
