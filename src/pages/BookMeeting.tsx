@@ -40,14 +40,14 @@ const BookMeeting = () => {
   ];
 
   return (
-    <main className="min-h-screen bg-black">
+    <main className="min-h-screen bg-black overflow-x-hidden">
       <Navigation />
       
       {/* Hero Section */}
-      <section className="relative pt-24 sm:pt-32 pb-8 sm:pb-16 px-3 sm:px-6">
+      <section className="relative pt-24 sm:pt-32 pb-8 sm:pb-16 px-3 sm:px-6 overflow-x-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
         
-        <div className="container mx-auto max-w-6xl relative z-10">
+        <div className="container mx-auto max-w-6xl relative z-10 overflow-x-hidden">
           <div className="text-center mb-8 sm:mb-12">
             <div className="inline-block px-3 sm:px-4 py-1.5 sm:py-2 bg-primary/10 border border-primary/20 rounded-full mb-4 sm:mb-6">
               <span className="text-primary text-xs sm:text-sm font-medium">Schedule Your Consultation</span>
@@ -79,11 +79,11 @@ const BookMeeting = () => {
           </div>
 
           {/* Calendly Widget Container */}
-          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 md:p-8 shadow-2xl">
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 md:p-8 shadow-2xl overflow-hidden w-full">
             <div 
               className="calendly-inline-widget rounded-lg sm:rounded-xl overflow-hidden w-full" 
               data-url="https://calendly.com/rinorgllareva1/30min?hide_gdpr_banner=1&background_color=000000&text_color=ffffff&primary_color=8b5cf6"
-              style={{ minWidth: "100%", height: "600px", maxWidth: "100%" }}
+              style={{ width: "100%", height: "600px", minHeight: "600px" }}
             />
           </div>
 
