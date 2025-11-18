@@ -83,7 +83,7 @@ const BookMeeting = () => {
             <div 
               className="calendly-inline-widget rounded-lg sm:rounded-xl overflow-hidden w-full" 
               data-url="https://calendly.com/rinorgllareva1/30min?hide_gdpr_banner=1&background_color=000000&text_color=ffffff&primary_color=8b5cf6"
-              style={{ width: "100%", height: "600px", minHeight: "600px" }}
+              style={{ width: "100%", height: "850px", minHeight: "800px" }}
             />
           </div>
 

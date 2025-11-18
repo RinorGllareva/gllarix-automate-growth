@@ -185,7 +185,7 @@ const Pricing = () => {
             </div>
           </div>
 
-          {/* Value Proposition */}
+          {/* Value Proposition
           <div className="mt-16 sm:mt-20 md:mt-24 max-w-4xl mx-auto px-4">
             <div className="bg-gradient-to-r from-primary/10 via-purple-500/10 to-pink-500/10 border border-primary/20 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12">
               <div className="text-center mb-8 sm:mb-10 md:mb-12">
@@ -213,7 +213,7 @@ const Pricing = () => {
                 ))}
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Final CTA */}
           <div className="mt-16 sm:mt-20 flex justify-center px-4">
