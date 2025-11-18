@@ -102,28 +102,40 @@ const Contact = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Create mailto link with form data
-    const subject = encodeURIComponent(`Contact from ${formData.name} - ${formData.company || 'No Company'}`);
-    const body = encodeURIComponent(
-      `Name: ${formData.name}\n` +
-      `Email: ${formData.email}\n` +
-      `Company: ${formData.company || 'N/A'}\n\n` +
-      `Message:\n${formData.message}`
-    );
-    
-    // Open mailto link
-    window.location.href = `mailto:rinorgllareva1@gmail.com?subject=${subject}&body=${body}`;
-    
-    // Show success state
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    
-    // Reset form after 3 seconds
-    setTimeout(() => {
-      setFormData({ name: '', email: '', company: '', message: '' });
-      setIsSubmitted(false);
-    }, 3000);
+    try {
+      // Call the edge function to send email
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-contact-email`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send email');
+      }
+
+      // Show success state
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+      
+      // Reset form after 3 seconds
+      setTimeout(() => {
+        setIsSubmitted(false);
+        setFormData({ name: '', email: '', company: '', message: '' });
+      }, 3000);
+    } catch (error) {
+      console.error('Error sending email:', error);
+      setIsSubmitting(false);
+      alert('Failed to send message. Please try again or contact us directly at rinorgllareva1@gmail.com');
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
