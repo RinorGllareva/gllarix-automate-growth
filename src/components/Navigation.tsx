@@ -12,7 +12,7 @@ const Navigation = () => {
             {/* Logo */}
             <div className="flex items-center gap-2">
               <div className="text-xl font-light text-white tracking-wider">
-                <img src={img} alt="Gllarix Logo" className="h-10 sm:h-12 md:h-[60px] w-auto" />
+                <img src={img} alt="Gllarix AI Voice Agents and Business Automation Platform" className="h-10 sm:h-12 md:h-[60px] w-auto" loading="eager" fetchPriority="high" />
               </div>
             </div>
 

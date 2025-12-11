@@ -1,14 +1,23 @@
+# Gllarix Robots.txt
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+
+# Sitemap
+Sitemap: https://gllarix.com/sitemap.xml
+
+# Crawl-delay for politeness
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Twitterbot
 Allow: /
 
 User-agent: facebookexternalhit
-Allow: /
-
-User-agent: *
 Allow: /

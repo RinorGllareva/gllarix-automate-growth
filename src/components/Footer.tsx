@@ -67,8 +67,11 @@ const Footer = () => {
               <div className="flex items-center gap-3">
                 <img
                   src={img}
-                  alt="Gllarix Logo"
+                  alt="Gllarix AI Voice Agents Logo"
                   className="h-10 sm:h-12 md:h-16 w-auto object-contain"
+                  loading="lazy"
+                  width="160"
+                  height="64"
                 />
               </div>
 
