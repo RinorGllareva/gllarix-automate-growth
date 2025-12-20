@@ -69,57 +69,67 @@ const Demo = () => {
     {
       id: "real-estate",
       title: "Real Estate AI Agent Demo",
-      description: "Watch how our AI agent handles property inquiries, schedules tours, and qualifies leads automatically.",
+      description:
+        "Watch how our AI agent handles property inquiries, schedules tours, and qualifies leads automatically.",
       thumbnail: "/api/placeholder/400/225",
       duration: "3:45",
       category: "Industry Demo",
-      features: ["Lead Qualification", "Tour Scheduling", "Follow-up Calls"]
+      features: ["Lead Qualification", "Tour Scheduling", "Follow-up Calls"],
     },
     {
       id: "healthcare",
       title: "Healthcare Appointment Booking",
-      description: "See how patients can book appointments, get reminders, and receive prescription notifications.",
-      thumbnail: "/api/placeholder/400/225", 
+      description:
+        "See how patients can book appointments, get reminders, and receive prescription notifications.",
+      thumbnail: "https://youtu.be/dEyQKa5PIP0",
       duration: "4:12",
       category: "Industry Demo",
-      features: ["Appointment Booking", "Insurance Verification", "Patient Reminders"]
+      features: [
+        "Appointment Booking",
+        "Insurance Verification",
+        "Patient Reminders",
+      ],
     },
     {
       id: "solar",
       title: "Solar Lead Qualification System",
-      description: "Discover how our AI qualifies solar leads and schedules site assessments efficiently.",
+      description:
+        "Discover how our AI qualifies solar leads and schedules site assessments efficiently.",
       thumbnail: "/api/placeholder/400/225",
       duration: "5:23",
-      category: "Industry Demo", 
-      features: ["Lead Qualification", "Site Assessment", "ROI Calculations"]
+      category: "Industry Demo",
+      features: ["Lead Qualification", "Site Assessment", "ROI Calculations"],
     },
     {
       id: "crm-integration",
       title: "CRM Integration Setup",
-      description: "Learn how to connect Gllarix with your existing CRM in under 5 minutes.",
+      description:
+        "Learn how to connect Gllarix with your existing CRM in under 5 minutes.",
       thumbnail: "/api/placeholder/400/225",
       duration: "4:56",
       category: "Setup Guide",
-      features: ["Quick Setup", "Data Sync", "Custom Fields"]
+      features: ["Quick Setup", "Data Sync", "Custom Fields"],
     },
     {
       id: "voice-agent",
       title: "AI Voice Agent Training",
-      description: "Understand how to train your AI agent with your business-specific conversation flows.",
+      description:
+        "Understand how to train your AI agent with your business-specific conversation flows.",
       thumbnail: "/api/placeholder/400/225",
       duration: "6:18",
       category: "Training",
-      features: ["Voice Training", "Custom Scripts", "Response Optimization"]
+      features: ["Voice Training", "Custom Scripts", "Response Optimization"],
     },
     {
       id: "analytics",
       title: "Analytics & Reporting Dashboard",
-      description: "Explore comprehensive analytics to track performance and optimize your AI agents.",
+      description:
+        "Explore comprehensive analytics to track performance and optimize your AI agents.",
       thumbnail: "/api/placeholder/400/225",
       duration: "3:34",
       category: "Analytics",
-      features: ["Performance Metrics", "Call Analytics", "ROI Tracking"]
-    }
+      features: ["Performance Metrics", "Call Analytics", "ROI Tracking"],
+    },
   ];
 
   const documentation = [
