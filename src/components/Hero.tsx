@@ -1,17 +1,11 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import ThreeMesh from './ThreeMesh';
-const CrystalGlyph = React.lazy(() => import('./CrystalGlyph'));
 
 const Hero = () => {
   return (
     <section className="relative min-h-screen overflow-hidden bg-black">
       {/* 3D Mesh Background */}
       <ThreeMesh />
-      
-      {/* Crystal G Glyph - positioned on the right */}
-      <Suspense fallback={null}>
-        <CrystalGlyph />
-      </Suspense>
       
       {/* Scroll Indicator */}
       <div className="hidden lg:flex fixed bottom-8 left-4 lg:left-8 z-50 items-center gap-3 text-primary/60">

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { Resend } from "npm:resend@2.0.0";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,38 +38,26 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Send email to your inbox using Resend API directly
-    const emailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: "Gllarix Contact Form <onboarding@resend.dev>",
-        to: ["rinorgllareva1@gmail.com"],
-        reply_to: email,
-        subject: `Contact from ${name}${company ? ` - ${company}` : ''}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #8b5cf6;">New Contact Form Submission</h2>
-            <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <p><strong>Name:</strong> ${name}</p>
-              <p><strong>Email:</strong> ${email}</p>
-              ${company ? `<p><strong>Company:</strong> ${company}</p>` : ''}
-              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-              <p><strong>Message:</strong></p>
-              <p style="white-space: pre-wrap;">${message}</p>
-            </div>
+    // Send email to your inbox
+    const emailResponse = await resend.emails.send({
+      from: "Gllarix Contact Form <onboarding@resend.dev>",
+      to: ["rinorgllareva1@gmail.com"],
+      replyTo: email,
+      subject: `Contact from ${name}${company ? ` - ${company}` : ''}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #8b5cf6;">New Contact Form Submission</h2>
+          <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            ${company ? `<p><strong>Company:</strong> ${company}</p>` : ''}
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+            <p><strong>Message:</strong></p>
+            <p style="white-space: pre-wrap;">${message}</p>
           </div>
-        `,
-      }),
+        </div>
+      `,
     });
-
-    if (!emailResponse.ok) {
-      const errorData = await emailResponse.json();
-      throw new Error(errorData.message || "Failed to send email");
-    }
 
     console.log("Email sent successfully:", emailResponse);
 
