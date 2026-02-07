@@ -1,12 +1,38 @@
-import React from "react";
-import { useScrollAnimation, useCountUp } from "@/hooks/useScrollAnimation";
-import { AlertTriangle, CheckCircle2, Clock, Zap, TrendingUp } from "lucide-react";
-import { Floating3DOrb } from "./Floating3DOrb";
+import React, { useState, useMemo } from "react";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { ArrowRight, Globe } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const PainSolution = () => {
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation(0.2);
-  const { ref: contentRef, isVisible: contentVisible } = useScrollAnimation(0.3);
-  const { ref: statsRef, isVisible: statsVisible } = useScrollAnimation(0.2);
+  const { ref: cardsRef, isVisible: cardsVisible } = useScrollAnimation(0.1);
+  const { ref: calcRef, isVisible: calcVisible } = useScrollAnimation(0.1);
+  const { ref: compareRef, isVisible: compareVisible } = useScrollAnimation(0.1);
+  const { ref: ctaRef, isVisible: ctaVisible } = useScrollAnimation(0.2);
+
+  const [monthlyLeads, setMonthlyLeads] = useState(1000);
+  const [humanSetters, setHumanSetters] = useState(1);
+  const [avgDealValue, setAvgDealValue] = useState(5000);
+
+  const results = useMemo(() => {
+    const humanConversion = 0.15;
+    const aiConversion = 0.40;
+    const humanCostPerSetter = 2000;
+    const aiCost = 297;
+
+    const humanAppointments = Math.round(monthlyLeads * humanConversion);
+    const aiAppointments = Math.round(monthlyLeads * aiConversion);
+    const extraAppointments = aiAppointments - humanAppointments;
+
+    const humanMonthlyCost = humanSetters * humanCostPerSetter;
+    const monthlySavings = humanMonthlyCost - aiCost;
+    const annualSavings = monthlySavings * 12;
+
+    const additionalRevenue = extraAppointments * avgDealValue;
+
+    return { annualSavings, extraAppointments, additionalRevenue };
+  }, [monthlyLeads, humanSetters, avgDealValue]);
 
   return (
     <section className="relative py-32 bg-gradient-to-b from-gray-900 via-black to-gray-900 overflow-hidden">
@@ -23,164 +49,274 @@ const PainSolution = () => {
           {/* Header */}
           <div
             ref={headerRef}
-            className={`text-center mb-24 transition-all duration-1000 ${
+            className={`text-center mb-20 transition-all duration-1000 ${
               headerVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
             }`}
           >
             <div className="inline-block px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-6">
-              <span className="text-primary text-sm font-medium">The Problem & Solution</span>
+              <span className="text-primary text-sm font-medium">Why AI Agents?</span>
             </div>
-            <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-white to-primary bg-clip-text text-transparent">
-              Stop Losing Revenue
+            <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 text-white">
+              Outperforms Traditional Teams.
             </h2>
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
-              Every missed call and manual error costs your business. Here's how we solve it.
-            </p>
+            <p className="text-xl text-gray-400">We will:</p>
           </div>
 
+          {/* Three Comparison Cards */}
           <div
-            ref={contentRef}
-            className="grid lg:grid-cols-2 gap-16 items-center mb-24"
+            ref={cardsRef}
+            className={`grid md:grid-cols-3 gap-6 mb-24 transition-all duration-1000 ${
+              cardsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            }`}
           >
-            {/* Pain Points */}
-            <div className={`space-y-8 transition-all duration-1000 ${
-              contentVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"
-            }`}>
-              <div className="flex items-center gap-4 mb-8">
-                <div className="p-3 bg-red-500/10 rounded-xl">
-                  <AlertTriangle className="h-8 w-8 text-red-500" />
+            {/* 01. Increase Conversions */}
+            <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 hover:border-primary/30 transition-all duration-300">
+              <span className="text-primary/60 text-sm font-mono">01</span>
+              <h3 className="text-2xl font-bold text-white mt-2 mb-6">Increase Conversions</h3>
+
+              {/* Bar Chart Visual */}
+              <div className="flex items-end gap-6 justify-center h-40 mb-8">
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-16 bg-red-500/30 border border-red-500/40 rounded-t-lg" style={{ height: '60px' }} />
+                  <span className="text-xs text-gray-500">Human</span>
                 </div>
-                <h3 className="text-3xl font-bold text-white">Common Pain Points</h3>
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-16 bg-green-500/30 border border-green-500/40 rounded-t-lg" style={{ height: '120px' }} />
+                  <span className="text-xs text-gray-500">AI</span>
+                </div>
               </div>
 
-              {[
-                {
-                  title: "Missed Opportunities",
-                  description: "Calls go unanswered, leads slip away, appointments forgotten",
-                },
-                {
-                  title: "Human Error & Inconsistency",
-                  description: "Manual mistakes, inconsistent service, forgotten follow-ups",
-                },
-                {
-                  title: "Time Drain on Staff",
-                  description: "Hours wasted on repetitive tasks instead of growth",
-                },
-              ].map((pain, index) => (
-                <div
-                  key={index}
-                  className="group p-6 bg-red-500/5 border border-red-500/20 rounded-2xl hover:bg-red-500/10 transition-all duration-300 hover:scale-105"
-                  style={{ transitionDelay: `${index * 100}ms` }}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-2 h-2 bg-red-500 rounded-full mt-2 animate-pulse" />
-                    <div>
-                      <h4 className="font-bold text-white mb-2 text-lg">{pain.title}</h4>
-                      <p className="text-gray-400">{pain.description}</p>
-                    </div>
-                  </div>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">Human setter average:</span>
+                  <span className="text-red-400 font-bold">10-20%</span>
                 </div>
-              ))}
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">AI setter average:</span>
+                  <span className="text-green-400 font-bold">30-40%</span>
+                </div>
+              </div>
             </div>
 
-            {/* Solutions */}
-            <div className={`space-y-8 transition-all duration-1000 ${
-              contentVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"
-            }`}>
-              <div className="flex items-center gap-4 mb-8">
-                <div className="p-3 bg-green-500/10 rounded-xl">
-                  <CheckCircle2 className="h-8 w-8 text-green-500" />
+            {/* 02. Reduce Expenses */}
+            <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 hover:border-primary/30 transition-all duration-300">
+              <span className="text-primary/60 text-sm font-mono">02</span>
+              <h3 className="text-2xl font-bold text-white mt-2 mb-6">Reduce Expenses</h3>
+
+              {/* Cost Graph Visual */}
+              <div className="relative h-40 mb-8 flex items-end">
+                <svg viewBox="0 0 200 100" className="w-full h-full" preserveAspectRatio="none">
+                  {/* Human cost line - high */}
+                  <defs>
+                    <linearGradient id="humanGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="rgb(239, 68, 68)" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="rgb(239, 68, 68)" stopOpacity="0.05" />
+                    </linearGradient>
+                    <linearGradient id="aiGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="rgb(34, 197, 94)" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="rgb(34, 197, 94)" stopOpacity="0.05" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M0,30 Q50,25 100,28 Q150,31 200,26 L200,100 L0,100 Z" fill="url(#humanGrad)" />
+                  <path d="M0,30 Q50,25 100,28 Q150,31 200,26" stroke="rgb(239, 68, 68)" strokeWidth="2" fill="none" opacity="0.6" />
+                  <path d="M0,75 Q50,72 100,74 Q150,76 200,73 L200,100 L0,100 Z" fill="url(#aiGrad)" />
+                  <path d="M0,75 Q50,72 100,74 Q150,76 200,73" stroke="rgb(34, 197, 94)" strokeWidth="2" fill="none" opacity="0.6" />
+                </svg>
+                <div className="absolute top-2 right-2 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-0.5 bg-red-500" />
+                    <span className="text-[10px] text-gray-500">HUMAN COSTS</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-0.5 bg-green-500" />
+                    <span className="text-[10px] text-gray-500">AI COSTS</span>
+                  </div>
                 </div>
-                <h3 className="text-3xl font-bold text-white">How Gllarix Solves This</h3>
               </div>
 
-              {[
-                {
-                  icon: Clock,
-                  title: "24/7 Availability",
-                  description: "AI agents never sleep - capture every opportunity instantly",
-                  color: "text-blue-400",
-                  bgColor: "bg-blue-500/10",
-                  borderColor: "border-blue-500/20",
-                },
-                {
-                  icon: Zap,
-                  title: "Perfect Consistency",
-                  description: "Same high-quality service every single time, guaranteed",
-                  color: "text-purple-400",
-                  bgColor: "bg-purple-500/10",
-                  borderColor: "border-purple-500/20",
-                },
-                {
-                  icon: TrendingUp,
-                  title: "Focus on Growth",
-                  description: "Free your team to focus on strategy and relationships",
-                  color: "text-green-400",
-                  bgColor: "bg-green-500/10",
-                  borderColor: "border-green-500/20",
-                },
-              ].map((solution, index) => {
-                const Icon = solution.icon;
-                return (
-                  <div
-                    key={index}
-                    className={`group p-6 ${solution.bgColor} border ${solution.borderColor} rounded-2xl hover:scale-105 transition-all duration-300`}
-                    style={{ transitionDelay: `${index * 100}ms` }}
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className={`p-3 ${solution.bgColor} rounded-xl`}>
-                        <Icon className={`h-6 w-6 ${solution.color}`} />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-white mb-2 text-lg">{solution.title}</h4>
-                        <p className="text-gray-400">{solution.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">1 human setter:</span>
+                  <span className="text-red-400 font-bold">$2,000/mo</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">Unlimited AI setters:</span>
+                  <span className="text-green-400 font-bold">$297/mo</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 03. Maximize Capacity */}
+            <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 hover:border-primary/30 transition-all duration-300">
+              <span className="text-primary/60 text-sm font-mono">03</span>
+              <h3 className="text-2xl font-bold text-white mt-2 mb-6">Maximize Capacity</h3>
+
+              {/* Globe/Network Visual */}
+              <div className="relative h-40 mb-8 flex items-center justify-center">
+                <div className="relative">
+                  <Globe className="h-24 w-24 text-primary/20" strokeWidth={0.5} />
+                  {/* Animated dots */}
+                  {[...Array(8)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"
+                      style={{
+                        top: `${20 + Math.sin(i * 0.8) * 35}%`,
+                        left: `${20 + Math.cos(i * 0.8) * 35}%`,
+                        animationDelay: `${i * 200}ms`,
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">Human capacity:</span>
+                  <span className="text-red-400 font-bold">150/day</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">AI capacity:</span>
+                  <span className="text-green-400 font-bold">10,000+/day</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Stats Section with 3D Element */}
-          <div ref={statsRef} className="relative">
-            {/* 3D Orb Background */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30 pointer-events-none">
-              <Floating3DOrb color="#9b87f5" />
+          {/* ROI Calculator */}
+          <div
+            ref={calcRef}
+            className={`mb-24 transition-all duration-1000 ${
+              calcVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            }`}
+          >
+            {/* Inputs */}
+            <div className="grid md:grid-cols-3 gap-4 mb-8 max-w-4xl mx-auto">
+              <div>
+                <label className="text-gray-400 text-sm mb-2 block">Monthly Leads</label>
+                <input
+                  type="number"
+                  value={monthlyLeads}
+                  onChange={(e) => setMonthlyLeads(Number(e.target.value) || 0)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-lg font-semibold focus:outline-none focus:border-primary/50 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="text-gray-400 text-sm mb-2 block">Current Human Setters</label>
+                <input
+                  type="number"
+                  value={humanSetters}
+                  onChange={(e) => setHumanSetters(Number(e.target.value) || 0)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-lg font-semibold focus:outline-none focus:border-primary/50 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="text-gray-400 text-sm mb-2 block">Average Deal Value</label>
+                <input
+                  type="number"
+                  value={avgDealValue}
+                  onChange={(e) => setAvgDealValue(Number(e.target.value) || 0)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-lg font-semibold focus:outline-none focus:border-primary/50 transition-colors"
+                />
+              </div>
             </div>
 
-            <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-6">
-              {[
-                { value: 40, suffix: "%", label: "More Leads Captured" },
-                { value: 60, suffix: "%", label: "Faster Response" },
-                { value: 90, suffix: "%", label: "Fewer No-Shows" },
-                { value: 30, suffix: "hrs", label: "Saved Per Week" },
-              ].map((stat, index) => {
-                const { count, setIsActive } = useCountUp(stat.value, 2000, 0);
+            {/* Results */}
+            <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 text-center">
+                <div className="text-sm text-gray-400 mb-2">Annual Savings</div>
+                <div className="text-3xl md:text-4xl font-bold text-green-400">
+                  ${results.annualSavings.toLocaleString()}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">saved per year</div>
+              </div>
+              <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 text-center">
+                <div className="text-sm text-gray-400 mb-2">Extra Appointments/Month</div>
+                <div className="text-3xl md:text-4xl font-bold text-green-400">
+                  +{results.extraAppointments.toLocaleString()}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">more bookings</div>
+              </div>
+              <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 text-center">
+                <div className="text-sm text-gray-400 mb-2">Additional Revenue/Month</div>
+                <div className="text-3xl md:text-4xl font-bold text-green-400">
+                  ${results.additionalRevenue.toLocaleString()}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">extra revenue</div>
+              </div>
+            </div>
+          </div>
 
-                React.useEffect(() => {
-                  if (statsVisible) {
-                    const timer = setTimeout(() => setIsActive(true), index * 200);
-                    return () => clearTimeout(timer);
-                  }
-                }, [statsVisible, setIsActive, index]);
-
-                return (
-                  <div
-                    key={index}
-                    className={`text-center p-8 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl hover:bg-white/10 transition-all duration-700 hover:scale-105 ${
-                      statsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-                    }`}
-                    style={{ transitionDelay: `${index * 100}ms` }}
-                  >
-                    <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent mb-2">
-                      {statsVisible ? count : 0}{stat.suffix}
-                    </div>
-                    <div className="text-gray-400 text-sm">{stat.label}</div>
+          {/* Side-by-Side Comparison */}
+          <div
+            ref={compareRef}
+            className={`grid md:grid-cols-2 gap-6 mb-20 max-w-4xl mx-auto transition-all duration-1000 ${
+              compareVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            }`}
+          >
+            {/* Traditional Team */}
+            <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6">
+              <h4 className="text-lg font-bold text-white mb-4">Human Setters</h4>
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between text-sm mb-1.5">
+                    <span className="text-gray-400">Conversion Rate</span>
+                    <span className="text-red-400 font-semibold">15%</span>
                   </div>
-                );
-              })}
+                  <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-red-500/60 rounded-full" style={{ width: '15%' }} />
+                  </div>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Monthly Cost</span>
+                  <span className="text-red-400 font-semibold">$2,000</span>
+                </div>
+              </div>
             </div>
+
+            {/* Gllarix AI */}
+            <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6">
+              <h4 className="text-lg font-bold text-white mb-4">Gllarix AI</h4>
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between text-sm mb-1.5">
+                    <span className="text-gray-400">Conversion Rate</span>
+                    <span className="text-green-400 font-semibold">40%</span>
+                  </div>
+                  <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-green-500/60 rounded-full" style={{ width: '40%' }} />
+                  </div>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Monthly Cost</span>
+                  <span className="text-green-400 font-semibold">$297</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div
+            ref={ctaRef}
+            className={`text-center transition-all duration-1000 ${
+              ctaVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            }`}
+          >
+            <p className="text-xl text-gray-400 mb-6">
+              Ready to Save <span className="text-green-400 font-bold">${results.annualSavings.toLocaleString()}/year</span>?
+            </p>
+            <p className="text-gray-500 text-sm mb-8 max-w-lg mx-auto">
+              Start your 14-day free trial and see the results for yourself
+            </p>
+            <Button
+              asChild
+              className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl font-semibold transition-all hover:scale-105"
+            >
+              <Link to="/book-meeting">
+                Build My FREE AI Agent
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
