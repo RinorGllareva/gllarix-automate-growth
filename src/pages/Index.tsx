@@ -27,7 +27,7 @@ const Index = () => {
         <Industries />
       </section>
 
-      <section id="pricing" className="min-h-screen bg-black">
+      <section id="pricing" className="bg-black">
         <Pricing />
       </section>
 
