@@ -1,66 +1,57 @@
 
 
-# Replace "Stop Losing Revenue" with Appointwise-Style Comparison Section
+# Pixel-Perfect Comparison Cards + Edge Function Fix
 
-## What Changes
-
-The entire content of the PainSolution section will be replaced with a clean, data-driven "Outperforms Traditional Teams" layout matching the Appointwise reference screenshots. The dark background, grid pattern, and animations stay -- only the inner content changes.
-
----
-
-## New Section Layout
-
-### Header
-- Pill badge: "Why AI Agents?"
-- Main heading: **"Outperforms Traditional Teams."**
-- Subtitle: "We will:"
-
-### Three Comparison Cards (3-column grid)
-Each card has a numbered title, a visual element built with CSS/SVG (bar chart, cost graph, globe/capacity graphic), and Human vs AI stats below.
-
-**01. Increase Conversions**
-- Visual: Simple CSS bar chart (short bar = Human, tall bar = AI) in green tones
-- Human average: 10-20% (red text)
-- AI average: 30-40% (green text)
-
-**02. Reduce Expenses**
-- Visual: CSS line/area graphic showing Human Setter Costs (high) vs AI Setter Costs (low)
-- 1 human employee: $2,000/month (red text)
-- Unlimited AI agents: fraction of the cost (green text)
-
-**03. Maximize Capacity**
-- Visual: Simple dotted globe/network CSS graphic
-- Human capacity: 150 leads/day (red text)
-- AI capacity: 10,000+ leads/day (green text)
-
-### ROI Calculator (Interactive)
-Three input fields with dark styling:
-- Monthly Leads (default: 1000)
-- Current Human Employees (default: 1)
-- Average Deal Value (default: 5000)
-
-Three result cards showing calculated values:
-- Annual Savings (green animated number)
-- Extra Appointments/Month (green animated number)
-- Additional Revenue/Month (green animated number)
-
-### Side-by-Side Comparison Bar
-Two cards at the bottom:
-- **Traditional Team**: Conversion Rate 15% (red progress bar), Monthly Cost $2000 (red)
-- **Gllarix AI**: Conversion Rate 40% (green progress bar), Monthly Cost shown as significantly lower (green)
-
-### CTA
-- "Ready to see what AI can do for you?"
-- Button: "Start Your Free Demo" linking to /book-meeting
+## Overview
+Two changes: (1) fix the build error in the edge function, and (2) redesign the three comparison cards in PainSolution to exactly match the Appointwise reference screenshot.
 
 ---
 
-## Pricing Section Update
-The Pricing component stays but becomes more compact:
-- Remove the large pricing card with $800-$5,000+ range and the 3 feature cards
-- Keep only the "What Influences Your Price?" factors grid in a single compact row (4 columns on desktop)
-- Keep the CTA at the bottom
-- Remove `min-h-screen` from the pricing wrapper in Index.tsx
+## 1. Fix Edge Function Build Error
+
+The `send-contact-email` function fails because it imports Resend using `npm:resend@2.0.0` which is not supported in this Deno environment. The fix is to use the `esm.sh` CDN import instead.
+
+**File:** `supabase/functions/send-contact-email/index.ts`
+- Change line 2 from `import { Resend } from "npm:resend@2.0.0"` to `import { Resend } from "https://esm.sh/resend@2.0.0"`
+
+---
+
+## 2. Redesign Three Comparison Cards
+
+Matching the reference image exactly requires these visual changes to `src/components/PainSolution.tsx`:
+
+### Card 01 - Increase Conversions
+**Current:** Red bar (short) + green bar (tall) with small labels
+**Target:** Two green bars of different heights inside a dark chart area with subtle grid lines, labeled "HUMAN CVR" and "AI CVR" at the bottom axis. The chart area has a slightly darker background with a subtle border.
+
+- Both bars are green (darker green for human, brighter green for AI)
+- Chart has a subtle background panel with faint grid lines
+- X-axis labels: "HUMAN CVR" and "AI CVR" in small caps gray text
+- Stats below: Label text is small gray, values are large bold text (red for human, green for AI) -- displayed as block layout (label on one line, large value on next line)
+
+### Card 02 - Reduce Expenses
+**Current:** SVG with red + green area fills, small legend in corner
+**Target:** Wavy green line chart with two curves -- the upper curve labeled "HUMAN SETTER COSTS" (with a tooltip-style label) and lower curve labeled "AI SETTER COSTS" (also tooltip-style). Both lines are green with gradient fills beneath. Small green dots mark data points on the curves.
+
+- Both lines use green color (different shades/positions distinguish them)
+- Tooltip-style labels: dark backgrounds with green border/text showing "HUMAN SETTER COSTS" and "AI SETTER COSTS"
+- Green dot indicators on each curve
+- Area fill gradient from green to transparent beneath each line
+
+### Card 03 - Maximize Capacity
+**Current:** Lucide Globe icon with animated dots
+**Target:** A detailed 3D-looking globe with dotted continents (particle/dot pattern) and a green glow at the bottom. The globe appears more realistic with dotted texture representing landmasses.
+
+- Replace the simple Lucide Globe icon with a custom SVG globe
+- Dotted/particle pattern for continents
+- Green glow effect at the bottom of the globe (radial gradient)
+- Keep the animated pulse dots around it
+
+### Card Layout (all three)
+- Title format: "01." in green, then title text in white, both large (text-3xl to text-4xl)
+- Darker card background: `bg-[#1a1a1f]` or similar dark gray with subtle rounded border
+- Stats layout: Each stat is a block -- small gray label on first line, large colored value on second line (not side-by-side like current)
+- Values use mixed font sizes: large number in bold + smaller unit text inline (e.g., "$2000" big + "/month" smaller)
 
 ---
 
@@ -68,21 +59,16 @@ The Pricing component stays but becomes more compact:
 
 ### Files Modified
 
-**`src/components/PainSolution.tsx`** -- Full content rewrite:
-- Keep the same component shell: imports, useScrollAnimation hooks, background gradient, grid pattern
-- Remove the pain points / solutions two-column layout entirely
-- Add three numbered comparison cards in a responsive 3-column grid (stacks on mobile)
-- Add an interactive ROI calculator using React useState for the 3 inputs, with computed results
-- Add the Human vs AI comparison bar with CSS progress bars
-- Add a CTA button at the bottom
-- Keep scroll-triggered animations on each section
-- Remove the 3D orb and old stats section (replaced by the calculator results)
-- All visuals built with pure CSS (gradients, bars, shapes) -- no embedded images
+**`supabase/functions/send-contact-email/index.ts`**
+- Line 2: Change npm import to esm.sh import for Resend
 
-**`src/components/Pricing.tsx`** -- Simplify:
-- Remove the large main pricing card (lines 89-183) with dollar ranges, glow, feature cards
-- Keep the "What Influences Your Price?" factors section but change from 2x2 grid to a single-row 4-column layout with smaller cards
-- Keep the CTA at the bottom
+**`src/components/PainSolution.tsx`**
+- Lines 72-183: Complete rewrite of the three card contents
+- Card 01: New bar chart SVG with green bars, grid lines, axis labels
+- Card 02: New wavy line chart SVG with tooltip-style labels and green dots
+- Card 03: Custom globe SVG with dotted continent pattern and green glow
+- All three: Updated stat layout to block format with large values
+- Title format updated to match reference (green number, white text, larger size)
 
-**`src/pages/Index.tsx`** -- Minor:
-- Remove `min-h-screen` from the pricing section wrapper (line 30) since it will be more compact
+### No other files change
+
