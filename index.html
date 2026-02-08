@@ -3,124 +3,136 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
+
     <!-- Preconnect for faster DNS/SSL handshake -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
     <!-- Primary Meta Tags -->
     <title>Gllarix - AI Voice Agents & Business Automation Platform | Save 30+ Hours Weekly</title>
-    <meta name="description" content="Gllarix AI agents handle calls, reservations, appointments, and workflows automatically. Save 30+ hours per week, reduce human error by 95%, and capture more revenue with our AI receptionist and voice automation platform." />
-    <meta name="author" content="Gllarix" />
-    <meta name="keywords" content="AI voice agents, business automation, AI receptionist, AI booking automation, AI lead calling system, call automation, appointment scheduling AI, CRM integration, workflow automation" />
-    <link rel="canonical" href="https://gllarix.com" />
-    <link rel="icon" type="image/png" href="/Gllarix_Icon PNG.png" />
-    
-   <!-- Favicon -->
-    <link
-      rel="icon"
-      type="image/png"
-      href="https://realo-realestate.com/Gllarix_Icon PNG.png"
+    <meta
+      name="description"
+      content="Gllarix AI agents handle calls, reservations, appointments, and workflows automatically. Save 30+ hours per week, reduce human error by 95%, and capture more revenue with our AI receptionist and voice automation platform."
     />
+    <meta name="author" content="Gllarix" />
+    <meta
+      name="keywords"
+      content="AI voice agents, business automation, AI receptionist, AI booking automation, AI lead calling system, call automation, appointment scheduling AI, CRM integration, workflow automation"
+    />
+    <link rel="canonical" href="https://gllarix.com" />
+
+    <!-- ✅ Favicon (WhatsApp uses this for the bottom-right badge) -->
+    <link rel="icon" type="image/png" sizes="32x32" href="https://gllarix.com/favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="https://gllarix.com/apple-touch-icon.png" />
 
     <!-- Preload Critical Assets -->
-    <link rel="preload" href="/src/main.tsx" as="script" crossorigin>
-    
+    <link rel="preload" href="/src/main.tsx" as="script" crossorigin />
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://gllarix.com" />
     <meta property="og:title" content="Gllarix - AI Voice Agents & Business Automation Platform" />
-    <meta property="og:description" content="AI agents that answer calls, book clients, and automate workflows. Save 30+ hours per week while reducing human error and capturing more revenue." />
-    <meta property="og:image" content="https://gllarix.com/Gllarix_LogoPNG.png" />
+    <meta
+      property="og:description"
+      content="AI agents that answer calls, book clients, and automate workflows. Save 30+ hours per week while reducing human error and capturing more revenue."
+    />
+    <!-- ✅ Use a proper 1200x630 OG image -->
+    <meta property="og:image" content="https://gllarix.com/og/gllarix-og-black.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta property="og:site_name" content="Gllarix" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://gllarix.com" />
     <meta name="twitter:title" content="Gllarix - AI Voice Agents & Business Automation Platform" />
-    <meta name="twitter:description" content="AI agents that answer calls, book clients, and automate workflows. Save 30+ hours per week while reducing human error and capturing more revenue." />
-    <meta name="twitter:image" content="https://gllarix.com/Gllarix_LogoPNG.png" />
+    <meta
+      name="twitter:description"
+      content="AI agents that answer calls, book clients, and automate workflows. Save 30+ hours per week while reducing human error and capturing more revenue."
+    />
+    <meta name="twitter:image" content="https://gllarix.com/og/gllarix-og-black.png" />
 
     <!-- Additional SEO -->
     <meta name="robots" content="index, follow" />
-    <meta name="googlebot" content="index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1" />
-    
+    <meta
+      name="googlebot"
+      content="index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1"
+    />
+
     <!-- Structured Data - Organization -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "Gllarix",
-      "url": "https://gllarix.com",
-      "logo": "https://gllarix.com/Gllarix_LogoPNG.png",
-      "description": "AI voice agents and business automation platform that handles calls, reservations, appointments, and workflows.",
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "telephone": "+1-555-123-4567",
-        "contactType": "sales",
-        "availableLanguage": ["English"]
-      },
-      "sameAs": [
-        "https://www.linkedin.com/company/gllarix"
-      ]
-    }
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Gllarix",
+        "url": "https://gllarix.com",
+        "logo": "https://gllarix.com/og/gllarix-og-black.png",
+        "description": "AI voice agents and business automation platform that handles calls, reservations, appointments, and workflows.",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "telephone": "+1-555-123-4567",
+          "contactType": "sales",
+          "availableLanguage": ["English"]
+        },
+        "sameAs": ["https://www.linkedin.com/company/gllarix"]
+      }
     </script>
 
     <!-- Structured Data - SoftwareApplication -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "Gllarix AI Voice Agents",
-      "applicationCategory": "BusinessApplication",
-      "operatingSystem": "Web",
-      "description": "AI-powered voice agents that handle calls, book appointments, and automate business workflows. Save 30+ hours per week.",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD",
-        "description": "Free demo available"
-      },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.9",
-        "ratingCount": "150"
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Gllarix AI Voice Agents",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "description": "AI-powered voice agents that handle calls, book appointments, and automate business workflows. Save 30+ hours per week.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "Free demo available"
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.9",
+          "ratingCount": "150"
+        }
       }
-    }
     </script>
 
     <!-- Structured Data - FAQPage -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": [
-        {
-          "@type": "Question",
-          "name": "What is an AI voice agent?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "An AI voice agent is an artificial intelligence system that can handle phone calls, answer questions, book appointments, and perform other voice-based tasks automatically, replacing or augmenting human receptionists."
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is an AI voice agent?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "An AI voice agent is an artificial intelligence system that can handle phone calls, answer questions, book appointments, and perform other voice-based tasks automatically, replacing or augmenting human receptionists."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How much time can Gllarix AI agents save?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Businesses using Gllarix typically save 30+ hours per week on call handling, appointment scheduling, and workflow automation tasks."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What industries does Gllarix work with?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Gllarix AI agents work across multiple industries including healthcare, real estate, legal services, hospitality, and any business that handles customer calls and appointments."
+            }
           }
-        },
-        {
-          "@type": "Question",
-          "name": "How much time can Gllarix AI agents save?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Businesses using Gllarix typically save 30+ hours per week on call handling, appointment scheduling, and workflow automation tasks."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "What industries does Gllarix work with?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Gllarix AI agents work across multiple industries including healthcare, real estate, legal services, hospitality, and any business that handles customer calls and appointments."
-          }
-        }
-      ]
-    }
+        ]
+      }
     </script>
   </head>
 
