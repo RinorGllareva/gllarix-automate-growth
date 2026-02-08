@@ -1,138 +1,98 @@
 import React from "react";
+import Globe from "globe.gl";
+import { csvParse } from "d3-dsv";
 
-// Seeded pseudo-random number generator (LCG) for consistent dots
-function createRNG(seed: number) {
-  let s = seed;
-  return () => {
-    s = (s * 1664525 + 1013904223) & 0xffffffff;
-    return (s >>> 0) / 0xffffffff;
-  };
-}
-
-// Point-in-polygon test (ray casting)
-function pointInPolygon(px: number, py: number, polygon: [number, number][]) {
-  let inside = false;
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const xi = polygon[i][0], yi = polygon[i][1];
-    const xj = polygon[j][0], yj = polygon[j][1];
-    if ((yi > py) !== (yj > py) && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) {
-      inside = !inside;
-    }
-  }
-  return inside;
-}
+type PopPoint = { lat: number; lng: number; pop: number };
 
 const CapacityCard = () => {
-  const globePoints = React.useMemo(() => {
-    const rng = createRNG(42);
-    const points: { x: number; y: number; opacity: number; r: number }[] = [];
-    const cx = 150;
-    const cy = 150;
-    const globeR = 120;
+  const globeElRef = React.useRef<HTMLDivElement | null>(null);
+  const globeRef = React.useRef<any>(null);
+  const roRef = React.useRef<ResizeObserver | null>(null);
 
-    // Continent polygons mapped onto the globe's 300x300 viewBox
-    // Globe center is (150, 150), radius 120
-    // These approximate the Americas view with Europe/Africa on the right edge
+  React.useEffect(() => {
+    const el = globeElRef.current;
+    if (!el) return;
 
-    // North America (Alaska down to Mexico)
-    const northAmerica: [number, number][] = [
-      [55, 45], [60, 40], [70, 35], [80, 32], [90, 30], [100, 32],
-      [105, 35], [108, 40], [112, 38], [115, 42], [110, 50],
-      [108, 55], [112, 60], [115, 65], [118, 72], [120, 80],
-      [122, 88], [125, 95], [128, 100], [130, 108], [128, 115],
-      [125, 120], [120, 125], [115, 128], [108, 130], [100, 128],
-      [95, 130], [90, 132], [85, 128], [82, 122], [78, 115],
-      [75, 108], [72, 100], [68, 92], [65, 85], [60, 78],
-      [55, 70], [52, 62], [50, 55], [52, 48], [55, 45],
-    ];
+    // Create globe
+    const world = new Globe(el, {
+      rendererConfig: { antialias: true, alpha: true },
+    })
+      .globeImageUrl("/globe/earth-night.jpg")
+      .bumpImageUrl("/globe/earth-topology.png")
+      .backgroundImageUrl(null as any) // no stars
+      .enablePointerInteraction(true) // no hover/click picking
+      // Dot-like hex bins (flat)
+      .hexBinPointWeight("pop")
+      .hexBinResolution(5)
+      .hexBinMerge(true)
+      .hexAltitude(0.00008) // keep basically flat
+      .hexTopColor(() => "rgba(255,255,255,0.92)") // white dots
+      .hexSideColor(() => "rgba(16,185,129,0.22)"); // subtle green tint
 
-    // Central America & Caribbean
-    const centralAmerica: [number, number][] = [
-      [108, 130], [112, 135], [115, 140], [118, 145], [120, 150],
-      [118, 152], [115, 148], [110, 145], [108, 140], [105, 135],
-      [108, 130],
-    ];
+    globeRef.current = world;
 
-    // South America
-    const southAmerica: [number, number][] = [
-      [118, 152], [122, 155], [128, 160], [132, 168], [135, 175],
-      [138, 185], [140, 195], [138, 205], [135, 215], [132, 222],
-      [128, 228], [125, 235], [120, 240], [115, 245], [112, 248],
-      [108, 245], [105, 240], [102, 232], [100, 225], [98, 218],
-      [96, 210], [95, 200], [96, 192], [98, 185], [100, 178],
-      [102, 170], [105, 165], [108, 160], [112, 155], [118, 152],
-    ];
+    // Lock user navigation but keep auto-rotate
+    const controls = world.controls();
+    controls.enableZoom = false;
+    controls.enablePan = false;
+    controls.enableRotate = true;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.65;
 
-    // Europe (right edge of globe)
-    const europe: [number, number][] = [
-      [195, 48], [200, 45], [208, 42], [215, 45], [220, 50],
-      [225, 55], [228, 62], [230, 68], [228, 75], [225, 80],
-      [220, 85], [215, 90], [210, 92], [205, 88], [200, 82],
-      [195, 75], [192, 68], [190, 60], [192, 52], [195, 48],
-    ];
+    // Camera / crop similar to your reference
+    world.pointOfView({ lat: 22, lng: -55, altitude: 1.5 });
 
-    // Africa (right side)
-    const africa: [number, number][] = [
-      [200, 95], [205, 92], [212, 95], [218, 100], [222, 108],
-      [225, 118], [228, 128], [230, 138], [228, 150], [225, 160],
-      [222, 170], [218, 178], [215, 185], [210, 192], [205, 198],
-      [200, 200], [195, 195], [192, 188], [190, 178], [188, 168],
-      [186, 158], [185, 148], [186, 138], [188, 128], [190, 118],
-      [192, 108], [195, 100], [200, 95],
-    ];
+    // Fit canvas to container
+    const fit = () => {
+      const { width, height } = el.getBoundingClientRect();
+      world.width(Math.max(1, Math.floor(width)));
+      world.height(Math.max(1, Math.floor(height)));
+    };
+    fit();
 
-    // Greenland
-    const greenland: [number, number][] = [
-      [120, 35], [128, 32], [135, 35], [140, 40], [142, 48],
-      [140, 55], [135, 58], [128, 56], [122, 52], [118, 45],
-      [118, 38], [120, 35],
-    ];
+    roRef.current = new ResizeObserver(fit);
+    roRef.current.observe(el);
 
-    const continents = [northAmerica, centralAmerica, southAmerica, europe, africa, greenland];
+    // Load data
+    fetch("/datasets/world_population.csv")
+      .then((res) => {
+        if (!res.ok) throw new Error(`CSV fetch failed: ${res.status}`);
+        return res.text();
+      })
+      .then((csvText) => {
+        const parsed = csvParse(csvText, (row: any) => ({
+          lat: Number(row.lat),
+          lng: Number(row.lng),
+          pop: Number(row.pop),
+        })) as unknown as PopPoint[];
 
-    // Fill each continent with dots
-    for (const polygon of continents) {
-      // Find bounding box
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      for (const [px, py] of polygon) {
-        minX = Math.min(minX, px);
-        minY = Math.min(minY, py);
-        maxX = Math.max(maxX, px);
-        maxY = Math.max(maxY, py);
-      }
+        // NEVER trust data blindly (prevents globe.gl crash)
+        const safe = parsed.filter(
+          (d) =>
+            Number.isFinite(d.lat) &&
+            Number.isFinite(d.lng) &&
+            Number.isFinite(d.pop) &&
+            d.lat >= -90 &&
+            d.lat <= 90 &&
+            d.lng >= -180 &&
+            d.lng <= 180,
+        );
 
-      // Generate candidate dots within bounding box
-      const density = 3.2; // spacing between dot candidates
-      for (let x = minX; x <= maxX; x += density) {
-        for (let y = minY; y <= maxY; y += density) {
-          // Add slight jitter for natural look
-          const jx = x + (rng() - 0.5) * 2.0;
-          const jy = y + (rng() - 0.5) * 2.0;
+        world.hexBinPointsData(safe);
+      })
+      .catch((err) => console.error("World population load failed:", err));
 
-          if (!pointInPolygon(jx, jy, polygon)) continue;
+    return () => {
+      roRef.current?.disconnect();
+      roRef.current = null;
 
-          // Check if inside globe circle
-          const dx = jx - cx;
-          const dy = jy - cy;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist > globeR - 2) continue;
+      try {
+        globeRef.current?._destructor?.();
+      } catch {}
+      globeRef.current = null;
 
-          // 3D sphere depth: dots near edge are dimmer
-          const normalizedDist = dist / globeR;
-          const sphereDepth = Math.sqrt(Math.max(0, 1 - normalizedDist * normalizedDist));
-
-          // Slight right-side lighting bias
-          const lightBias = 0.5 + 0.5 * (dx / globeR);
-
-          const opacity = sphereDepth * (0.5 + lightBias * 0.5) * (0.6 + rng() * 0.4);
-          const dotR = 1.2 + sphereDepth * 0.6;
-
-          points.push({ x: jx, y: jy, opacity: Math.min(1, opacity), r: dotR });
-        }
-      }
-    }
-
-    return points;
+      el.innerHTML = "";
+    };
   }, []);
 
   return (
@@ -143,71 +103,63 @@ const CapacityCard = () => {
         <h3 className="text-3xl font-bold text-white">Maximize Capacity</h3>
       </div>
 
-      {/* Globe Visual */}
+      {/* Globe */}
       <div className="relative flex items-center justify-center mb-8">
-        <svg viewBox="0 0 300 300" className="w-64 h-64">
-          <defs>
-            {/* Bottom atmosphere glow - wide spread */}
-            <radialGradient id="capacityAtmosphereWide" cx="50%" cy="95%" r="55%" fx="50%" fy="95%">
-              <stop offset="0%" stopColor="rgb(16, 185, 129)" stopOpacity="0.35" />
-              <stop offset="35%" stopColor="rgb(16, 185, 129)" stopOpacity="0.15" />
-              <stop offset="65%" stopColor="rgb(16, 185, 129)" stopOpacity="0.05" />
-              <stop offset="100%" stopColor="rgb(16, 185, 129)" stopOpacity="0" />
-            </radialGradient>
+        {/* subtle ambient glow behind */}
+        <div className="pointer-events-none absolute -inset-10 rounded-full bg-emerald-400/10 blur-3xl" />
 
-            {/* Tight glow hugging the bottom of the globe */}
-            <radialGradient id="capacityAtmosphereTight" cx="50%" cy="88%" r="35%" fx="50%" fy="88%">
-              <stop offset="0%" stopColor="rgb(52, 211, 153)" stopOpacity="0.25" />
-              <stop offset="50%" stopColor="rgb(16, 185, 129)" stopOpacity="0.1" />
-              <stop offset="100%" stopColor="rgb(16, 185, 129)" stopOpacity="0" />
-            </radialGradient>
-
-            {/* Globe body - very dark with subtle depth */}
-            <radialGradient id="capacityGlobeBody" cx="55%" cy="40%" r="65%">
-              <stop offset="0%" stopColor="rgba(255, 255, 255, 0.03)" />
-              <stop offset="100%" stopColor="rgba(0, 0, 0, 0.1)" />
-            </radialGradient>
-          </defs>
-
-          {/* Wide atmospheric glow behind globe */}
-          <ellipse cx="150" cy="280" rx="140" ry="60" fill="url(#capacityAtmosphereWide)" />
-
-          {/* Tight atmospheric glow overlapping bottom of globe */}
-          <ellipse cx="150" cy="260" rx="100" ry="40" fill="url(#capacityAtmosphereTight)" />
-
-          {/* Globe circle - very dark, near invisible */}
-          <circle
-            cx="150"
-            cy="150"
-            r="120"
-            fill="url(#capacityGlobeBody)"
-            stroke="rgba(255, 255, 255, 0.06)"
-            strokeWidth="0.8"
+        {/* circle frame */}
+        <div className="relative w-72 h-72 rounded-full overflow-hidden">
+          {/* ✅ OUTSIDE green rim only (no inside glow) */}
+          <div
+            className="pointer-events-none absolute inset-0 rounded-full"
+            style={{
+              boxShadow:
+                "0 0 0 1px rgba(16,185,129,0.35), 0 0 40px rgba(16,185,129,0.55)",
+            }}
           />
 
-          {/* Continent dots - white/cream */}
-          {globePoints.map((point, i) => (
-            <circle
-              key={i}
-              cx={point.x}
-              cy={point.y}
-              r={point.r}
-              fill="rgba(255, 255, 255, 1)"
-              opacity={point.opacity}
-            />
-          ))}
-        </svg>
+          {/* dark vignette (keeps edges premium, no green inside) */}
+          <div
+            className="pointer-events-none absolute inset-0 rounded-full"
+            style={{
+              boxShadow: "inset 0 0 110px rgba(0,0,0,0.9)",
+            }}
+          />
+
+          {/* globe canvas */}
+          <div
+            ref={globeElRef}
+            className="absolute inset-0"
+            style={{
+              // ✅ make globe lighter and clearer
+              filter: "brightness(2) contrast(1.1) saturate(1.05)",
+              // crop/zoom similar to reference
+              transform: "scale(1.1)",
+              transformOrigin: "center",
+            }}
+          />
+        </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-6">
         <div>
-          <span className="text-gray-500 text-xs uppercase tracking-wider block mb-1">Human capacity</span>
-          <span className="text-red-400 text-2xl font-bold">150<span className="text-sm font-medium text-red-400/70">/day</span></span>
+          <span className="text-gray-500 text-xs uppercase tracking-wider block mb-1">
+            Human capacity
+          </span>
+          <span className="text-red-400 text-2xl font-bold">
+            150<span className="text-sm font-medium text-red-400/70">/day</span>
+          </span>
         </div>
         <div>
-          <span className="text-gray-500 text-xs uppercase tracking-wider block mb-1">AI capacity</span>
-          <span className="text-green-400 text-2xl font-bold">10,000+<span className="text-sm font-medium text-green-400/70">/day</span></span>
+          <span className="text-gray-500 text-xs uppercase tracking-wider block mb-1">
+            AI capacity
+          </span>
+          <span className="text-green-400 text-2xl font-bold">
+            10,000+
+            <span className="text-sm font-medium text-green-400/70">/day</span>
+          </span>
         </div>
       </div>
     </div>

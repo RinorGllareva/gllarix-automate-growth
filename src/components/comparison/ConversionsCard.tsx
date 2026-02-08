@@ -26,8 +26,8 @@ const ConversionsCard = () => {
               className="w-14 rounded-t-md"
               style={{
                 height: '50px',
-                background: 'linear-gradient(180deg, rgba(74, 222, 128, 0.4) 0%, rgba(74, 222, 128, 0.15) 100%)',
-                border: '1px solid rgba(74, 222, 128, 0.2)',
+                background: 'linear-gradient(180deg, rgba(222, 74, 74, 0.4) 0%, rgba(222, 74, 74, 0.15) 100%)',
+                border: '1px solid rgba(222, 74, 74, 0.2)',
               }}
             />
             <span className="text-[10px] text-gray-500 tracking-wider uppercase font-medium">Human CVR</span>

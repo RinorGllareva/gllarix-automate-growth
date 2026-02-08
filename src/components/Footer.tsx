@@ -159,7 +159,7 @@ const Footer = () => {
           <div className="border-t border-white/10 pt-8">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
               <p className="text-gray-400 text-xs sm:text-sm text-center sm:text-left">
-                © 2025 Gllarix. All rights reserved.
+                © 2026 Gllarix. All rights reserved.
               </p>
 
               <div className="flex flex-wrap justify-center sm:justify-end items-center gap-6">

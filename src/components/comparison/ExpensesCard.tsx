@@ -15,8 +15,8 @@ const ExpensesCard = () => {
           <defs>
             {/* Human cost gradient fill */}
             <linearGradient id="humanCostGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="rgb(74, 222, 128)" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="rgb(74, 222, 128)" stopOpacity="0.02" />
+              <stop offset="0%" stopColor="rgb(222, 74, 74)" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="rgb(222, 74, 74)" stopOpacity="0.02" />
             </linearGradient>
             {/* AI cost gradient fill */}
             <linearGradient id="aiCostGrad" x1="0" y1="0" x2="0" y2="1">
@@ -38,7 +38,7 @@ const ExpensesCard = () => {
           {/* Human cost line */}
           <path
             d="M0,45 C30,40 60,50 90,42 C120,34 150,48 180,40 C210,32 240,44 280,38"
-            stroke="rgb(74, 222, 128)"
+            stroke="rgb(222, 74, 74)"
             strokeWidth="2"
             fill="none"
             opacity="0.7"
@@ -94,7 +94,7 @@ const ExpensesCard = () => {
         </div>
         <div>
           <span className="text-gray-500 text-xs uppercase tracking-wider block mb-1">Unlimited AI setters</span>
-          <span className="text-green-400 text-2xl font-bold">$297<span className="text-sm font-medium text-green-400/70">/mo</span></span>
+          <span className="text-green-400 text-2xl font-bold">65%<span className="text-sm font-medium text-green-400/70">/lower</span></span>
         </div>
       </div>
     </div>
