@@ -1,74 +1,57 @@
 
 
-# Pixel-Perfect Comparison Cards + Edge Function Fix
+# Exact Globe Recreation for Capacity Card
 
-## Overview
-Two changes: (1) fix the build error in the edge function, and (2) redesign the three comparison cards in PainSolution to exactly match the Appointwise reference screenshot.
+## What's Wrong Currently
+The current globe has ~80 randomly placed green dots, visible grid lines, and a weak glow. The reference image shows a dramatically different globe -- large, 3D-looking, with hundreds of white dots forming recognizable continents and a bold green atmospheric glow at the bottom.
 
----
+## Exact Reference Analysis
+From the reference image, the globe has:
+- **Hundreds of small white/cream dots** forming continent shapes (not green)
+- **Primarily showing the Americas** on the left, Europe/Africa on the right edge
+- **No visible grid/latitude lines**
+- **Dark ocean areas** (near black, blending with card background)
+- **Strong teal/green glow** concentrated at the bottom of the globe, creating an "atmosphere" or aurora effect
+- **3D depth** -- dots near the edges are dimmer, center dots are brighter
+- **Large size** -- the globe takes up most of the card's visual space
+- **Slight right-side lighting** suggesting a light source
 
-## 1. Fix Edge Function Build Error
+## Technical Implementation
 
-The `send-contact-email` function fails because it imports Resend using `npm:resend@2.0.0` which is not supported in this Deno environment. The fix is to use the `esm.sh` CDN import instead.
+### File: `src/components/comparison/CapacityCard.tsx` -- Full rewrite of globe SVG
 
-**File:** `supabase/functions/send-contact-email/index.ts`
-- Change line 2 from `import { Resend } from "npm:resend@2.0.0"` to `import { Resend } from "https://esm.sh/resend@2.0.0"`
+**Dot Generation (useMemo):**
+- Create ~400-500 dots using detailed continent coordinate maps
+- Each continent defined as a series of polygon-like boundary points with fill density
+- North America: large cluster from Alaska down to Mexico, with recognizable shape
+- South America: narrowing shape from Colombia to Argentina
+- Europe: small cluster on the right side of the globe
+- Africa: larger cluster right of center
+- Use a seeded pseudo-random number generator (not Math.random()) so the dots are consistent between renders
+- Each dot gets an opacity based on distance from globe center (edge fading for 3D effect)
+- Dots are white/cream colored (rgba(255, 255, 255, opacity)), NOT green
 
----
+**Globe SVG Changes:**
+- Remove all latitude/longitude grid lines
+- Remove the current green-filled circle -- replace with a very dark, nearly invisible fill
+- Increase SVG viewBox and rendered size (from w-48 h-48 to w-64 h-64)
+- Add a strong green radial gradient glow at the bottom -- larger and more vibrant than current
+- Add a subtle dark-to-transparent radial gradient on the globe itself for 3D depth
+- Globe border stroke: very faint white instead of green
 
-## 2. Redesign Three Comparison Cards
+**Green Atmosphere Glow:**
+- Large ellipse below the globe with a radial gradient
+- Center color: bright teal/green (rgb(16, 185, 129)) at ~40% opacity
+- Spreads outward, fading to transparent
+- Extends wider than the globe itself
+- A second, tighter glow ellipse overlapping the bottom of the globe for the "atmosphere hugging the surface" look
 
-Matching the reference image exactly requires these visual changes to `src/components/PainSolution.tsx`:
+**Remove:**
+- All animated pulse dots around the globe (the floating green dots) -- not present in reference
+- All latitude/longitude ellipse lines
 
-### Card 01 - Increase Conversions
-**Current:** Red bar (short) + green bar (tall) with small labels
-**Target:** Two green bars of different heights inside a dark chart area with subtle grid lines, labeled "HUMAN CVR" and "AI CVR" at the bottom axis. The chart area has a slightly darker background with a subtle border.
-
-- Both bars are green (darker green for human, brighter green for AI)
-- Chart has a subtle background panel with faint grid lines
-- X-axis labels: "HUMAN CVR" and "AI CVR" in small caps gray text
-- Stats below: Label text is small gray, values are large bold text (red for human, green for AI) -- displayed as block layout (label on one line, large value on next line)
-
-### Card 02 - Reduce Expenses
-**Current:** SVG with red + green area fills, small legend in corner
-**Target:** Wavy green line chart with two curves -- the upper curve labeled "HUMAN SETTER COSTS" (with a tooltip-style label) and lower curve labeled "AI SETTER COSTS" (also tooltip-style). Both lines are green with gradient fills beneath. Small green dots mark data points on the curves.
-
-- Both lines use green color (different shades/positions distinguish them)
-- Tooltip-style labels: dark backgrounds with green border/text showing "HUMAN SETTER COSTS" and "AI SETTER COSTS"
-- Green dot indicators on each curve
-- Area fill gradient from green to transparent beneath each line
-
-### Card 03 - Maximize Capacity
-**Current:** Lucide Globe icon with animated dots
-**Target:** A detailed 3D-looking globe with dotted continents (particle/dot pattern) and a green glow at the bottom. The globe appears more realistic with dotted texture representing landmasses.
-
-- Replace the simple Lucide Globe icon with a custom SVG globe
-- Dotted/particle pattern for continents
-- Green glow effect at the bottom of the globe (radial gradient)
-- Keep the animated pulse dots around it
-
-### Card Layout (all three)
-- Title format: "01." in green, then title text in white, both large (text-3xl to text-4xl)
-- Darker card background: `bg-[#1a1a1f]` or similar dark gray with subtle rounded border
-- Stats layout: Each stat is a block -- small gray label on first line, large colored value on second line (not side-by-side like current)
-- Values use mixed font sizes: large number in bold + smaller unit text inline (e.g., "$2000" big + "/month" smaller)
-
----
-
-## Technical Details
-
-### Files Modified
-
-**`supabase/functions/send-contact-email/index.ts`**
-- Line 2: Change npm import to esm.sh import for Resend
-
-**`src/components/PainSolution.tsx`**
-- Lines 72-183: Complete rewrite of the three card contents
-- Card 01: New bar chart SVG with green bars, grid lines, axis labels
-- Card 02: New wavy line chart SVG with tooltip-style labels and green dots
-- Card 03: Custom globe SVG with dotted continent pattern and green glow
-- All three: Updated stat layout to block format with large values
-- Title format updated to match reference (green number, white text, larger size)
+**Seeded Random for Consistency:**
+- Use a simple linear congruential generator seeded with a fixed value so dots don't change on re-render
 
 ### No other files change
-
+Only `src/components/comparison/CapacityCard.tsx` is modified. The stats section at the bottom remains identical.
