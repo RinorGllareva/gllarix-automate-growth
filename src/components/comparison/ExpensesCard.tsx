@@ -76,7 +76,7 @@ const ExpensesCard = () => {
         {/* Tooltip-style labels */}
         <div className="absolute top-3 left-3">
           <div className="bg-[#1a1a1f]/90 border border-green-500/20 rounded-md px-2.5 py-1">
-            <span className="text-green-400 text-[9px] uppercase tracking-wider font-medium">Human Setter Costs</span>
+            <span className="text-red-400 text-[9px] uppercase tracking-wider font-medium">Human Setter Costs</span>
           </div>
         </div>
         <div className="absolute bottom-12 left-3">
