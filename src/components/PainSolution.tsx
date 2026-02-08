@@ -1,8 +1,11 @@
 import React, { useState, useMemo } from "react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { ArrowRight, Globe } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import ConversionsCard from "@/components/comparison/ConversionsCard";
+import ExpensesCard from "@/components/comparison/ExpensesCard";
+import CapacityCard from "@/components/comparison/CapacityCard";
 
 const PainSolution = () => {
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation(0.2);
@@ -69,118 +72,9 @@ const PainSolution = () => {
               cardsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
             }`}
           >
-            {/* 01. Increase Conversions */}
-            <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 hover:border-primary/30 transition-all duration-300">
-              <span className="text-primary/60 text-sm font-mono">01</span>
-              <h3 className="text-2xl font-bold text-white mt-2 mb-6">Increase Conversions</h3>
-
-              {/* Bar Chart Visual */}
-              <div className="flex items-end gap-6 justify-center h-40 mb-8">
-                <div className="flex flex-col items-center gap-2">
-                  <div className="w-16 bg-red-500/30 border border-red-500/40 rounded-t-lg" style={{ height: '60px' }} />
-                  <span className="text-xs text-gray-500">Human</span>
-                </div>
-                <div className="flex flex-col items-center gap-2">
-                  <div className="w-16 bg-green-500/30 border border-green-500/40 rounded-t-lg" style={{ height: '120px' }} />
-                  <span className="text-xs text-gray-500">AI</span>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400 text-sm">Human setter average:</span>
-                  <span className="text-red-400 font-bold">10-20%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400 text-sm">AI setter average:</span>
-                  <span className="text-green-400 font-bold">30-40%</span>
-                </div>
-              </div>
-            </div>
-
-            {/* 02. Reduce Expenses */}
-            <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 hover:border-primary/30 transition-all duration-300">
-              <span className="text-primary/60 text-sm font-mono">02</span>
-              <h3 className="text-2xl font-bold text-white mt-2 mb-6">Reduce Expenses</h3>
-
-              {/* Cost Graph Visual */}
-              <div className="relative h-40 mb-8 flex items-end">
-                <svg viewBox="0 0 200 100" className="w-full h-full" preserveAspectRatio="none">
-                  {/* Human cost line - high */}
-                  <defs>
-                    <linearGradient id="humanGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="rgb(239, 68, 68)" stopOpacity="0.3" />
-                      <stop offset="100%" stopColor="rgb(239, 68, 68)" stopOpacity="0.05" />
-                    </linearGradient>
-                    <linearGradient id="aiGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="rgb(34, 197, 94)" stopOpacity="0.3" />
-                      <stop offset="100%" stopColor="rgb(34, 197, 94)" stopOpacity="0.05" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M0,30 Q50,25 100,28 Q150,31 200,26 L200,100 L0,100 Z" fill="url(#humanGrad)" />
-                  <path d="M0,30 Q50,25 100,28 Q150,31 200,26" stroke="rgb(239, 68, 68)" strokeWidth="2" fill="none" opacity="0.6" />
-                  <path d="M0,75 Q50,72 100,74 Q150,76 200,73 L200,100 L0,100 Z" fill="url(#aiGrad)" />
-                  <path d="M0,75 Q50,72 100,74 Q150,76 200,73" stroke="rgb(34, 197, 94)" strokeWidth="2" fill="none" opacity="0.6" />
-                </svg>
-                <div className="absolute top-2 right-2 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-0.5 bg-red-500" />
-                    <span className="text-[10px] text-gray-500">HUMAN COSTS</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-0.5 bg-green-500" />
-                    <span className="text-[10px] text-gray-500">AI COSTS</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400 text-sm">1 human setter:</span>
-                  <span className="text-red-400 font-bold">$2,000/mo</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400 text-sm">Unlimited AI setters:</span>
-                  <span className="text-green-400 font-bold">$297/mo</span>
-                </div>
-              </div>
-            </div>
-
-            {/* 03. Maximize Capacity */}
-            <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 hover:border-primary/30 transition-all duration-300">
-              <span className="text-primary/60 text-sm font-mono">03</span>
-              <h3 className="text-2xl font-bold text-white mt-2 mb-6">Maximize Capacity</h3>
-
-              {/* Globe/Network Visual */}
-              <div className="relative h-40 mb-8 flex items-center justify-center">
-                <div className="relative">
-                  <Globe className="h-24 w-24 text-primary/20" strokeWidth={0.5} />
-                  {/* Animated dots */}
-                  {[...Array(8)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="absolute w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"
-                      style={{
-                        top: `${20 + Math.sin(i * 0.8) * 35}%`,
-                        left: `${20 + Math.cos(i * 0.8) * 35}%`,
-                        animationDelay: `${i * 200}ms`,
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400 text-sm">Human capacity:</span>
-                  <span className="text-red-400 font-bold">150/day</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400 text-sm">AI capacity:</span>
-                  <span className="text-green-400 font-bold">10,000+/day</span>
-                </div>
-              </div>
-            </div>
+            <ConversionsCard />
+            <ExpensesCard />
+            <CapacityCard />
           </div>
 
           {/* ROI Calculator */}
