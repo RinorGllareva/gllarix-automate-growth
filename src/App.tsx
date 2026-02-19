@@ -11,6 +11,8 @@ import About from "./pages/About";
 import Demo from "./pages/Demo";
 import BookMeeting from "./pages/BookMeeting";
 import NotFound from "./pages/NotFound";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +53,8 @@ const App = () => {
               <Route path="/about" element={<About />} />
               <Route path="/demo" element={<Demo />} />
               <Route path="/book-meeting" element={<BookMeeting />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
               {/* Catch-all route for 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
