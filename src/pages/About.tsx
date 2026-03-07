@@ -237,7 +237,7 @@ const About = () => {
       role: "CEO & Founder",
       description:
         "15+ years in AI and automation, former Google AI researcher",
-      image: "./Gllarix_Icon PNG.png",
+      image: "/Gllarix_LogoPNG.png",
       gradient: "from-primary via-primary/80 to-accent",
       accent: "primary",
       expertise: ["AI Research", "Strategy", "Leadership"],
