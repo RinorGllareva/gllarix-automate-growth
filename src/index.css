@@ -4,6 +4,263 @@
 
 /* Gllarix Design System - Professional SaaS Platform */
 
+@keyframes liquid-glass-drift {
+  0% {
+    transform: translate3d(-2.5%, -1%, 0) scale(1.04);
+  }
+
+  50% {
+    transform: translate3d(1.25%, 1.5%, 0) scale(1.09);
+  }
+
+  100% {
+    transform: translate3d(2.5%, -1.4%, 0) scale(1.05);
+  }
+}
+
+.liquid-glass-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.liquid-glass-background::before,
+.liquid-glass-background::after {
+  content: "";
+  position: absolute;
+}
+
+.liquid-glass-background::before {
+  inset: -12%;
+  background-image: url("/liquid-glass-background.jpg");
+  background-position: center;
+  background-size: cover;
+  filter: grayscale(0.85) brightness(0.52) contrast(1.18);
+  will-change: transform;
+  animation: liquid-glass-drift 52s ease-in-out infinite alternate;
+}
+
+.liquid-glass-background::after {
+  inset: 0;
+}
+
+.liquid-glass-background--hero::before {
+  opacity: 0.52;
+}
+
+.liquid-glass-background--hero::after {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.08) 58%, rgba(0, 0, 0, 0.3)),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.42));
+}
+
+.liquid-glass-background--footer::before {
+  opacity: 0.3;
+  animation-duration: 68s;
+  animation-direction: alternate-reverse;
+}
+
+.liquid-glass-background--footer::after {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.82)),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.28), transparent 50%, rgba(0, 0, 0, 0.32));
+}
+
+.liquid-glass-background--sections::before {
+  opacity: 0.16;
+  animation-duration: 84s;
+}
+
+.liquid-glass-background--sections::after {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.76), rgba(0, 0, 0, 0.52) 46%, rgba(0, 0, 0, 0.8)),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.34), transparent 52%, rgba(0, 0, 0, 0.3));
+}
+
+.liquid-glass-background--secondary::before {
+  opacity: 0.72;
+  background-image: url("/metal-fluid-cyan.webp");
+  filter: brightness(0.5) contrast(1.08) saturate(1.08);
+  animation-duration: 96s;
+}
+
+.liquid-glass-background--secondary::after {
+  background:
+    linear-gradient(110deg, rgba(2, 6, 10, 0.56), rgba(2, 6, 10, 0.2) 46%, rgba(2, 6, 10, 0.42)),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.52));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liquid-glass-background::before {
+    animation: none;
+    transform: scale(1.06);
+  }
+}
+
+.fluid-glass-live {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: #000;
+}
+
+.fluid-glass-live__canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 900ms ease;
+}
+
+.fluid-glass-live__canvas.is-ready {
+  opacity: 1;
+}
+
+.fluid-glass-live__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.38), rgba(0, 0, 0, 0.06) 62%, rgba(0, 0, 0, 0.34)),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.36));
+}
+
+.fluid-glass-live--hero .fluid-glass-live__veil {
+  background:
+    linear-gradient(110deg, rgba(8, 145, 178, 0.075), transparent 42%, rgba(124, 58, 237, 0.08)),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.04) 62%, rgba(0, 0, 0, 0.32)),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.36));
+}
+
+.fluid-glass-live--footer .fluid-glass-live__canvas {
+  opacity: 0;
+}
+
+.fluid-glass-live--footer .fluid-glass-live__canvas.is-ready {
+  opacity: 0.58;
+}
+
+.fluid-glass-live--footer .fluid-glass-live__veil {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.48), rgba(0, 0, 0, 0.8)),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.24), transparent 52%, rgba(0, 0, 0, 0.34));
+}
+
+.fluid-glass-live--sections .fluid-glass-live__canvas {
+  opacity: 0;
+}
+
+.fluid-glass-live--sections .fluid-glass-live__canvas.is-ready {
+  opacity: 0.2;
+}
+
+.fluid-glass-live--sections .fluid-glass-live__veil {
+  background:
+    linear-gradient(145deg, rgba(6, 182, 212, 0.035), transparent 40%, rgba(245, 158, 11, 0.035) 78%, transparent),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.54) 48%, rgba(0, 0, 0, 0.78)),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.34), transparent 52%, rgba(0, 0, 0, 0.32));
+}
+
+.fluid-glass-live--secondary .fluid-glass-live__canvas {
+  opacity: 0;
+}
+
+.fluid-glass-live--secondary .fluid-glass-live__canvas.is-ready {
+  opacity: 0.84;
+}
+
+.fluid-glass-live--secondary .fluid-glass-live__veil {
+  background:
+    linear-gradient(105deg, rgba(1, 5, 9, 0.52), rgba(1, 5, 9, 0.16) 48%, rgba(1, 5, 9, 0.4)),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.48));
+}
+
+.secondary-glass-surface {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(3, 7, 12, 0.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 24px 80px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(22px) saturate(1.25);
+}
+
+.secondary-glass-soft {
+  background: rgba(3, 7, 12, 0.34);
+  backdrop-filter: blur(16px) saturate(1.2);
+}
+
+.secondary-glass-surface--contact {
+  border-color: rgba(255, 255, 255, 0.2);
+  background:
+    linear-gradient(115deg, rgba(5, 12, 18, 0.42), rgba(11, 12, 24, 0.28)),
+    rgba(2, 6, 10, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 80px rgba(103, 232, 249, 0.025),
+    0 32px 100px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(28px) saturate(1.4);
+}
+
+.impact-range {
+  height: 1px;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+}
+
+.impact-range::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  appearance: none;
+  border: 1px solid rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
+}
+
+.impact-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
+}
+
+.impact-range--emerald::-webkit-slider-thumb {
+  background: #a7f3d0;
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.14);
+}
+
+.impact-range--cyan::-webkit-slider-thumb {
+  background: #a5f3fc;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.14);
+}
+
+.impact-range--violet::-webkit-slider-thumb {
+  background: #ddd6fe;
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.14);
+}
+
+.impact-range--emerald::-moz-range-thumb {
+  background: #a7f3d0;
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.14);
+}
+
+.impact-range--cyan::-moz-range-thumb {
+  background: #a5f3fc;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.14);
+}
+
+.impact-range--violet::-moz-range-thumb {
+  background: #ddd6fe;
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.14);
+}
+
 @layer base {
   :root {
     /* Professional Security & Reliability Theme - Blue/Purple */
@@ -356,4 +613,82 @@
 
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes capacity-globe-drift {
+  from {
+    background-position: 18% center;
+    transform: scale(1.08) rotate(-1deg);
+  }
+
+  to {
+    background-position: 82% center;
+    transform: scale(1.13) rotate(1deg);
+  }
+}
+
+.capacity-globe-surface {
+  animation: capacity-globe-drift 28s linear infinite alternate;
+  will-change: transform, background-position;
+}
+
+.industry-tab-scroll {
+  scrollbar-width: none;
+}
+
+.industry-tab-scroll::-webkit-scrollbar,
+.bottom-nav-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.bottom-nav-scroll {
+  scrollbar-width: none;
+}
+
+.gllarix-logo-piece {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transform: translate3d(var(--piece-x), var(--piece-y), 0)
+    rotate(var(--piece-rotate)) scale(0.985);
+  transform-origin: center;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.gllarix-logo-piece.is-ready {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+}
+
+.gllarix-logo-piece.is-animating {
+  animation: gllarix-piece-arrive 2.8s cubic-bezier(0.25, 0.1, 0.25, 1)
+    var(--piece-delay) both;
+}
+
+@keyframes gllarix-piece-arrive {
+  0% {
+    opacity: 0;
+    transform: translate3d(var(--piece-x), var(--piece-y), 0)
+      rotate(var(--piece-rotate)) scale(0.985);
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capacity-globe-surface {
+    animation: none;
+    background-position: center;
+  }
 }

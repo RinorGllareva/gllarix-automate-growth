@@ -2,6 +2,50 @@ import React from 'react';
 import { Star, Quote } from "lucide-react";
 import { useScrollAnimation, useCountUp } from "@/hooks/useScrollAnimation";
 
+type Stat = {
+  number: string;
+  label: string;
+};
+
+type StatCardProps = {
+  stat: Stat;
+  index: number;
+  statsVisible: boolean;
+};
+
+const StatCard = ({ stat, index, statsVisible }: StatCardProps) => {
+  const numericValue = parseInt(stat.number.replace(/[^\d]/g, '')) || 0;
+  const { count, setIsActive } = useCountUp(numericValue, 2000, 0);
+
+  React.useEffect(() => {
+    if (!statsVisible) return;
+
+    const timer = window.setTimeout(() => setIsActive(true), index * 200);
+    return () => window.clearTimeout(timer);
+  }, [statsVisible, setIsActive, index]);
+
+  return (
+    <div
+      className={`text-center p-8 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl hover:bg-white/10 transition-all duration-700 hover:scale-105 ${
+        statsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      }`}
+      style={{ transitionDelay: `${index * 100}ms` }}
+    >
+      <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent mb-2">
+        {statsVisible ? (
+          stat.number.includes('%') ? `${count}%` :
+          stat.number.includes('+') ? `${count}+` :
+          stat.number.includes('hrs') ? `${count}hrs` :
+          count
+        ) : stat.number}
+      </div>
+      <div className="text-gray-400 text-sm">
+        {stat.label}
+      </div>
+    </div>
+  );
+};
+
 const Testimonials = () => {
   const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation(0.2);
   const { ref: statsRef, isVisible: statsVisible } = useScrollAnimation(0.3);
@@ -57,7 +101,7 @@ const Testimonials = () => {
     }
   ];
 
-  const stats = [
+  const stats: Stat[] = [
     { number: "95%", label: "Customer Satisfaction" },
     { number: "500+", label: "Businesses Served" },
     { number: "30hrs", label: "Average Time Saved/Week" },
@@ -91,39 +135,14 @@ const Testimonials = () => {
             ref={statsRef}
             className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-20"
           >
-            {stats.map((stat, index) => {
-              const numericValue = parseInt(stat.number.replace(/[^\d]/g, '')) || 0;
-              const { count, setIsActive } = useCountUp(numericValue, 2000, 0);
-              
-              React.useEffect(() => {
-                if (statsVisible) {
-                  const timer = setTimeout(() => setIsActive(true), index * 200);
-                  return () => clearTimeout(timer);
-                }
-              }, [statsVisible, setIsActive, index]);
-
-              return (
-                <div 
-                  key={index} 
-                  className={`text-center p-8 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl hover:bg-white/10 transition-all duration-700 hover:scale-105 ${
-                    statsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-                  }`}
-                  style={{ transitionDelay: `${index * 100}ms` }}
-                >
-                  <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent mb-2">
-                    {statsVisible ? (
-                      stat.number.includes('%') ? `${count}%` :
-                      stat.number.includes('+') ? `${count}+` :
-                      stat.number.includes('hrs') ? `${count}hrs` :
-                      count
-                    ) : stat.number}
-                  </div>
-                  <div className="text-gray-400 text-sm">
-                    {stat.label}
-                  </div>
-                </div>
-              );
-            })}
+            {stats.map((stat, index) => (
+              <StatCard
+                key={stat.label}
+                stat={stat}
+                index={index}
+                statsVisible={statsVisible}
+              />
+            ))}
           </div>
 
           {/* Testimonials Grid */}

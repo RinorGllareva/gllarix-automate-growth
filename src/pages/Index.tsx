@@ -1,41 +1,45 @@
+import { lazy, Suspense, useEffect, useState } from "react";
 import Navigation from "@/components/Navigation";
-import Hero from "@/components/Hero";
-import PainSolution from "@/components/PainSolution";
-import HowItWorks from "@/components/HowItWorks";
-import Industries from "@/components/Industries";
-import Pricing from "@/components/Pricing";
-import Testimonials from "@/components/Testimonials";
-import FinalCTA from "@/components/FinalCTA";
-import Footer from "@/components/Footer";
+import { useIntroActive } from "@/contexts/IntroContext";
+
+const Hero = lazy(() => import("@/components/Hero"));
+const HomepageSections = lazy(() => import("@/components/HomepageSections"));
 
 const Index = () => {
+  const isIntroActive = useIntroActive();
+  const [showHomepageSections, setShowHomepageSections] = useState(false);
+
+  useEffect(() => {
+    if (isIntroActive) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setShowHomepageSections(true);
+    }, 500);
+
+    return () => window.clearTimeout(timer);
+  }, [isIntroActive]);
+
   return (
     <main className="min-h-screen bg-black">
       <Navigation />
 
-      <Hero />
+      {isIntroActive ? (
+        <div className="min-h-screen bg-black" aria-hidden="true" />
+      ) : (
+        <>
+          <Suspense fallback={<div className="min-h-screen bg-black" aria-hidden="true" />}>
+            <Hero />
+          </Suspense>
 
-      <section id="services" className="min-h-screen bg-gray-900">
-        <PainSolution />
-      </section>
-
-      <section id="how-it-works" className="min-h-screen bg-black">
-        <HowItWorks />
-      </section>
-
-      <section id="industries" className="min-h-screen bg-gray-900">
-        <Industries />
-      </section>
-
-      <section id="pricing" className="bg-black">
-        <Pricing />
-      </section>
-
-      {/* <Testimonials /> */}
-
-      {/* <FinalCTA /> */}
-
-      <Footer />
+          {showHomepageSections ? (
+            <Suspense fallback={null}>
+              <HomepageSections />
+            </Suspense>
+          ) : null}
+        </>
+      )}
     </main>
   );
 };

@@ -1,177 +1,197 @@
-import React from "react";
-import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { Link2, Bot, Zap, ArrowRight, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Floating3DOrb } from "./Floating3DOrb";
+import { useState } from "react";
+import {
+  ArrowRight,
+  CalendarCheck,
+  Check,
+  Plug,
+  Radio,
+  SlidersHorizontal,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
+const steps = [
+  {
+    number: "01",
+    shortTitle: "Connect",
+    title: "Connect the tools you already use.",
+    description:
+      "We securely connect your phone, calendar, CRM, and lead sources. Your existing workflow stays in place.",
+    icon: Plug,
+    features: [
+      "Keep your current phone number",
+      "Read live calendar availability",
+      "Write every outcome back to your CRM",
+    ],
+    flow: ["Customer calls", "Gllarix receives context", "Systems connected"],
+    outcome: "Ready for configuration",
+  },
+  {
+    number: "02",
+    shortTitle: "Define",
+    title: "Define exactly how the agent should work.",
+    description:
+      "Set the voice, qualification questions, routing rules, availability, and escalation points with your team.",
+    icon: SlidersHorizontal,
+    features: [
+      "Use your scripts and business rules",
+      "Choose what qualifies a lead",
+      "Control booking and human handoff",
+    ],
+    flow: ["Your playbook", "Rules configured", "Test conversations"],
+    outcome: "Approved and ready",
+  },
+  {
+    number: "03",
+    shortTitle: "Go live",
+    title: "Go live, then improve from real outcomes.",
+    description:
+      "The agent answers, qualifies, books, follows up, and syncs every result. You can review performance in real time.",
+    icon: Radio,
+    features: [
+      "Handle calls and messages continuously",
+      "Book directly into available slots",
+      "Track outcomes and refine the workflow",
+    ],
+    flow: ["Lead reaches out", "Agent completes the task", "CRM updated"],
+    outcome: "Operating 24/7",
+  },
+];
+
 const HowItWorks = () => {
-  const { ref: headerRef, isVisible: headerVisible } = useScrollAnimation(0.2);
-  const { ref: ctaRef, isVisible: ctaVisible } = useScrollAnimation(0.2);
-
-  const steps = [
-    {
-      step: "01",
-      icon: Link2,
-      title: "Connect Your Systems",
-      description: "Link Gllarix to your CRM, calendar, or lead sources in minutes. No technical expertise required.",
-      features: [
-        "One-click CRM integration",
-        "Automatic calendar sync",
-        "Connect lead sources instantly",
-        "Custom workflow builder"
-      ]
-    },
-    {
-      step: "02",
-      icon: Bot,
-      title: "AI Agents Go to Work",
-      description: "Our AI agents start handling calls, bookings, reminders, and follow-ups using your business rules.",
-      features: [
-        "Natural voice conversations",
-        "Intelligent appointment booking",
-        "Smart lead qualification",
-        "Automated customer follow-ups"
-      ]
-    },
-    {
-      step: "03",
-      icon: Zap,
-      title: "Results Sync Instantly",
-      description: "All interactions and data automatically sync back to your systems in real-time.",
-      features: [
-        "Real-time data updates",
-        "Automatic synchronization",
-        "Instant reporting",
-        "Performance analytics dashboard"
-      ]
-    }
-  ];
-
-  const stepsRefs = [
-    useScrollAnimation(0.3),
-    useScrollAnimation(0.3),
-    useScrollAnimation(0.3),
-  ];
-  const stepsVisible = stepsRefs.map(({ isVisible }) => isVisible);
+  const [activeStep, setActiveStep] = useState(0);
+  const step = steps[activeStep];
+  const StepIcon = step.icon;
 
   return (
-    <section className="relative py-32 bg-black overflow-hidden">
-      {/* Floating 3D Element */}
-      <div className="absolute top-20 right-10 opacity-20 pointer-events-none hidden lg:block">
-        <div className="w-96 h-96">
-          <Floating3DOrb color="#7E69AB" />
-        </div>
-      </div>
-
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div
-            ref={headerRef}
-            className={`text-center mb-24 transition-all duration-1000 ${
-              headerVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-            }`}
-          >
-            <div className="inline-block px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-6">
-              <span className="text-primary text-sm font-medium">Simple Process</span>
+    <section
+      id="how-it-works"
+      className="relative border-y border-white/[0.08] py-24 sm:py-28 lg:py-32"
+    >
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300/35 to-cyan-300/25" />
+      <div className="container mx-auto px-5 sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-7xl">
+          <header className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end">
+            <div>
+              <p className="mb-5 text-[10px] font-light uppercase tracking-[0.3em] text-violet-200/65 sm:text-xs">
+                Three steps. One working agent.
+              </p>
+              <h2 className="max-w-4xl [font-family:'Helvetica_Neue',Helvetica,Arial,sans-serif] text-4xl font-light leading-[0.96] text-white sm:text-5xl md:text-6xl lg:text-7xl">
+                From your tools to live automation.
+              </h2>
             </div>
-            <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-white to-primary bg-clip-text text-transparent">
-              How It Works
-            </h2>
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
-              From setup to results in three simple steps. No technical knowledge required.
+            <p className="text-sm font-light leading-relaxed text-white/52 sm:text-base">
+              No platform migration and no technical project for your team.
+              Connect, define, and launch.
             </p>
-          </div>
+          </header>
 
-          {/* Steps */}
-          <div className="space-y-20">
-            {steps.map((step, index) => (
-              <div
-                key={index}
-                ref={stepsRefs[index].ref}
-                className={`relative transition-all duration-1000 ${
-                  stepsVisible[index] ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
-                }`}
-              >
-                <div className="grid lg:grid-cols-2 gap-12 items-center">
-                  {/* Step Number & Icon */}
-                  <div className={`${index % 2 === 1 ? "lg:order-2" : ""}`}>
-                    <div className="flex items-start gap-6">
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl" />
-                        <div className="relative p-6 bg-gradient-to-br from-primary/20 to-purple-500/20 border border-primary/30 rounded-2xl">
-                          {React.createElement(step.icon, { className: "h-12 w-12 text-primary" })}
-                        </div>
-                        <div className="absolute -top-3 -right-3 px-3 py-1 bg-primary rounded-full text-sm font-bold">
-                          {step.step}
-                        </div>
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                          {step.title}
-                        </h3>
-                        <p className="text-gray-400 text-lg leading-relaxed">
-                          {step.description}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Features */}
-                  <div className={`${index % 2 === 1 ? "lg:order-1" : ""}`}>
-                    <div className="space-y-4">
-                      {step.features.map((feature, fIndex) => (
-                        <div
-                          key={fIndex}
-                          className="group p-5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl hover:bg-white/10 hover:border-primary/30 transition-all duration-300 hover:scale-105"
-                        >
-                          <div className="flex items-center gap-3">
-                            <Sparkles className="h-5 w-5 text-primary shrink-0" />
-                            <span className="text-white font-medium">{feature}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Connector Line */}
-                {index < steps.length - 1 && (
-                  <div className="flex justify-center my-12">
-                    <ArrowRight className="h-8 w-8 text-primary/50 rotate-90 animate-bounce" />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* CTA */}
           <div
-            ref={ctaRef}
-            className={`mt-24 text-center transition-all duration-1000 ${
-              ctaVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
-            }`}
+            className="mt-12 grid border-y border-white/12 md:grid-cols-3"
+            role="tablist"
+            aria-label="Gllarix setup process"
           >
-            <div className="relative p-12 bg-gradient-to-br from-primary/10 via-purple-500/10 to-primary/10 border border-primary/20 rounded-3xl max-w-3xl mx-auto overflow-hidden">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(155,135,245,0.1),transparent_50%)]" />
-              <div className="relative z-10">
-                <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                  Ready to See It in Action?
-                </h3>
-                <p className="text-gray-400 text-lg mb-8 max-w-2xl mx-auto">
-                  Book a free demo and watch AI agents handle real calls and schedule appointments live.
-                </p>
-                <div className="flex justify-center">
-                  <Button asChild className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl font-semibold transition-all hover:scale-105">
-                    <Link to="/demo">
-                      Start Your Free Demo
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Link>
-                  </Button>
-                </div>
+            {steps.map((item, index) => {
+              const Icon = item.icon;
+              const isActive = index === activeStep;
+
+              return (
+                <button
+                  key={item.number}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-controls="process-step-panel"
+                  onClick={() => setActiveStep(index)}
+                  className={`flex min-h-20 items-center gap-4 border-b border-white/10 px-5 text-left transition-colors last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0 ${
+                    isActive
+                      ? "bg-gradient-to-r from-violet-100 to-cyan-100 text-black"
+                      : "bg-black/15 text-white/48 hover:bg-white/[0.06] hover:text-white"
+                  }`}
+                >
+                  <span className="text-[10px] font-medium tracking-[0.18em]">
+                    {item.number}
+                  </span>
+                  <Icon className="h-4 w-4" />
+                  <span className="text-sm font-medium">{item.shortTitle}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div
+            id="process-step-panel"
+            role="tabpanel"
+            className="grid gap-12 border-b border-white/12 py-12 lg:grid-cols-[minmax(0,1fr)_25rem] lg:gap-20 lg:py-16"
+          >
+            <div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-md border border-violet-200/25 bg-violet-300/[0.08]">
+                <StepIcon className="h-5 w-5 text-violet-100" />
+              </div>
+              <p className="mt-8 text-[10px] uppercase tracking-[0.24em] text-white/38">
+                Step {step.number}
+              </p>
+              <h3 className="mt-3 max-w-3xl text-3xl font-light leading-tight text-white sm:text-4xl lg:text-5xl">
+                {step.title}
+              </h3>
+              <p className="mt-5 max-w-2xl text-sm font-light leading-relaxed text-white/52 sm:text-base">
+                {step.description}
+              </p>
+
+              <ul className="mt-8 grid gap-3 sm:grid-cols-3">
+                {step.features.map((feature) => (
+                  <li
+                    key={feature}
+                    className="flex items-start gap-3 border-t border-white/10 pt-3 text-xs font-light leading-relaxed text-white/64 sm:text-sm"
+                  >
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-cyan-200" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="self-end border-l border-white/15 pl-6">
+              <p className="text-[10px] uppercase tracking-[0.24em] text-white/38">
+                What happens
+              </p>
+              <div className="mt-6 space-y-0">
+                {step.flow.map((item, index) => (
+                  <div key={item}>
+                    <div className="flex items-center gap-4 py-3">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/18 text-[10px] text-white/60">
+                        {index + 1}
+                      </span>
+                      <span className="text-sm font-light text-white/72">
+                        {item}
+                      </span>
+                    </div>
+                    {index < step.flow.length - 1 ? (
+                      <div className="ml-3.5 h-5 w-px bg-white/15" />
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-7 flex items-center gap-3 border-t border-white/10 pt-5">
+                <CalendarCheck className="h-4 w-4 text-violet-200" />
+                <span className="text-xs uppercase tracking-[0.15em] text-white/55">
+                  {step.outcome}
+                </span>
               </div>
             </div>
+          </div>
+
+          <div className="mt-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs font-light text-white/42">
+              Most teams can review a working first version within days.
+            </p>
+            <Link
+              to="/demo"
+              className="inline-flex items-center gap-2 text-xs font-light uppercase tracking-[0.16em] text-violet-100 transition-colors hover:text-cyan-200"
+            >
+              See the process live
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </div>

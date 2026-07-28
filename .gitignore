@@ -22,3 +22,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local design explorations and generated QA artifacts
+design-concepts/
+design-directions-*/
+tmp/
+
+# Superseded background variants kept outside the production bundle
+public/metal-fluid-amber.webp
+public/metal-fluid-cobalt.webp
+public/metal-fluid-pearl.webp

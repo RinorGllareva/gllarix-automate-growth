@@ -1,63 +1,49 @@
-import React from 'react';
-import ThreeMesh from './ThreeMesh';
+import FluidGlassBackground from "./FluidGlassBackground";
 
 const Hero = () => {
   return (
     <section className="relative min-h-screen overflow-hidden bg-black">
-      {/* 3D Mesh Background */}
-      <ThreeMesh />
-      
-      {/* Scroll Indicator */}
-      <div className="hidden lg:flex fixed bottom-8 left-4 lg:left-8 z-50 items-center gap-3 text-primary/60">
-        <div className="w-px h-8 bg-primary/30" />
-        <span className="text-sm font-light tracking-wider rotate-90 origin-left transform translate-x-8">
-          Scroll <em className="text-primary/40 font-normal">to explore</em>
-        </span>
-      </div>
+      <FluidGlassBackground />
+      <div className="absolute inset-x-0 bottom-0 z-20 h-px bg-gradient-to-r from-transparent via-cyan-300/30 to-violet-300/30" />
 
       {/* Category Badge */}
-      <div className="absolute top-32 sm:top-40 left-4 sm:left-8 lg:left-12 z-30">
-        <div className="flex items-center gap-2 text-xs sm:text-sm font-light tracking-wider text-primary/60 uppercase">
-          <span className="text-primary">[ </span>
-          AI AUTOMATION
-          <span className="text-primary"> ]</span>
+      <div className="absolute left-4 top-28 z-30 sm:left-8 sm:top-36 lg:left-12">
+        <div className="flex items-center gap-3 text-[10px] font-light uppercase text-cyan-100/60 sm:text-xs">
+          <span className="h-px w-8 bg-gradient-to-r from-cyan-200/70 to-violet-300/35" />
+          <span className="tracking-[0.28em]">Autonomous operations</span>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="relative z-20 min-h-screen flex items-center">
+      <div className="relative z-20 flex min-h-screen items-center pb-28 pt-36 sm:pb-32 sm:pt-44">
         <div className="container mx-auto px-4 sm:px-8 lg:px-12">
-          <div className="max-w-4xl">
-            {/* Split Typography */}
-            <div className="space-y-2 sm:space-y-4">
-              <h1 className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl xl:text-[11rem] font-bold leading-[0.85] tracking-tight">
-                <div className="text-white font-extralight">
-                  The FUTURE
-                </div>
-                <div className="text-white font-extralight -ml-1 sm:-ml-2">
-                  runs ITSELF
-                </div>
+          <div className="grid items-end gap-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-16">
+            <div className="max-w-5xl">
+              <h1 className="flex flex-col items-start text-white [font-family:'Helvetica_Neue',Helvetica,Arial,sans-serif]">
+                <span className="text-3xl font-extralight leading-none text-white/82 sm:text-4xl md:text-5xl lg:text-6xl">
+                  THE
+                </span>
+                <span className="bg-gradient-to-r from-white via-white to-cyan-100 bg-clip-text text-6xl font-semibold leading-[0.84] text-transparent sm:text-8xl md:text-9xl lg:text-[9rem] xl:text-[10.5rem]">
+                  FUTURE
+                </span>
+                <span className="ml-6 mt-3 whitespace-nowrap text-4xl font-thin leading-[0.9] text-neutral-200 sm:ml-12 sm:text-5xl md:ml-20 md:text-7xl lg:ml-24 lg:text-7xl xl:ml-28 xl:text-[5.5rem]">
+                  RUNS ITSELF.
+                </span>
               </h1>
             </div>
-          </div>
-        </div>
-        
-        {/* Bottom right text - responsive positioning */}
-        <div className="absolute bottom-20 sm:bottom-24 lg:bottom-32 right-4 sm:right-8 lg:right-12 max-w-xs sm:max-w-sm lg:max-w-md text-right">
-          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[0.9] text-white">
-              <div className="flex items-center justify-end gap-2 sm:gap-4">
-                <span className="text-primary">on</span>
-              </div>
-              <div className="text-white font-extralight">
-                the Dot
-                <span className="text-primary text-4xl sm:text-5xl md:text-6xl lg:text-8xl">.</span>
-              </div>
-            </h2>
-            
-            <p className="text-sm sm:text-base text-gray-400 font-light leading-relaxed">
-              We assist our clients in integrating AI automation by design in their digital transformation.
-            </p>
+
+            <aside className="ml-auto max-w-[19rem] border-l border-white/20 pl-5 text-left lg:mb-2">
+              <p className="mb-3 text-[10px] font-light uppercase tracking-[0.3em] text-white/45">
+                Precision automation
+              </p>
+              <h2 className="[font-family:'Helvetica_Neue',Helvetica,Arial,sans-serif] text-3xl font-extralight uppercase leading-none text-white sm:text-4xl">
+                On the dot<span className="text-violet-300/75">.</span>
+              </h2>
+              <p className="mt-4 text-xs font-light leading-relaxed text-white/48 sm:text-sm">
+                Calls, bookings, and follow-up handled continuously while your
+                team moves forward.
+              </p>
+            </aside>
           </div>
         </div>
       </div>

@@ -1,111 +1,131 @@
 import { useEffect } from "react";
-import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
-import { Calendar, Clock, Video, CheckCircle } from "lucide-react";
+import { Calendar, Check, Clock, Video } from "lucide-react";
+import SecondaryPageShell from "@/components/SecondaryPageShell";
+
+const meetingDetails = [
+  {
+    icon: Clock,
+    label: "30 minutes",
+    detail: "A focused workflow review.",
+  },
+  {
+    icon: Video,
+    label: "Video call",
+    detail: "Join from any location.",
+  },
+  {
+    icon: Calendar,
+    label: "Your time zone",
+    detail: "Availability adjusts automatically.",
+  },
+];
 
 const BookMeeting = () => {
   useEffect(() => {
-    // Load Calendly widget script
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      'script[src="https://assets.calendly.com/assets/external/widget.js"]',
+    );
+
+    if (existingScript) {
+      return;
+    }
+
     const script = document.createElement("script");
     script.src = "https://assets.calendly.com/assets/external/widget.js";
     script.async = true;
     document.body.appendChild(script);
 
     return () => {
-      document.body.removeChild(script);
+      script.remove();
     };
   }, []);
 
-  const benefits = [
-    {
-      icon: Calendar,
-      title: "Easy Scheduling",
-      description: "Pick a time that works best for you"
-    },
-    {
-      icon: Clock,
-      title: "30-Minute Session",
-      description: "Quick and focused discussion"
-    },
-    {
-      icon: Video,
-      title: "Virtual Meeting",
-      description: "Connect from anywhere"
-    },
-    {
-      icon: CheckCircle,
-      title: "Instant Confirmation",
-      description: "Get meeting details immediately"
-    }
-  ];
-
   return (
-    <main className="min-h-screen bg-black overflow-x-hidden">
-      <Navigation />
-      
-      {/* Hero Section */}
-      <section className="relative pt-24 sm:pt-32 pb-8 sm:pb-16 px-3 sm:px-6 overflow-x-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
-        
-        <div className="container mx-auto max-w-6xl relative z-10 overflow-x-hidden">
-          <div className="text-center mb-8 sm:mb-12">
-            <div className="inline-block px-3 sm:px-4 py-1.5 sm:py-2 bg-primary/10 border border-primary/20 rounded-full mb-4 sm:mb-6">
-              <span className="text-primary text-xs sm:text-sm font-medium">Schedule Your Consultation</span>
+    <SecondaryPageShell accent="amber">
+      <section className="px-5 pb-24 pt-36 sm:px-8 sm:pb-28 sm:pt-44 lg:px-12">
+        <div className="mx-auto max-w-7xl">
+          <header className="grid gap-10 border-b border-white/16 pb-12 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-end">
+            <div>
+              <p className="mb-6 text-[10px] font-light uppercase tracking-[0.3em] text-amber-200/75 sm:text-xs">
+                Schedule a conversation
+              </p>
+              <h1 className="max-w-5xl [font-family:'Helvetica_Neue',Helvetica,Arial,sans-serif] text-5xl font-light leading-[0.92] text-white sm:text-6xl md:text-7xl lg:text-8xl">
+                Make time for
+                <br />
+                what moves next.
+              </h1>
             </div>
-            
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-white via-white to-primary bg-clip-text text-transparent px-2">
-              Book a Meeting with Our Team
-            </h1>
-            
-            <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto px-4">
-              Discover how Gllarix AI can transform your business operations. Schedule a personalized demo and consultation.
-            </p>
-          </div>
 
-          {/* Benefits Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8 sm:mb-12">
-            {benefits.map((benefit, index) => (
-              <div
-                key={index}
-                className="p-4 sm:p-5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl hover:bg-white/10 hover:border-primary/30 transition-all duration-300"
-              >
-                <div className="bg-primary/10 p-2.5 sm:p-3 rounded-lg w-fit mb-2 sm:mb-3">
-                  <benefit.icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                </div>
-                <h3 className="text-white font-semibold mb-1.5 sm:mb-2 text-sm sm:text-base">{benefit.title}</h3>
-                <p className="text-gray-400 text-xs sm:text-sm">{benefit.description}</p>
+            <div>
+              <p className="text-base font-light leading-relaxed text-white/65 sm:text-lg">
+                Show us the workflow you want to automate. We will map the
+                clearest path from first conversation to completed action.
+              </p>
+              <div className="mt-6 flex items-center gap-3 text-xs font-light text-amber-100/75">
+                <Check className="h-4 w-4" />
+                Free discovery call. No preparation required.
               </div>
-            ))}
-          </div>
+            </div>
+          </header>
 
-          {/* Calendly Widget Container */}
-          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl sm:rounded-2xl p-2 sm:p-4 md:p-8 shadow-2xl overflow-hidden w-full">
-            <div 
-              className="calendly-inline-widget rounded-lg sm:rounded-xl overflow-hidden w-full" 
-              data-url="https://calendly.com/rinorgllareva1/30min?hide_gdpr_banner=1&background_color=000000&text_color=ffffff&primary_color=8b5cf6"
-              style={{ width: "100%", height: "850px", minHeight: "800px" }}
-            />
-          </div>
+          <div className="secondary-glass-surface grid lg:grid-cols-[18rem_minmax(0,1fr)]">
+            <aside className="border-b border-white/14 px-7 py-10 lg:border-b-0 lg:border-r lg:border-white/14 lg:py-14 lg:pr-9">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-white/38">
+                Meeting details
+              </p>
 
-          {/* Additional Info */}
-          <div className="mt-8 sm:mt-12 text-center px-4">
-            <p className="text-gray-400 mb-3 sm:mb-4 text-sm sm:text-base">
-              Have questions before booking? Feel free to{" "}
-              <a href="/contact" className="text-primary hover:underline">
-                contact us
-              </a>
-            </p>
-            <div className="flex flex-wrap justify-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-500">
-              <span>✓ No credit card required</span>
-              <span>✓ Free consultation</span>
-              <span>✓ Instant calendar invite</span>
+              <div className="mt-7 divide-y divide-white/12 border-y border-white/12">
+                {meetingDetails.map((item) => {
+                  const Icon = item.icon;
+
+                  return (
+                    <div key={item.label} className="flex gap-4 py-5">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center border border-amber-100/25 bg-amber-200/[0.07]">
+                        <Icon className="h-4 w-4 text-amber-100" />
+                      </span>
+                      <div>
+                        <p className="text-sm font-light text-white">
+                          {item.label}
+                        </p>
+                        <p className="mt-1 text-xs font-light leading-relaxed text-white/38">
+                          {item.detail}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <p className="mt-7 text-xs font-light leading-relaxed text-white/38">
+                You will receive the meeting link and calendar confirmation
+                immediately after booking.
+              </p>
+            </aside>
+
+            <div className="p-2 sm:p-4 lg:p-6">
+              <div className="mb-4 flex items-center justify-between border-b border-white/12 px-3 pb-4">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/38">
+                    Select a time
+                  </p>
+                  <p className="mt-1 text-sm font-light text-white/70">
+                    Gllarix discovery session
+                  </p>
+                </div>
+                <span className="h-2 w-2 rounded-full bg-amber-300 shadow-[0_0_18px_rgba(252,211,77,0.8)]" />
+              </div>
+
+              <div
+                className="calendly-inline-widget min-h-[760px] w-full overflow-hidden"
+                data-url="https://calendly.com/rinorgllareva1/30min?hide_gdpr_banner=1&background_color=050608&text_color=ffffff&primary_color=f59e0b"
+                style={{ height: "760px", minWidth: "280px" }}
+              />
             </div>
           </div>
         </div>
       </section>
 
-      <Footer />
-    </main>
+    </SecondaryPageShell>
   );
 };
 
