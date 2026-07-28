@@ -42,7 +42,7 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: "Gllarix Contact Form <onboarding@resend.dev>",
       to: ["rinorgllareva1@gmail.com"],
-      replyTo: email,
+      reply_to: email,
       subject: `Contact from ${name}${company ? ` - ${company}` : ''}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
