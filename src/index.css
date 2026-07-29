@@ -65,7 +65,7 @@
 
 .liquid-glass-background--footer::before {
   opacity: 0.3;
-  animation-duration: 64s;
+  animation-duration: 44s;
   animation-delay: -18s;
 }
 
@@ -77,7 +77,7 @@
 
 .liquid-glass-background--sections::before {
   opacity: 0.16;
-  animation-duration: 72s;
+  animation-duration: 44s;
   animation-delay: -9s;
 }
 

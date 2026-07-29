@@ -310,28 +310,17 @@ const FluidGlassBackground = ({
     } as const;
     const tint =
       variant === "secondary" ? secondaryTints[palette] : variantTints[variant];
+    const homepageMotion = {
+      direction: [1, 0.34],
+      speed: 0.46,
+      flow: 1.08,
+      organic: 0.72,
+      parallax: 0.005,
+    } as const;
     const motionProfiles = {
-      hero: {
-        direction: [1, 0.34],
-        speed: 0.46,
-        flow: 1.08,
-        organic: 0.72,
-        parallax: 0.005,
-      },
-      sections: {
-        direction: [1, 0.3],
-        speed: 0.3,
-        flow: 0.94,
-        organic: 0.82,
-        parallax: 0.003,
-      },
-      footer: {
-        direction: [1, 0.28],
-        speed: 0.26,
-        flow: 0.86,
-        organic: 0.76,
-        parallax: 0.0025,
-      },
+      hero: homepageMotion,
+      sections: homepageMotion,
+      footer: homepageMotion,
       secondary: {
         direction: [0.76, 0.65],
         speed: 0.58,
