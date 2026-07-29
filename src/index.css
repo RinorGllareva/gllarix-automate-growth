@@ -6,15 +6,23 @@
 
 @keyframes liquid-glass-drift {
   0% {
-    transform: translate3d(-2.5%, -1%, 0) scale(1.04);
+    transform: translate3d(-3%, 2%, 0) scale(1.1);
+  }
+
+  25% {
+    transform: translate3d(0%, -1%, 0) scale(1.08);
   }
 
   50% {
-    transform: translate3d(1.25%, 1.5%, 0) scale(1.09);
+    transform: translate3d(3%, -3%, 0) scale(1.11);
+  }
+
+  75% {
+    transform: translate3d(0.5%, 1%, 0) scale(1.09);
   }
 
   100% {
-    transform: translate3d(2.5%, -1.4%, 0) scale(1.05);
+    transform: translate3d(-3%, 2%, 0) scale(1.1);
   }
 }
 
@@ -38,7 +46,7 @@
   background-size: cover;
   filter: grayscale(0.85) brightness(0.52) contrast(1.18);
   will-change: transform;
-  animation: liquid-glass-drift 52s ease-in-out infinite alternate;
+  animation: liquid-glass-drift 44s linear infinite;
 }
 
 .liquid-glass-background::after {
@@ -57,8 +65,8 @@
 
 .liquid-glass-background--footer::before {
   opacity: 0.3;
-  animation-duration: 68s;
-  animation-direction: alternate-reverse;
+  animation-duration: 64s;
+  animation-delay: -18s;
 }
 
 .liquid-glass-background--footer::after {
@@ -69,7 +77,8 @@
 
 .liquid-glass-background--sections::before {
   opacity: 0.16;
-  animation-duration: 84s;
+  animation-duration: 72s;
+  animation-delay: -9s;
 }
 
 .liquid-glass-background--sections::after {
@@ -82,7 +91,7 @@
   opacity: 0.72;
   background-image: url("/metal-fluid-cyan.webp");
   filter: brightness(0.5) contrast(1.08) saturate(1.08);
-  animation-duration: 96s;
+  animation-duration: 34s;
 }
 
 .liquid-glass-background--secondary::after {

@@ -22,6 +22,10 @@ const fragmentShaderSource = `
   uniform vec3 uTintB;
   uniform float uTintStrength;
   uniform float uFlowStrength;
+  uniform vec2 uFlowDirection;
+  uniform float uMotionSpeed;
+  uniform float uOrganicStrength;
+  uniform float uParallaxStrength;
   varying vec2 vUv;
 
   float luminance(vec3 color) {
@@ -44,18 +48,47 @@ const fragmentShaderSource = `
 
   void main() {
     vec2 centered = vUv * 2.0 - 1.0;
-    float time = uTime * 0.16;
+    vec2 direction = normalize(uFlowDirection);
+    vec2 perpendicular = vec2(-direction.y, direction.x);
+    float directionalPhase =
+      dot(centered, direction) * 4.1 - uTime * uMotionSpeed;
+    float crossPhase =
+      dot(centered, perpendicular) * 3.35 + uTime * uMotionSpeed * 0.62;
 
-    float broadWave = sin(centered.y * 3.1 + time + sin(centered.x * 2.2 - time * 0.7));
-    float crossWave = cos(centered.x * 3.8 - time * 0.82 + sin(centered.y * 2.6 + time * 0.5));
-    float detailWave = sin((centered.x + centered.y) * 5.2 + time * 0.55);
+    float broadWave = sin(
+      directionalPhase + sin(crossPhase * 0.68) * 0.82
+    );
+    float crossWave = cos(
+      crossPhase - sin(directionalPhase * 0.54) * 0.74
+    );
+    float detailWave = sin(
+      dot(centered, vec2(0.68, 1.0)) * 6.2 -
+      uTime * uMotionSpeed * 1.18
+    );
+    vec2 livingCenter = vec2(
+      sin(uTime * uMotionSpeed * 0.21),
+      cos(uTime * uMotionSpeed * 0.17)
+    ) * 0.3;
+    float livingWave = sin(
+      length(centered + livingCenter) * 7.2 -
+      uTime * uMotionSpeed * 0.76
+    );
 
-    vec2 flow = vec2(
-      broadWave * 0.014 + detailWave * 0.004,
-      crossWave * 0.012 - detailWave * 0.003
-    ) * uFlowStrength;
+    vec2 directionalFlow =
+      direction * (broadWave * 0.016 + detailWave * 0.004);
+    vec2 transverseFlow =
+      perpendicular * (crossWave * 0.012 - detailWave * 0.003);
+    vec2 organicFlow = vec2(
+      sin(centered.y * 4.4 + uTime * uMotionSpeed * 0.7 + crossWave),
+      cos(centered.x * 4.0 - uTime * uMotionSpeed * 0.64 + broadWave)
+    ) * (0.006 + livingWave * 0.0025) * uOrganicStrength;
+    vec2 flow =
+      (directionalFlow + transverseFlow + organicFlow) * uFlowStrength;
+    float parallax = sin(
+      uTime * uMotionSpeed * 0.24 + dot(centered, perpendicular) * 0.55
+    ) * uParallaxStrength;
 
-    vec2 uv = coverUv(vUv + flow);
+    vec2 uv = coverUv(vUv + flow + direction * parallax);
     vec2 texel = 1.0 / uTextureSize;
 
     float left = luminance(texture2D(uTexture, uv - vec2(texel.x * 5.0, 0.0)).rgb);
@@ -73,11 +106,18 @@ const fragmentShaderSource = `
 
     float edge = smoothstep(0.025, 0.22, length(normal));
     float movingGlint = pow(
-      max(0.0, sin((centered.x - centered.y) * 4.0 + time * 1.25)),
-      18.0
+      max(
+        0.0,
+        sin(
+          dot(centered, direction) * 5.4 -
+          uTime * uMotionSpeed * 1.72 +
+          crossWave * 0.34
+        )
+      ),
+      16.0
     );
     float tintFlow = 0.5 + 0.5 * sin(
-      centered.x * 1.8 - centered.y * 1.25 + time * 0.42
+      directionalPhase * 0.46 - crossPhase * 0.32 + livingWave * 0.38
     );
     vec3 liquidTint = mix(uTintA, uTintB, tintFlow);
     float surfaceLight = smoothstep(0.04, 0.72, luminance(color));
@@ -212,6 +252,22 @@ const FluidGlassBackground = ({
       program,
       "uFlowStrength",
     );
+    const flowDirectionLocation = gl.getUniformLocation(
+      program,
+      "uFlowDirection",
+    );
+    const motionSpeedLocation = gl.getUniformLocation(
+      program,
+      "uMotionSpeed",
+    );
+    const organicStrengthLocation = gl.getUniformLocation(
+      program,
+      "uOrganicStrength",
+    );
+    const parallaxStrengthLocation = gl.getUniformLocation(
+      program,
+      "uParallaxStrength",
+    );
     const variantTints = {
       hero: {
         a: [0.04, 0.38, 0.48],
@@ -254,6 +310,37 @@ const FluidGlassBackground = ({
     } as const;
     const tint =
       variant === "secondary" ? secondaryTints[palette] : variantTints[variant];
+    const motionProfiles = {
+      hero: {
+        direction: [1, 0.34],
+        speed: 0.46,
+        flow: 1.08,
+        organic: 0.72,
+        parallax: 0.005,
+      },
+      sections: {
+        direction: [1, 0.3],
+        speed: 0.3,
+        flow: 0.94,
+        organic: 0.82,
+        parallax: 0.003,
+      },
+      footer: {
+        direction: [1, 0.28],
+        speed: 0.26,
+        flow: 0.86,
+        organic: 0.76,
+        parallax: 0.0025,
+      },
+      secondary: {
+        direction: [0.76, 0.65],
+        speed: 0.58,
+        flow: 1.62,
+        organic: 1.85,
+        parallax: 0.007,
+      },
+    } as const;
+    const motion = motionProfiles[variant];
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -265,11 +352,20 @@ const FluidGlassBackground = ({
     gl.uniform3f(tintALocation, tint.a[0], tint.a[1], tint.a[2]);
     gl.uniform3f(tintBLocation, tint.b[0], tint.b[1], tint.b[2]);
     gl.uniform1f(tintStrengthLocation, variant === "secondary" ? 0.34 : 0.05);
-    gl.uniform1f(flowStrengthLocation, variant === "secondary" ? 1.55 : 1);
+    gl.uniform1f(flowStrengthLocation, motion.flow);
+    gl.uniform2f(
+      flowDirectionLocation,
+      motion.direction[0],
+      motion.direction[1],
+    );
+    gl.uniform1f(motionSpeedLocation, motion.speed);
+    gl.uniform1f(organicStrengthLocation, motion.organic);
+    gl.uniform1f(parallaxStrengthLocation, motion.parallax);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
 
     let animationFrame = 0;
-    let lastFrameTime = 0;
+    let previousFrameTime: number | null = null;
+    let elapsedTime = variant === "footer" ? 18 : variant === "sections" ? 9 : 0;
     let isVisible = true;
     let disposed = false;
 
@@ -297,22 +393,20 @@ const FluidGlassBackground = ({
 
       animationFrame = window.requestAnimationFrame(render);
 
-      if (
-        !isVisible ||
-        document.hidden ||
-        now - lastFrameTime < 1000 / 30
-      ) {
+      if (!isVisible || document.hidden) {
+        previousFrameTime = now;
         return;
       }
 
-      lastFrameTime = now;
+      if (previousFrameTime !== null) {
+        const frameDelta = Math.min((now - previousFrameTime) / 1000, 0.05);
+        elapsedTime += Math.max(0, frameDelta);
+      }
+      previousFrameTime = now;
+
       resize();
       gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
-      gl.uniform1f(
-        timeLocation,
-        now * (variant === "secondary" ? 0.00072 : 0.001) +
-          (variant === "footer" ? 18 : variant === "sections" ? 9 : 0),
-      );
+      gl.uniform1f(timeLocation, elapsedTime);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
 
       if (!canvas.dataset.ready) {
