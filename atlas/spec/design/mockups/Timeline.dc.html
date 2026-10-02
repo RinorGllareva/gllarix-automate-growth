@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Timeline</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<dc-import name="Sidebar" active="tasks" hint-size="240px,900px"></dc-import>
+<main style="width: 1200px; display: flex; flex-direction: column">
+<dc-import name="TopBar" context="COMPANY / Q4 LAUNCH · 28 SEP – 1 NOV" action="PLAN WITH AI" href="Planner.dc.html" hint-size="1200px,72px"></dc-import>
+<div style="display: flex; flex-grow: 1">
+<dc-import name="TaskSpaces" hint-size="220px,828px"></dc-import>
+<div style="width: 980px; display: flex; flex-direction: column">
+<dc-import name="ViewTabs" active="timeline" hint-size="980px,64px"></dc-import>
+<div style="padding: 18px 32px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: grid; grid-template-columns: 220px 700px; font-size: 10px; letter-spacing: 0.2em; color: #7B8590; border-bottom: 1px solid #1A1F26; padding-bottom: 8px">
+<span>TASK</span>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))"><span>W40 · 28 SEP</span><span>W41 · 5 OCT</span><span>W42 · 12 OCT</span><span>W43 · 19 OCT</span><span>W44 · 26 OCT</span></div>
+</div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="11">
+<div style="display: grid; grid-template-columns: 220px 700px; align-items: center; height: 36px; border-bottom: 1px solid #0E1217">
+<span style="font-size: 12px; color: #A4ADB6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 12px">{{r.t}}</span>
+<div style="position: relative; height: 36px">
+<div style="position: absolute; top: 10px; left: {{r.left}}; width: {{r.width}}; height: 16px; background: {{r.bg}}; border: 1px solid {{r.c}}"></div>
+</div>
+</div>
+</sc-for>
+<div style="display: grid; grid-template-columns: 220px 700px; align-items: center; height: 36px; border-bottom: 1px solid #1A1F26">
+<span style="font-size: 12px; color: #EEF2F4">Milestone · BDR starts calling</span>
+<div style="position: relative; height: 36px"><div style="position: absolute; top: 10px; left: 560px; width: 14px; height: 14px; background: #EAF6F8; transform: rotate(45deg)"></div><span style="position: absolute; top: 9px; left: 584px; font-family: 'Geist Mono', monospace; font-size: 11px; color: #EAF6F8">26 OCT</span></div>
+</div>
+<span style="font-size: 10px; letter-spacing: 0.22em; color: #8C96A0; padding-top: 14px">CAPACITY USED · HOURS PER WEEK</span>
+<sc-for list="{{cap}}" as="p" hint-placeholder-count="3">
+<div style="display: grid; grid-template-columns: 220px 700px; align-items: center; height: 34px">
+<span style="font-size: 12px; display: flex; gap: 8px; align-items: center"><span style="width: 8px; height: 8px; background: {{p.c}}"></span>{{p.name}}</span>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px">
+<sc-for list="{{p.weeks}}" as="w" hint-placeholder-count="5">
+<span style="height: 26px; display: flex; align-items: center; justify-content: center; font-family: 'Geist Mono', monospace; font-size: 11px; background: {{w.bg}}; color: {{w.fg}}">{{w.v}}</span>
+</sc-for>
+</div>
+</div>
+</sc-for>
+<div style="display: flex; gap: 18px; font-size: 11px; color: #A4ADB6; padding-top: 6px">
+<span style="display: flex; gap: 6px; align-items: center"><span style="width: 10px; height: 10px; border: 1px solid #C6C0FF"></span>Rinor</span>
+<span style="display: flex; gap: 6px; align-items: center"><span style="width: 10px; height: 10px; border: 1px solid #8FE3EE"></span>Co-founder</span>
+<span style="display: flex; gap: 6px; align-items: center"><span style="width: 10px; height: 10px; border: 1px solid #9FE3C4"></span>Codex agent</span>
+<span style="display: flex; gap: 6px; align-items: center"><span style="width: 10px; height: 10px; border: 1px solid #D2AE72"></span>BDR</span>
+<span style="display: flex; gap: 6px; align-items: center"><span style="width: 10px; height: 10px; border: 1px solid #7B8590"></span>Freelancer</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const C = { R: '#C6C0FF', F: '#8FE3EE', X: '#9FE3C4', B: '#D2AE72', L: '#7B8590' };
+    const day = 20;
+    const bar = (t, o, s, e) => ({ t, c: C[o], bg: C[o] + '33', left: (s * day) + 'px', width: ((e - s + 1) * day - 2) + 'px' });
+    const cell = (used, capH) => {
+      const over = used > capH;
+      const full = used >= capH * 0.9;
+      return { v: used + ' / ' + capH, bg: over ? '#3A1F1B' : (full ? '#2A2416' : '#0E1319'), fg: over ? '#EE9A8C' : (full ? '#D2AE72' : '#A4ADB6') };
+    };
+    return {
+      rows: [
+        bar('Build the live demo line', 'R', 0, 5),
+        bar('Atlas M0 foundation', 'X', 0, 6),
+        bar('Post BDR job, screen, trial week', 'F', 0, 11),
+        bar('Offer sheet and call script', 'F', 1, 4),
+        bar('First 500 US trades leads', 'F', 2, 6),
+        bar('3D showcase · building model', 'L', 4, 16),
+        bar('Atlas M1 data and import', 'X', 7, 13),
+        bar('Country rules with a lawyer', 'F', 7, 20),
+        bar('Atlas M2 scoring and compliance', 'X', 14, 20),
+        bar('BDR training (10 days)', 'B', 14, 25),
+        bar('Atlas M3 queue and call workspace', 'X', 21, 27)
+      ],
+      cap: [
+        { name: 'Rinor · 12 h / wk', c: C.R, weeks: [cell(12, 12), cell(14, 12), cell(9, 12), cell(10, 12), cell(6, 12)] },
+        { name: 'Co-founder · 13 h ops+dev', c: C.F, weeks: [cell(11, 13), cell(12, 13), cell(9, 13), cell(8, 13), cell(5, 13)] },
+        { name: 'BDR · 40 h sales', c: C.B, weeks: [cell(0, 40), cell(40, 40), cell(40, 40), cell(40, 40), cell(40, 40)] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

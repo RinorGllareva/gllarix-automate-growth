@@ -1,11 +1,23 @@
 import { ArrowRight } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { useIntroActive } from "@/contexts/IntroContext";
-
-const iconSrc = "/gllarix-icon-180.png.png";
+import GllarixIcon from "@/components/intro/GllarixIcon";
+import {
+  useHeroRevealed,
+  useIntroActive,
+  useLogoDocked,
+} from "@/contexts/IntroContext";
 
 const Navigation = () => {
   const isIntroActive = useIntroActive();
+  const isLogoDocked = useLogoDocked();
+  const isHeroRevealed = useHeroRevealed();
+  // During the intro the flying logo hands over to this one, so it must appear instantly.
+  const chromeStyle = isIntroActive
+    ? {
+        opacity: isHeroRevealed ? 1 : 0,
+        transition: "opacity .9s ease .55s",
+      }
+    : undefined;
   const { pathname, hash } = useLocation();
   const navigationItems = [
     {
@@ -46,27 +58,22 @@ const Navigation = () => {
               to="/"
               data-gllarix-nav-logo
               aria-label="Gllarix home"
-              className={`flex items-center transition-opacity duration-300 ${
-                isIntroActive ? "opacity-0" : "opacity-100"
+              className={`flex items-center ${
+                isLogoDocked ? "opacity-100" : "opacity-0"
               }`}
             >
               <span
                 data-gllarix-nav-icon
-                className="block h-10 w-10 shrink-0 sm:h-12 sm:w-12 md:h-14 md:w-14"
+                className="block h-9 shrink-0 sm:h-10 md:h-12"
               >
-                <img
-                  src={iconSrc}
-                  alt=""
-                  aria-hidden="true"
-                  className="h-full w-full object-contain"
-                  loading="eager"
-                />
+                <GllarixIcon className="block h-full w-auto" />
               </span>
             </Link>
 
             {/* Book Meeting Button */}
             <Link
               to="/book-meeting"
+              style={chromeStyle}
               className="group flex h-10 items-center gap-2 rounded-md border border-violet-200/25 bg-black/25 px-3 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl transition-colors duration-300 hover:border-cyan-100/45 hover:bg-white/10 sm:h-12 sm:px-5"
             >
               <span className="text-[10px] font-light uppercase tracking-[0.16em] sm:text-xs">
@@ -79,7 +86,10 @@ const Navigation = () => {
       </nav>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.08] bg-black/55 backdrop-blur-xl">
+      <nav
+        style={chromeStyle}
+        className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.08] bg-black/55 backdrop-blur-xl"
+      >
         <div className="container mx-auto px-4 py-3 sm:px-8 md:px-12">
           <div className="flex items-center justify-center md:justify-between">
             {/* Navigation Links */}

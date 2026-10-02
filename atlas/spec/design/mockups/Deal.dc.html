@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Deal and quote</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<dc-import name="Sidebar" active="deals" hint-size="240px,900px"></dc-import>
+<main style="width: 1200px; display: flex; flex-direction: column">
+<dc-import name="TopBar" context="DEALS / PALMETTO PLUMBING · PROPOSAL SENT" action="VIEW LEAD" href="LeadDetail.dc.html" hint-size="1200px,72px"></dc-import>
+<div style="padding: 28px 40px; display: grid; grid-template-columns: 1fr 400px; gap: 28px">
+<div style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 14px; font-size: 11px; letter-spacing: 0.22em; color: #8C96A0"><span style="width: 40px; height: 1px; background: #5E8C92"></span><span>QUOTE V2 · PRICE BOOK V2 · VALID UNTIL 30 DEC</span></div>
+<h1 style="margin: 0; font-weight: 300; font-size: 40px; letter-spacing: -0.02em">Palmetto Plumbing</h1>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center">
+<div role="group" aria-label="Market" style="display: flex; gap: 6px">
+<button type="button" style="height: 34px; padding: 0 12px; background: #EAF6F8; border: 1px solid #EAF6F8; color: #0A0D10; font-family: inherit; font-size: 13px">US and Canada</button>
+<button type="button" style="height: 34px; padding: 0 12px; background: transparent; border: 1px solid #2A313A; color: #EEF2F4; font-family: inherit; font-size: 13px">W. Europe</button>
+<button type="button" style="height: 34px; padding: 0 12px; background: transparent; border: 1px solid #2A313A; color: #EEF2F4; font-family: inherit; font-size: 13px">Switzerland</button>
+<button type="button" style="height: 34px; padding: 0 12px; background: transparent; border: 1px solid #2A313A; color: #EEF2F4; font-family: inherit; font-size: 13px">Kosovo</button>
+</div>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 13px"><input type="checkbox" checked="checked" style="accent-color: #9FE3C4"><span>Pilot (1 of 2 left)</span></label>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #A4ADB6"><input type="checkbox" style="accent-color: #9FE3C4"><span>Rush +25%</span></label>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #A4ADB6"><input type="checkbox" style="accent-color: #9FE3C4"><span>Annual prepay</span></label>
+</div>
+<section aria-label="Line items" style="border: 1px solid #1A1F26; background: #0A0D11">
+<div style="display: grid; grid-template-columns: 90px 1.6fr 60px 100px 100px; gap: 12px; padding: 12px 18px; font-size: 10px; letter-spacing: 0.2em; color: #7B8590; border-bottom: 1px solid #1A1F26"><span>BRAND</span><span>ITEM</span><span>QTY</span><span>SETUP</span><span>MONTHLY</span></div>
+<sc-for list="{{items}}" as="i" hint-placeholder-count="4">
+<div style="display: grid; grid-template-columns: 90px 1.6fr 60px 100px 100px; gap: 12px; align-items: center; padding: 0 18px; height: 56px; border-bottom: 1px solid #12161C; font-size: 14px">
+<span style="justify-self: start; font-size: 9px; letter-spacing: 0.2em; border: 1px solid {{i.bc}}; color: {{i.bt}}; padding: 3px 6px">{{i.brand}}</span>
+<div style="display: flex; flex-direction: column; gap: 2px"><span>{{i.name}}</span><span style="font-size: 11px; color: #7B8590">{{i.note}}</span></div>
+<span style="font-family: 'Geist Mono', monospace; color: #A4ADB6">1</span>
+<span style="font-family: 'Geist Mono', monospace">{{i.setup}}</span>
+<span style="font-family: 'Geist Mono', monospace">{{i.mo}}</span>
+</div>
+</sc-for>
+<div style="padding: 12px 18px"><button type="button" style="height: 34px; padding: 0 12px; background: transparent; border: 1px dashed #2A313A; color: #A4ADB6; font-family: inherit; font-size: 13px">+ Add from price book</button></div>
+</section>
+<section aria-label="Adjustments" style="border: 1px solid #1A1F26; padding: 8px 18px">
+<sc-for list="{{adj}}" as="a" hint-placeholder-count="5">
+<div style="display: grid; grid-template-columns: 1fr 100px 100px; gap: 12px; padding: 10px 0; border-bottom: 1px solid #12161C; font-size: 13px; color: {{a.fg}}"><span>{{a.label}}</span><span style="font-family: 'Geist Mono', monospace">{{a.s}}</span><span style="font-family: 'Geist Mono', monospace">{{a.m}}</span></div>
+</sc-for>
+</section>
+</div>
+<aside aria-label="Totals" style="display: flex; flex-direction: column; gap: 16px">
+<div style="background: #0A0D11; border: 1px solid #1A1F26; padding: 22px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 10px; letter-spacing: 0.2em; color: #8C96A0">SETUP FEE</span><span style="font-size: 36px; font-weight: 300; color: #9FE3C4">$1,780</span><span style="font-size: 11px; color: #7B8590">$890 now · $890 at launch</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 10px; letter-spacing: 0.2em; color: #8C96A0">MONTHLY</span><span style="font-size: 36px; font-weight: 300; color: #8FE3EE">$786</span><span style="font-size: 11px; color: #7B8590">first month free</span></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px">
+<div style="display: flex; justify-content: space-between"><span style="color: #A4ADB6">First-year value</span><span style="font-family: 'Geist Mono', monospace; color: #C6C0FF">$10,426</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #A4ADB6">Minutes included</span><span style="font-family: 'Geist Mono', monospace">1,250 / mo</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #A4ADB6">Overage</span><span style="font-family: 'Geist Mono', monospace">$0.25 / min</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #A4ADB6">BDR commission</span><span style="font-family: 'Geist Mono', monospace">$650</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #A4ADB6">Extra discount</span><span style="color: #7B8590">none · BDR can't add one</span></div>
+</div>
+<button type="button" style="height: 46px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: #EAF6F8; border: 1px solid #EAF6F8; color: #0A0D10; font-family: inherit; font-size: 12px; letter-spacing: 0.22em"><span>SEND DEPOSIT LINK</span><span>→</span></button>
+<button type="button" style="height: 46px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: transparent; border: 1px solid #3A424C; color: #EEF2F4; font-family: inherit; font-size: 12px; letter-spacing: 0.22em"><span>DOWNLOAD QUOTE PDF</span><span>↓</span></button>
+</div>
+<div style="border: 1px solid #1A1F26; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">QUOTE STATUS</span>
+<sc-for list="{{status}}" as="s" hint-placeholder-count="4">
+<div style="display: flex; align-items: center; gap: 12px; font-size: 13px"><span style="width: 10px; height: 10px; border: 1px solid {{s.c}}; background: {{s.fill}}"></span><span style="color: {{s.fg}}">{{s.label}}</span><span style="margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 12px; color: #7B8590">{{s.when}}</span></div>
+</sc-for>
+</div>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const G = { brand: 'GLLARIX', bc: '#5E8C92', bt: '#8FE3EE' };
+    const A = { brand: 'ARCADIAN', bc: '#7A6440', bt: '#D2AE72' };
+    const done = { c: '#9FE3C4', fill: '#9FE3C4', fg: '#EEF2F4' };
+    const todo = { c: '#3A424C', fill: 'transparent', fg: '#7B8590' };
+    return {
+      items: [
+        { ...G, name: 'AI Receptionist · Standard', note: '1,250 min · booking · text-back · CRM sync', setup: '$1,500', mo: '$699' },
+        { ...G, name: 'Speed-to-lead responder', note: 'Replies to web and ads leads in ~60 s', setup: '$1,000', mo: '$249' },
+        { ...G, name: 'Review automation', note: 'Asks every customer · drafts replies', setup: '$500', mo: '$129' },
+        { ...A, name: 'Conversion landing page', note: 'Quote form · booking · CRM', setup: '$1,800', mo: '$79' }
+      ],
+      adj: [
+        { label: 'List subtotal', s: '$4,800', m: '$1,156', fg: '#EEF2F4' },
+        { label: 'Never Miss a Job bundle · −10% Gllarix monthly', s: '—', m: '−$108', fg: '#A4ADB6' },
+        { label: 'Landing page with Gllarix · −20% page setup', s: '−$360', m: '—', fg: '#A4ADB6' },
+        { label: 'Pilot · setup at 40%, monthly −25% for 12 months', s: '−$2,664', m: '−$262', fg: '#A4ADB6' },
+        { label: 'Final · setup rounded to 10', s: '$1,780', m: '$786', fg: '#EEF2F4' }
+      ],
+      status: [
+        { label: 'Quote sent', when: 'Mon 16:10', ...done },
+        { label: 'Opened by client', when: 'Mon 18:42', ...done },
+        { label: 'Terms accepted', when: '—', ...todo },
+        { label: 'Deposit paid · $890', when: '—', ...todo }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

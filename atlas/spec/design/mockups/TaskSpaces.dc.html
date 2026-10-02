@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas tasks spaces</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<nav aria-label="Spaces and lists" style="width: 220px; height: 828px; box-sizing: border-box; background: #050608; border-right: 1px solid #1A1F26; padding: 24px 12px; display: flex; flex-direction: column; gap: 4px; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; color: #EEF2F4">
+<a href="Tasks.dc.html" style="height: 36px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; text-decoration: none; color: #EEF2F4; font-size: 13px; border: 1px solid #1A1F26"><span>My work</span><span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #8FE3EE">7</span></a>
+<a href="Tasks.dc.html" style="height: 36px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; text-decoration: none; color: #A4ADB6; font-size: 13px"><span>Inbox</span><span style="font-family: 'Geist Mono', monospace; font-size: 11px">3</span></a>
+<div style="font-size: 10px; letter-spacing: 0.22em; color: #8C96A0; padding: 18px 10px 8px 10px">SPACES</div>
+<sc-for list="{{spaces}}" as="s" hint-placeholder-count="8">
+<div style="display: flex; flex-direction: column">
+<div style="height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 10px; font-size: 13px; color: #EEF2F4"><span style="width: 8px; height: 8px; background: {{s.c}}"></span><span>{{s.name}}</span><span style="margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 11px; color: #7B8590">{{s.n}}</span></div>
+<sc-for list="{{s.lists}}" as="l" hint-placeholder-count="1">
+<a href="Tasks.dc.html" style="height: 32px; display: flex; align-items: center; padding: 0 10px 0 28px; text-decoration: none; font-size: 12px; background: {{l.bg}}; color: {{l.fg}}">{{l.name}}</a>
+</sc-for>
+</div>
+</sc-for>
+<a href="Planner.dc.html" style="margin-top: auto; height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border: 1px solid #5E8C92; color: #8FE3EE; text-decoration: none; font-size: 11px; letter-spacing: 0.22em"><span>PLAN WITH AI</span><span>→</span></a>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":220,"height":828}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const on = { bg: '#EAF6F8', fg: '#0A0D10' };
+    const off = { bg: 'transparent', fg: '#A4ADB6' };
+    return {
+      spaces: [
+        { name: 'Company', n: '24', c: '#EAF6F8', lists: [{ name: 'Q4 launch', ...on }, { name: 'Atlas CRM build', ...off }, { name: '3D showcase', ...off }] },
+        { name: 'Sales', n: '11', c: '#8FE3EE', lists: [] },
+        { name: 'Lead gen', n: '6', c: '#9FE3C4', lists: [] },
+        { name: 'Delivery', n: '5', c: '#D2AE72', lists: [] },
+        { name: 'Development', n: '14', c: '#C6C0FF', lists: [] },
+        { name: 'Finance', n: '4', c: '#D2AE72', lists: [] },
+        { name: 'Operations', n: '7', c: '#7B8590', lists: [] },
+        { name: 'Research', n: '5', c: '#8FE3EE', lists: [] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

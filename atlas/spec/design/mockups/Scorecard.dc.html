@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Scorecard</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<dc-import name="Sidebar" active="team" hint-size="240px,900px"></dc-import>
+<main style="width: 1200px; display: flex; flex-direction: column">
+<dc-import name="TopBar" context="TEAM / BDR · THE BDR SEES THIS PAGE TOO" action="OPEN A CALL REVIEW" href="CallReview.dc.html" hint-size="1200px,72px"></dc-import>
+<div style="padding: 24px 40px; display: grid; grid-template-columns: 1fr 360px; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; align-items: flex-end; justify-content: space-between">
+<h1 style="margin: 0; font-weight: 300; font-size: 36px; letter-spacing: -0.02em">BDR · scorecard</h1>
+<span style="font-size: 12px; color: #A4ADB6">Day 36 · since 26 Oct on calls</span>
+</div>
+<section aria-label="Weekly KPIs" style="border: 1px solid #1A1F26; background: #0A0D11">
+<div style="display: grid; grid-template-columns: 1.5fr repeat(4, 70px) 110px 90px; gap: 10px; padding: 11px 16px; font-size: 10px; letter-spacing: 0.2em; color: #7B8590; border-bottom: 1px solid #1A1F26"><span>KPI</span><span>W45</span><span>W46</span><span>W47</span><span>W48</span><span>TARGET</span><span>STATUS</span></div>
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="8">
+<div style="display: grid; grid-template-columns: 1.5fr repeat(4, 70px) 110px 90px; gap: 10px; align-items: center; height: 38px; padding: 0 16px; border-bottom: 1px solid #12161C; font-size: 13px">
+<span>{{k.label}}</span>
+<span style="font-family: 'Geist Mono', monospace; color: #7B8590">{{k.a}}</span><span style="font-family: 'Geist Mono', monospace; color: #7B8590">{{k.b}}</span><span style="font-family: 'Geist Mono', monospace; color: #A4ADB6">{{k.c}}</span><span style="font-family: 'Geist Mono', monospace">{{k.d}}</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #7B8590">{{k.t}}</span>
+<span style="justify-self: start; font-size: 9px; letter-spacing: 0.18em; border: 1px solid {{k.sc}}; color: {{k.sc}}; padding: 3px 7px">{{k.s}}</span>
+</div>
+</sc-for>
+</section>
+<section aria-label="Call quality" style="border: 1px solid #1A1F26; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 0.22em; color: #8C96A0"><span>CALL QUALITY · 41 CALLS SCORED THIS WEEK · 3 HUMAN-CHECKED</span><span style="font-family: 'Geist Mono', monospace; letter-spacing: 0; color: #EEF2F4">74 / 100</span></div>
+<sc-for list="{{rubric}}" as="r" hint-placeholder-count="5">
+<div style="display: grid; grid-template-columns: 230px 1fr 50px; gap: 12px; align-items: center; font-size: 13px">
+<span style="color: #A4ADB6">{{r.k}}</span>
+<div style="height: 6px; background: #12161C"><div style="width: {{r.w}}; height: 6px; background: {{r.c}}"></div></div>
+<span style="font-family: 'Geist Mono', monospace; text-align: right; color: {{r.c}}">{{r.v}}</span>
+</div>
+</sc-for>
+</section>
+</div>
+<aside style="display: flex; flex-direction: column; gap: 14px">
+<section aria-label="Coaching" style="border: 1px solid #5E8C92; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8FE3EE">1:1 AGENDA · AI DRAFT</span>
+<sc-for list="{{agenda}}" as="a" hint-placeholder-count="3">
+<div style="display: flex; gap: 10px; font-size: 13px; line-height: 1.45"><span style="font-family: 'Geist Mono', monospace; color: #7B8590">{{a.n}}</span><span style="color: #A4ADB6">{{a.t}}</span></div>
+</sc-for>
+<a href="CallReview.dc.html" style="font-size: 11px; letter-spacing: 0.22em; text-decoration: none">LISTEN TO THE 2 EXAMPLE CALLS ↗</a>
+</section>
+<section aria-label="Earnings" style="background: #0A0D11; border: 1px solid #1A1F26; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; font-size: 13px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">EARNINGS · NOVEMBER · FIXED RULES</span>
+<div style="display: flex; justify-content: space-between"><span style="color: #A4ADB6">Base</span><span style="font-family: 'Geist Mono', monospace">$500</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #A4ADB6">14 approved meetings × $15</span><span style="font-family: 'Geist Mono', monospace">$210</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #A4ADB6">2 pilot closes</span><span style="font-family: 'Geist Mono', monospace">$200</span></div>
+<div style="display: flex; justify-content: space-between; border-top: 1px solid #1A1F26; padding-top: 8px"><span>Total</span><span style="font-family: 'Geist Mono', monospace; color: #9FE3C4">$910</span></div>
+</section>
+<section aria-label="Comments" style="border: 1px solid #1A1F26; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; font-size: 13px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">COMMENTS</span>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 11px; color: #7B8590">BDR · Fri</span><span style="color: #A4ADB6">CRM gaps on Thursday were a power cut from 14:00. Logged the calls from paper next morning.</span></div>
+<label style="display: flex"><textarea aria-label="Add a comment" placeholder="Add a comment" style="flex-grow: 1; height: 44px; background: #050608; border: 1px solid #1A1F26; color: #EEF2F4; font-family: inherit; font-size: 13px; padding: 8px; resize: none"></textarea></label>
+</section>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const G = '#9FE3C4', A = '#D2AE72';
+    const k = (label, a, b, c, d, t, ok) => ({ label, a, b, c, d, t, s: ok ? 'ON TRACK' : 'WATCH', sc: ok ? G : A });
+    const r = (key, v) => ({ k: key, v: String(v), w: v + '%', c: v >= 80 ? G : (v >= 70 ? '#8FE3EE' : A) });
+    return {
+      kpis: [
+        k('Queue done (of 150)', '58%', '67%', '74%', '81%', '100%', false),
+        k('Conversations per day', '6.1', '7.4', '8.0', '8.8', '6–10', true),
+        k('Meetings booked', '3', '4', '4', '5', '4+', true),
+        k('Approved / booked', '67%', '75%', '100%', '80%', '80%+', true),
+        k('Show rate', '67%', '75%', '75%', '80%', '70%+', true),
+        k('Close rate on held', '0%', '33%', '25%', '25%', '20%+', true),
+        k('CRM updated same day', '92%', '95%', '99%', '97%', '100%', false),
+        k('Follow-up within 24 h', '88%', '96%', '100%', '100%', '100%', true)
+      ],
+      rubric: [
+        r('Opener under 20 seconds', 78),
+        r('Discovery: calls, job value, after-hours', 58),
+        r('Objection handling', 66),
+        r('Clear next step booked or set', 70),
+        r('Compliance: AI and recording notice, honest claims', 100)
+      ],
+      agenda: [
+        { n: '01', t: 'Good: close rate 25% and follow-ups at 100% for two weeks.' },
+        { n: '02', t: 'Practice: the job-value question before booking. Two example calls attached.' },
+        { n: '03', t: 'Queue at 81%: agree a backup plan for power cuts (UPS, mobile data).' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Tasks board</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<dc-import name="Sidebar" active="tasks" hint-size="240px,900px"></dc-import>
+<main style="width: 1200px; display: flex; flex-direction: column">
+<dc-import name="TopBar" context="COMPANY / Q4 LAUNCH · WEEK 40" action="PLAN WITH AI" href="Planner.dc.html" hint-size="1200px,72px"></dc-import>
+<div style="display: flex; flex-grow: 1">
+<dc-import name="TaskSpaces" hint-size="220px,828px"></dc-import>
+<div style="width: 980px; display: flex; flex-direction: column">
+<dc-import name="ViewTabs" active="board" hint-size="980px,64px"></dc-import>
+<div style="padding: 20px 32px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px">
+<sc-for list="{{cols}}" as="col" hint-placeholder-count="4">
+<section aria-label="{{col.name}}" style="background: #0A0D11; border: 1px solid #1A1F26; min-height: 700px; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 10px; padding: 14px 12px; border-bottom: 1px solid #1A1F26; font-size: 10px; letter-spacing: 0.22em; color: {{col.c}}"><span style="width: 8px; height: 8px; background: {{col.c}}"></span><span>{{col.name}}</span><span style="margin-left: auto; font-family: 'Geist Mono', monospace; color: #7B8590">{{col.h}}</span></div>
+<div style="padding: 8px; display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{col.cards}}" as="c" hint-placeholder-count="3">
+<a href="TaskDetail.dc.html" style="display: flex; flex-direction: column; gap: 10px; padding: 12px; background: #050608; border: 1px solid #1A1F26; text-decoration: none; color: #EEF2F4">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 9px; letter-spacing: 0.18em; border: 1px solid #2A313A; color: #A4ADB6; padding: 2px 6px">{{c.cat}}</span><span style="font-size: 11px; color: {{c.pc}}">{{c.p}}</span></div>
+<span style="font-size: 13px; line-height: 1.35">{{c.t}}</span>
+<div style="height: 2px; background: #1A1F26"><div style="width: {{c.w}}; height: 2px; background: #8FE3EE"></div></div>
+<div style="display: flex; justify-content: space-between; font-size: 11px; color: #7B8590"><span>{{c.o}}</span><span style="font-family: 'Geist Mono', monospace">{{c.d}} · {{c.e}}</span></div>
+</a>
+</sc-for>
+<button type="button" style="height: 34px; background: transparent; border: 1px dashed #2A313A; color: #7B8590; font-family: inherit; font-size: 12px">+ Add task</button>
+</div>
+</section>
+</sc-for>
+</div>
+</div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const P = { High: '#EE9A8C', Medium: '#D2AE72', Low: '#7B8590' };
+    const c = (t, o, d, p, e, cat, w) => ({ t, o, d, p, e, cat, w: w || '0%', pc: P[p] });
+    return {
+      cols: [
+        { name: 'TO DO', c: '#EEF2F4', h: '12 h', cards: [
+          c('Approve price book v2 and pilot rule', 'Both', '30 Sep', 'High', '1h', 'FINANCE'),
+          c('Write the offer sheet and call script', 'Co-founder', '2 Oct', 'High', '3h', 'SALES'),
+          c('Pull the first 500 US trades leads', 'Co-founder', '4 Oct', 'High', '4h', 'LEAD GEN'),
+          c('Register US SMS for the demo number', 'Rinor', '4 Oct', 'Medium', '1h', 'OPERATIONS'),
+          c('Confirm country rules with a lawyer', 'Co-founder', '18 Oct', 'Medium', '3h', 'OPERATIONS') ] },
+        { name: 'IN PROGRESS', c: '#8FE3EE', h: '13 h', cards: [
+          c('Build the live Gllarix demo line', 'Rinor', '3 Oct', 'High', '8h', 'DEVELOPMENT', '33%'),
+          c('Post the BDR job and screen applicants', 'Co-founder', '2 Oct', 'High', '3h', 'MANAGEMENT', '25%'),
+          c('Atlas M0 foundation (agent)', 'Codex · Rinor', '4 Oct', 'High', '2h', 'DEVELOPMENT', '60%') ] },
+        { name: 'REVIEW', c: '#C6C0FF', h: '0.5 h', cards: [
+          c('Update the context pack after this week', 'Rinor', '4 Oct', 'Low', '0.5h', 'MANAGEMENT', '90%') ] },
+        { name: 'DONE · THIS WEEK', c: '#9FE3C4', h: '3', cards: [
+          c('Sales team plan PDF', 'Rinor', '27 Sep', 'High', '—', 'MANAGEMENT', '100%'),
+          c('Price calculator v2 with minutes', 'Rinor', '28 Sep', 'High', '—', 'FINANCE', '100%'),
+          c('Atlas design mockups', 'Rinor', '28 Sep', 'Medium', '—', 'DEVELOPMENT', '100%') ] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

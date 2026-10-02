@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Style guide</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; box-sizing: border-box; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; padding: 56px 80px; display: flex; flex-direction: column; gap: 36px">
+<div style="display: flex; align-items: flex-end; justify-content: space-between">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 14px; font-size: 11px; letter-spacing: 0.3em; color: #8C96A0"><span style="width: 48px; height: 1px; background: #5E8C92"></span><span>ATLAS UI · MATCHES GLLARIX.COM</span></div>
+<h1 style="margin: 0; font-weight: 300; font-size: 56px; letter-spacing: -0.03em">Style guide</h1>
+</div>
+<span style="font-size: 13px; color: #A4ADB6">Geist + Geist Mono · square corners · 1 px hairlines · dark only</span>
+</div>
+<div style="display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 40px">
+<section aria-label="Colors" style="display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">COLOR</span>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+<sc-for list="{{colors}}" as="c" hint-placeholder-count="12">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="height: 56px; background: {{c.hex}}; border: 1px solid #1A1F26"></div>
+<span style="font-size: 12px">{{c.name}}</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #7B8590">{{c.hex}}</span>
+</div>
+</sc-for>
+</div>
+</section>
+<section aria-label="Type" style="display: flex; flex-direction: column; gap: 16px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">TYPE</span>
+<span style="font-size: 56px; font-weight: 300; letter-spacing: -0.03em; line-height: 1">Display 56</span>
+<span style="font-size: 40px; font-weight: 300; letter-spacing: -0.02em; line-height: 1">Page title 40</span>
+<span style="font-size: 24px; font-weight: 300">Section 24 light</span>
+<span style="font-size: 15px; line-height: 1.6; color: #A4ADB6">Body 15 regular. Plain, short sentences. Secondary text uses #A4ADB6.</span>
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">LABEL 11 · TRACKED CAPS</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 14px">$1,780 · 07:42 · A 80 · Mono for numbers</span>
+</section>
+<section aria-label="Components" style="display: flex; flex-direction: column; gap: 14px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">COMPONENTS</span>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button type="button" style="height: 44px; padding: 0 18px; background: #EAF6F8; border: 1px solid #EAF6F8; color: #0A0D10; font-family: inherit; font-size: 12px; letter-spacing: 0.22em">PRIMARY →</button>
+<button type="button" style="height: 44px; padding: 0 18px; background: transparent; border: 1px solid #3A424C; color: #EEF2F4; font-family: inherit; font-size: 12px; letter-spacing: 0.22em">OUTLINE →</button>
+<button type="button" style="height: 44px; padding: 0 18px; background: #EE9A8C; border: 1px solid #EE9A8C; color: #1A0B08; font-family: inherit; font-size: 12px; letter-spacing: 0.22em">DANGER</button>
+</div>
+<label style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; color: #A4ADB6">Input</span><input type="text" value="Ridgeway Heating &amp; Air" style="height: 44px; background: #050608; border: 1px solid #2A313A; color: #EEF2F4; font-family: inherit; font-size: 14px; padding: 0 12px"></label>
+<div style="display: flex; gap: 8px; align-items: center">
+<sc-for list="{{tiers}}" as="t" hint-placeholder-count="4">
+<span style="width: 44px; height: 28px; border: 1px solid {{t.c}}; color: {{t.c}}; display: flex; align-items: center; justify-content: center; font-family: 'Geist Mono', monospace; font-size: 12px">{{t.l}}</span>
+</sc-for>
+<span style="font-size: 12px; color: #7B8590">Tiers A–D</span>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<span style="font-size: 10px; letter-spacing: 0.2em; border: 1px solid #5E8C92; color: #8FE3EE; padding: 4px 8px">GLLARIX</span>
+<span style="font-size: 10px; letter-spacing: 0.2em; border: 1px solid #7A6440; color: #D2AE72; padding: 4px 8px">ARCADIAN</span>
+<span style="font-size: 10px; letter-spacing: 0.2em; border: 1px solid #2A313A; color: #A4ADB6; padding: 4px 8px">STAGE</span>
+<span style="font-size: 10px; letter-spacing: 0.2em; border: 1px solid #9FE3C4; color: #9FE3C4; padding: 4px 8px">ON TRACK</span>
+<span style="font-size: 10px; letter-spacing: 0.2em; border: 1px solid #D2AE72; color: #D2AE72; padding: 4px 8px">WATCH</span>
+</div>
+<div style="background: #0A0D11; border: 1px solid #1A1F26; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; gap: 10px; align-items: baseline"><span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #7B8590">01</span><span style="font-size: 15px">KPI card</span></div>
+<span style="font-size: 32px; font-weight: 300; color: #9FE3C4">30–40%</span>
+<span style="font-size: 11px; letter-spacing: 0.2em; color: #8C96A0">LABEL UNDER THE NUMBER</span>
+</div>
+<a href="Main.dc.html" style="height: 44px; display: flex; align-items: center; gap: 12px; padding: 0 14px; background: #EAF6F8; color: #0A0D10; text-decoration: none; font-size: 14px">Active menu item<span style="margin-left: auto">→</span></a>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      colors: [
+        { name: 'Ground', hex: '#050608' }, { name: 'Surface', hex: '#0A0D11' }, { name: 'Hairline', hex: '#1A1F26' },
+        { name: 'Text', hex: '#EEF2F4' }, { name: 'Secondary', hex: '#A4ADB6' }, { name: 'Muted', hex: '#7B8590' },
+        { name: 'Ice (active)', hex: '#EAF6F8' }, { name: 'Cyan · Gllarix', hex: '#8FE3EE' }, { name: 'Mint · good', hex: '#9FE3C4' },
+        { name: 'Lavender', hex: '#C6C0FF' }, { name: 'Amber · Arcadian', hex: '#D2AE72' }, { name: 'Coral · stop', hex: '#EE9A8C' }
+      ],
+      tiers: [
+        { l: 'A', c: '#9FE3C4' }, { l: 'B', c: '#8FE3EE' }, { l: 'C', c: '#C6C0FF' }, { l: 'D', c: '#7B8590' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+@import "./tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* color-scheme comes from the theme in tokens.css */
+  html {
+    scrollbar-color: var(--line-strong) transparent;
+  }
+  body {
+    @apply bg-bg font-sans text-text antialiased;
+    margin: 0;
+  }
+  input[type="search"]::-webkit-search-cancel-button {
+    appearance: none;
+  }
+  :focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0ms !important;
+      animation-duration: 0ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* 11 px tracked uppercase labels */
+  .label-caps {
+    @apply text-[11px] uppercase tracking-label text-label;
+  }
+  .page-title {
+    @apply text-[40px] font-light leading-none tracking-[-0.02em] text-text;
+  }
+  .num {
+    @apply font-mono tabular-nums;
+  }
+
+  .btn {
+    @apply inline-flex h-11 select-none items-center justify-center gap-3 border px-[18px] text-[12px] uppercase tracking-label transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn border-ice bg-ice text-ice-ink hover:bg-text;
+  }
+  .btn-outline {
+    @apply btn border-line-button bg-surface text-text hover:border-text-3 hover:bg-surface-2;
+  }
+  .btn-danger {
+    @apply btn border-coral bg-coral text-ice-ink hover:opacity-90;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 border-0 bg-transparent p-0 text-[11px] uppercase tracking-[0.2em] text-cyan hover:text-text;
+  }
+
+  .field-label {
+    @apply text-[13px] text-text-2;
+  }
+  .input {
+    @apply h-11 w-full border border-line-strong bg-inset px-3 font-sans text-[14px] text-text placeholder:text-text-3 focus:border-cyan focus:outline-none;
+  }
+
+  .chip {
+    @apply inline-flex items-center border px-2 py-1 text-[10px] uppercase leading-none tracking-[0.2em];
+  }
+
+  .card {
+    @apply border border-line bg-surface shadow-card;
+  }
+
+  .skeleton {
+    @apply animate-pulse bg-line-soft;
+  }
+}

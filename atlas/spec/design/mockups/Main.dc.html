@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Today</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<dc-import name="Sidebar" active="today" hint-size="240px,900px"></dc-import>
+<main style="width: 1200px; display: flex; flex-direction: column">
+<dc-import name="TopBar" context="TUE 1 DEC · BDR SHIFT 08:00–16:00 VET" action="START CALLING" href="Call.dc.html" hint-size="1200px,72px"></dc-import>
+<div style="padding: 32px 40px; display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 40px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 14px; font-size: 11px; letter-spacing: 0.22em; color: #8C96A0"><span style="width: 40px; height: 1px; background: #5E8C92"></span><span>TODAY'S QUEUE</span></div>
+<h1 style="margin: 0; font-weight: 300; font-size: 56px; letter-spacing: -0.02em; line-height: 1">62 <span style="color: #7B8590">of</span> 150</h1>
+</div>
+<div style="width: 460px; display: flex; flex-direction: column; gap: 10px">
+<div style="height: 4px; background: #1A1F26"><div style="width: 41%; height: 4px; background: #8FE3EE"></div></div>
+<div style="display: flex; justify-content: space-between; font-size: 13px; color: #A4ADB6"><span>41% done · on pace for 150 by 15:40 VET</span><span style="font-family: 'Geist Mono', monospace">88 left</span></div>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div style="background: #0A0D11; border: 1px solid #1A1F26; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; gap: 10px; align-items: baseline"><span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #7B8590">{{k.n}}</span><span style="font-size: 15px">{{k.label}}</span></div>
+<div style="font-size: 36px; font-weight: 300; letter-spacing: -0.02em; color: {{k.color}}">{{k.value}}</div>
+<div style="font-size: 11px; letter-spacing: 0.2em; color: #8C96A0">{{k.note}}</div>
+</div>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 340px; gap: 24px">
+<section aria-label="Up next" style="background: #0A0D11; border: 1px solid #1A1F26">
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #1A1F26">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">UP NEXT · EASTERN WINDOW 07:00–09:00 LOCAL</span>
+<a href="Leads.dc.html" style="font-size: 11px; letter-spacing: 0.22em; text-decoration: none">OPEN FULL QUEUE ↗</a>
+</div>
+<div style="display: grid; grid-template-columns: 44px 1.6fr 1fr 70px 1.6fr 90px; gap: 12px; padding: 10px 20px; font-size: 10px; letter-spacing: 0.2em; color: #7B8590; border-bottom: 1px solid #1A1F26"><span>TIER</span><span>COMPANY</span><span>LOCATION</span><span>LOCAL</span><span>WHY NOW</span><span>STEP</span></div>
+<sc-for list="{{queue}}" as="q" hint-placeholder-count="6">
+<a href="Call.dc.html" style="display: grid; grid-template-columns: 44px 1.6fr 1fr 70px 1.6fr 90px; gap: 12px; align-items: center; padding: 0 20px; height: 52px; border-bottom: 1px solid #12161C; text-decoration: none; color: #EEF2F4; font-size: 14px">
+<span style="width: 30px; height: 26px; border: 1px solid {{q.tc}}; color: {{q.tc}}; display: flex; align-items: center; justify-content: center; font-family: 'Geist Mono', monospace; font-size: 12px">{{q.t}}{{q.s}}</span>
+<span>{{q.co}}</span>
+<span style="color: #A4ADB6; font-size: 13px">{{q.city}}</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 13px; color: #A4ADB6">{{q.local}}</span>
+<span style="color: #A4ADB6; font-size: 13px">{{q.why}}</span>
+<span style="font-size: 11px; letter-spacing: 0.16em; color: #8C96A0">{{q.step}}</span>
+</a>
+</sc-for>
+</section>
+<div style="display: flex; flex-direction: column; gap: 16px">
+<section aria-label="Queue mix" style="background: #0A0D11; border: 1px solid #1A1F26; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">QUEUE MIX</span>
+<sc-for list="{{mix}}" as="m" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span>{{m.label}}</span><span style="font-family: 'Geist Mono', monospace; color: #A4ADB6">{{m.n}}</span></div>
+<div style="height: 3px; background: #1A1F26"><div style="width: {{m.w}}; height: 3px; background: {{m.c}}"></div></div>
+</div>
+</sc-for>
+</section>
+<section aria-label="Needs attention" style="background: #0A0D11; border: 1px solid #1A1F26; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">NEEDS ATTENTION</span>
+<div style="display: flex; gap: 10px; font-size: 13px; color: #EEF2F4"><span style="color: #8FE3EE; font-family: 'Geist Mono', monospace">07:45</span><span>Callback · Harbor Air Services</span></div>
+<div style="display: flex; gap: 10px; font-size: 13px"><span style="color: #C6C0FF; font-family: 'Geist Mono', monospace">1</span><span>Meeting waiting for approval</span></div>
+<div style="display: flex; gap: 10px; font-size: 13px"><span style="color: #D2AE72; font-family: 'Geist Mono', monospace">42</span><span>More A/B leads needed for tomorrow</span></div>
+<a href="Import.dc.html" style="margin-top: 4px; height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border: 1px solid #3A424C; color: #EEF2F4; text-decoration: none; font-size: 11px; letter-spacing: 0.22em"><span>RUN LIST BUILD</span><span>→</span></a>
+</section>
+</div>
+</div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const tc = { A: '#9FE3C4', B: '#8FE3EE', C: '#C6C0FF', D: '#7B8590' };
+    const queue = [
+      { t: 'A', s: '80', co: 'Ridgeway Heating & Air', city: 'Tampa, FL', local: '07:42', why: 'Reviews say "never picks up"', step: 'DAY 1 · CALL' },
+      { t: 'A', s: '81', co: 'Blue Line Plumbing', city: 'Charlotte, NC', local: '07:42', why: 'Runs Local Services Ads', step: 'DAY 1 · CALL' },
+      { t: 'A', s: '78', co: 'Summit Roofing Co.', city: 'Atlanta, GA', local: '07:42', why: 'Hiring a dispatcher', step: 'DAY 3 · CALL' },
+      { t: 'B', s: '64', co: 'Keystone Electric', city: 'Columbus, OH', local: '07:42', why: 'No online booking', step: 'DAY 6 · CALL' },
+      { t: 'B', s: '61', co: 'Harbor Air Services', city: 'Richmond, VA', local: '07:42', why: 'Asked for a callback at 07:45', step: 'CALLBACK' },
+      { t: 'B', s: '57', co: 'Prairie Comfort HVAC', city: 'Omaha, NE', local: '06:42', why: 'No answer after 18:00', step: 'OPENS 08:00 ET' }
+    ].map((q) => ({ ...q, tc: tc[q.t] }));
+    return {
+      kpis: [
+        { n: '01', label: 'Dials', value: '62', note: 'TARGET 150 TODAY', color: '#EEF2F4' },
+        { n: '02', label: 'Conversations', value: '9', note: 'TARGET 6–10 · ON TRACK', color: '#9FE3C4' },
+        { n: '03', label: 'Meetings booked', value: '3', note: 'THIS WEEK · TARGET 4+', color: '#8FE3EE' },
+        { n: '04', label: 'Approved', value: '2', note: 'OF 3 BOOKED · 67%', color: '#C6C0FF' }
+      ],
+      queue,
+      mix: [
+        { label: 'Calls', n: '104', w: '69%', c: '#8FE3EE' },
+        { label: 'Emails', n: '28', w: '19%', c: '#C6C0FF' },
+        { label: 'Follow-ups and callbacks', n: '18', w: '12%', c: '#D2AE72' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

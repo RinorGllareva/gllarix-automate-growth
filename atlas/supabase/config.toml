@@ -1,0 +1,11 @@
+# Supabase CLI config for the Atlas project (crm.gllarix.com).
+project_id = "lwlhokpohocjbolzozzb"
+
+[auth]
+site_url = "https://crm.gllarix.com"
+additional_redirect_urls = ["http://atlas.localhost:8081", "http://localhost:8081"]
+# Invite-only: nobody can sign themselves up.
+enable_signup = false
+
+[auth.email]
+enable_signup = false

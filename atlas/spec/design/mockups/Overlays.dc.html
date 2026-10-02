@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Search and notifications</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; background: #020304; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; display: flex; gap: 40px; padding: 96px 80px; box-sizing: border-box">
+<section aria-label="Command palette" style="width: 700px; align-self: flex-start; background: #0A0D11; border: 1px solid #2A313A; display: flex; flex-direction: column">
+<label style="display: flex; align-items: center; gap: 12px; height: 64px; padding: 0 20px; border-bottom: 1px solid #1A1F26">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8FE3EE" stroke-width="1.6" aria-hidden="true"><path d="M11 18a7 7 0 1 0 0-14a7 7 0 0 0 0 14M20 20l-4-4"></path></svg>
+<input type="search" aria-label="Search or run a command" value="summ" style="flex-grow: 1; background: transparent; border: 0; outline: none; color: #EEF2F4; font-family: inherit; font-size: 20px; font-weight: 300">
+<span style="font-family: 'Geist Mono', monospace; font-size: 11px; border: 1px solid #2A313A; padding: 2px 6px; color: #8C96A0">ESC</span>
+</label>
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
+<div style="padding: 12px 8px; border-bottom: 1px solid #12161C; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 10px; letter-spacing: 0.22em; color: #7B8590; padding: 4px 12px 8px 12px">{{g.name}}</span>
+<sc-for list="{{g.items}}" as="i" hint-placeholder-count="2">
+<a href="{{i.href}}" style="height: 44px; display: flex; align-items: center; gap: 12px; padding: 0 12px; text-decoration: none; background: {{i.bg}}; color: {{i.fg}}; font-size: 14px"><span>{{i.label}}</span><span style="margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 11px; opacity: 0.7">{{i.meta}}</span></a>
+</sc-for>
+</div>
+</sc-for>
+<div style="display: flex; gap: 20px; padding: 12px 20px; font-size: 11px; color: #7B8590"><span>↑↓ move</span><span>↵ open</span><span>⌘↵ open in new tab</span></div>
+</section>
+<section aria-label="Notifications" style="width: 420px; align-self: flex-start; margin-left: auto; background: #0A0D11; border: 1px solid #2A313A; display: flex; flex-direction: column">
+<div style="display: flex; justify-content: space-between; align-items: center; height: 56px; padding: 0 20px; border-bottom: 1px solid #1A1F26"><span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">NOTIFICATIONS · 3 NEW</span><button type="button" style="background: transparent; border: 0; color: #8FE3EE; font-family: inherit; font-size: 11px; letter-spacing: 0.2em">MARK ALL READ</button></div>
+<sc-for list="{{notes}}" as="n" hint-placeholder-count="6">
+<div style="display: flex; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #12161C">
+<span style="width: 8px; height: 8px; margin-top: 6px; background: {{n.c}}"></span>
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; line-height: 1.4">{{n.text}}</span><span style="font-size: 11px; color: #7B8590">{{n.when}}</span></div>
+</div>
+</sc-for>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const on = { bg: '#EAF6F8', fg: '#0A0D10' };
+    const off = { bg: 'transparent', fg: '#EEF2F4' };
+    return {
+      groups: [
+        { name: 'LEADS', items: [
+          { label: 'Summit Roofing Co. · Atlanta, GA', meta: 'A 78', href: 'LeadDetail.dc.html', ...on },
+          { label: 'Summerfield Plumbing · Tulsa, OK', meta: 'B 55', href: 'LeadDetail.dc.html', ...off } ] },
+        { name: 'DEALS', items: [
+          { label: 'Summit Roofing Co. · meeting held', meta: '$1,500 + $699', href: 'Deal.dc.html', ...off } ] },
+        { name: 'ACTIONS', items: [
+          { label: 'Start calling my queue', meta: 'G C', href: 'Call.dc.html', ...off },
+          { label: 'Import a CSV of leads', meta: 'I', href: 'Import.dc.html', ...off },
+          { label: 'Create a deal', meta: 'D', href: 'Deal.dc.html', ...off } ] }
+      ],
+      notes: [
+        { c: '#8FE3EE', text: 'BDR booked a meeting · Harbor Air Services, Thu 11:00 ET', when: '4 min ago' },
+        { c: '#9FE3C4', text: 'Deposit paid · Bluewater Plumbing · $300', when: '1 h ago' },
+        { c: '#EE9A8C', text: 'Places import paused · monthly cost cap reached', when: '2 h ago' },
+        { c: '#C6C0FF', text: 'Prishtina Tower Residences moved to tier A (62 → 70)', when: 'Yesterday' },
+        { c: '#D2AE72', text: 'Meeting waiting for approval · Coastal Comfort HVAC', when: 'Yesterday' },
+        { c: '#7B8590', text: 'Daily BDR report is ready', when: 'Yesterday 16:05 VET' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

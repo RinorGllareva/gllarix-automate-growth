@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Lead detail</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<dc-import name="Sidebar" active="leads" hint-size="240px,900px"></dc-import>
+<main style="width: 1200px; display: flex; flex-direction: column">
+<dc-import name="TopBar" context="LEADS / THAMESIDE HOMES" action="CREATE DEAL" href="Deal.dc.html" hint-size="1200px,72px"></dc-import>
+<div style="padding: 28px 40px; display: flex; flex-direction: column; gap: 22px">
+<div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; gap: 8px"><span style="font-size: 10px; letter-spacing: 0.2em; border: 1px solid #7A6440; color: #D2AE72; padding: 3px 8px">ARCADIAN · 3D</span><span style="font-size: 10px; letter-spacing: 0.2em; border: 1px solid #5E8C92; color: #8FE3EE; padding: 3px 8px">GLLARIX CROSS-SELL</span><span style="font-size: 10px; letter-spacing: 0.2em; border: 1px solid #2A313A; color: #A4ADB6; padding: 3px 8px">LIST · DEVELOPERS</span></div>
+<h1 style="margin: 0; font-weight: 300; font-size: 44px; letter-spacing: -0.02em">Thameside Homes</h1>
+<div style="font-size: 13px; color: #A4ADB6">Property developer · London, UK · local <span style="font-family: 'Geist Mono', monospace; color: #EEF2F4">12:42</span> · owner Co-founder · stage Meeting booked</div>
+</div>
+<div style="display: flex; gap: 8px">
+<a href="Call.dc.html" style="height: 40px; display: flex; align-items: center; padding: 0 16px; border: 1px solid #3A424C; color: #EEF2F4; text-decoration: none; font-size: 11px; letter-spacing: 0.22em">CALL</a>
+<button type="button" style="height: 40px; padding: 0 16px; background: transparent; border: 1px solid #3A424C; color: #EEF2F4; font-family: inherit; font-size: 11px; letter-spacing: 0.22em">EMAIL</button>
+<a href="Meetings.dc.html" style="height: 40px; display: flex; align-items: center; padding: 0 16px; background: #EAF6F8; color: #0A0D10; text-decoration: none; font-size: 11px; letter-spacing: 0.22em">MEETING THU 10:00</a>
+</div>
+</div>
+<div style="display: flex; gap: 28px; border-bottom: 1px solid #1A1F26; font-size: 13px">
+<span style="padding: 0 0 12px 0; border-bottom: 1px solid #EAF6F8">Timeline</span><span style="padding: 0 0 12px 0; color: #7B8590">Contacts · 2</span><span style="padding: 0 0 12px 0; color: #7B8590">Signals · 6</span><span style="padding: 0 0 12px 0; color: #7B8590">Deals · 0</span><span style="padding: 0 0 12px 0; color: #7B8590">Files</span>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 340px 300px; gap: 20px">
+<section aria-label="Timeline" style="display: flex; flex-direction: column">
+<sc-for list="{{timeline}}" as="e" hint-placeholder-count="6">
+<div style="display: grid; grid-template-columns: 70px 18px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid #12161C">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #7B8590">{{e.when}}</span>
+<span style="width: 8px; height: 8px; margin-top: 5px; background: {{e.c}}"></span>
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 14px">{{e.title}}</span><span style="font-size: 12px; color: #A4ADB6">{{e.sub}}</span></div>
+</div>
+</sc-for>
+</section>
+<section aria-label="Score" style="background: #0A0D11; border: 1px solid #1A1F26; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: baseline; justify-content: space-between"><span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">SCORE · DEVELOPER MODEL</span><span style="font-family: 'Geist Mono', monospace; font-size: 26px; color: #9FE3C4">A 71</span></div>
+<sc-for list="{{score}}" as="s" hint-placeholder-count="9">
+<div style="display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px solid #12161C"><span style="color: #A4ADB6">{{s.label}}</span><span style="font-family: 'Geist Mono', monospace; color: #9FE3C4">{{s.pts}}</span></div>
+</sc-for>
+<span style="font-size: 11px; color: #7B8590">Model 2026-09-28.v1 · rescored 03:00</span>
+</section>
+<div style="display: flex; flex-direction: column; gap: 16px">
+<section aria-label="Contacts" style="border: 1px solid #1A1F26; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">CONTACTS</span>
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px">Sarah Okafor</span><span style="font-size: 12px; color: #A4ADB6">Sales and marketing director · email verified</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px">James Holt</span><span style="font-size: 12px; color: #A4ADB6">Head of development · phone only</span></div>
+</section>
+<section aria-label="Compliance" style="border: 1px solid #1A1F26; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: #A4ADB6">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">OUTREACH RULES · UK</span>
+<span>Email: allowed · limited company</span>
+<span>Calls: allowed · CTPS checked 28 Nov</span>
+<span>Reason on record: legitimate interest, B2B</span>
+<span>Source: planning portal + website</span>
+</section>
+<section aria-label="Suggested offer" style="background: #0A0D11; border: 1px solid #1A1F26; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">SUGGESTED OFFER</span>
+<span style="font-size: 14px">3D sales platform</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 13px; color: #D2AE72">€12,000 + €449/mo</span>
+<span style="font-size: 12px; color: #A4ADB6">+ sales-office receptionist · $1,500 + $699/mo</span>
+</section>
+</div>
+</div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      timeline: [
+        { when: 'Today', c: '#EAF6F8', title: 'Meeting booked · Thu 10:00 London', sub: 'Video call · Sarah Okafor · booked from email reply' },
+        { when: 'Mon', c: '#C6C0FF', title: 'Replied to "3D teaser" email', sub: '"Send times for a short call next week"' },
+        { when: 'Fri', c: '#8FE3EE', title: 'Email opened 3 times', sub: 'Cadence Developers v1 · day 8' },
+        { when: '24 Nov', c: '#8FE3EE', title: 'LinkedIn connection accepted', sub: 'Manual task · Co-founder' },
+        { when: '21 Nov', c: '#D2AE72', title: 'Signal · Riverside Quarter launched', sub: '84 units off-plan · static renders only' },
+        { when: '20 Nov', c: '#7B8590', title: 'Created from planning application', sub: 'Source: council planning portal · deduplicated' }
+      ],
+      score: [
+        { label: 'Active off-plan project', pts: '+15' },
+        { label: 'No 3D or unit picker on site', pts: '+12' },
+        { label: '30+ units (84)', pts: '+10' },
+        { label: 'Launch in last 90 days', pts: '+8' },
+        { label: 'Named sales director', pts: '+7' },
+        { label: 'Target market (UK)', pts: '+5' },
+        { label: 'Developer, not broker', pts: '+5' },
+        { label: 'Has website', pts: '+5' },
+        { label: 'Verified email', pts: '+4' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — AI co-founder</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<dc-import name="Sidebar" active="cofounder" hint-size="240px,900px"></dc-import>
+<main style="width: 1200px; display: flex; flex-direction: column">
+<dc-import name="TopBar" context="AI CO-FOUNDER · ADVISES, NEVER ACTS ALONE" action="NEW QUESTION" href="Advisor.dc.html" hint-size="1200px,72px"></dc-import>
+<div style="display: grid; grid-template-columns: 220px 1fr 290px; flex-grow: 1">
+<nav aria-label="Threads" style="border-right: 1px solid #1A1F26; padding: 20px 12px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 10px; letter-spacing: 0.22em; color: #8C96A0; padding: 0 10px 8px 10px">THREADS</span>
+<sc-for list="{{threads}}" as="t" hint-placeholder-count="6">
+<a href="Advisor.dc.html" style="display: flex; flex-direction: column; gap: 3px; padding: 10px; text-decoration: none; background: {{t.bg}}; color: {{t.fg}}"><span style="font-size: 13px">{{t.title}}</span><span style="font-size: 10px; letter-spacing: 0.16em; opacity: 0.75">{{t.meta}}</span></a>
+</sc-for>
+</nav>
+<section aria-label="Conversation" style="padding: 20px 26px; display: flex; flex-direction: column; gap: 14px">
+<div style="align-self: flex-end; max-width: 520px; border: 1px solid #2A313A; padding: 12px 14px; font-size: 14px; line-height: 1.5">We have 2 paying clients and about €3,000 in reserve. Should we hire setter #1 now or wait for Gate 1?</div>
+<div style="background: #0A0D11; border: 1px solid #1A1F26; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; gap: 6px; align-items: center"><span style="font-size: 10px; letter-spacing: 0.22em; color: #8FE3EE">BOARD MEMO</span><sc-for list="{{hats}}" as="h" hint-placeholder-count="4"><span style="font-size: 9px; letter-spacing: 0.18em; border: 1px solid #2A313A; color: #A4ADB6; padding: 2px 6px">{{h}}</span></sc-for><span style="margin-left: auto; font-size: 10px; letter-spacing: 0.18em; color: #D2AE72">CONFIDENCE · MEDIUM</span></div>
+<p style="margin: 0; font-size: 17px; font-weight: 300; line-height: 1.45">Wait for Gate 1, but make two cheap moves this week: hire a part-time list builder and start recruiting the setter bench now.</p>
+<div style="border: 1px solid #1A1F26">
+<div style="display: grid; grid-template-columns: 1.4fr 100px 90px 1fr 60px; gap: 10px; padding: 8px 12px; font-size: 9px; letter-spacing: 0.2em; color: #7B8590; border-bottom: 1px solid #1A1F26"><span>OPTION</span><span>COST / MO</span><span>EFFECT IN</span><span>RISK</span><span>PICK</span></div>
+<sc-for list="{{options}}" as="o" hint-placeholder-count="3">
+<div style="display: grid; grid-template-columns: 1.4fr 100px 90px 1fr 60px; gap: 10px; align-items: center; padding: 9px 12px; border-bottom: 1px solid #12161C; font-size: 12px">
+<span>{{o.n}}</span><span style="font-family: 'Geist Mono', monospace; color: #A4ADB6">{{o.cost}}</span><span style="color: #A4ADB6">{{o.when}}</span><span style="color: #A4ADB6">{{o.risk}}</span><span style="font-size: 10px; letter-spacing: 0.16em; color: {{o.pc}}">{{o.pick}}</span>
+</div>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; font-size: 12px; line-height: 1.5">
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 10px; letter-spacing: 0.2em; color: #9FE3C4">FASTEST ROUTE</span><span style="color: #A4ADB6">List builder now, setter at Gate 1 (likely January). The setter books meetings about 3 weeks after starting.</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 10px; letter-spacing: 0.2em; color: #C6C0FF">MOST PROFITABLE</span><span style="color: #A4ADB6">Same route. Hiring now deepens the cash low point by about €1,500 before it pays back.</span></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; line-height: 1.5"><span style="font-size: 10px; letter-spacing: 0.2em; color: #D2AE72">RISKS</span><span style="color: #A4ADB6">The BDR becomes the closing bottleneck above ~15 held meetings a month. UAE outreach rules are still unverified.</span></div>
+</div>
+<label style="margin-top: auto; display: flex; align-items: center; gap: 10px; border: 1px solid #2A313A; padding: 0 12px; height: 52px">
+<input type="text" aria-label="Ask the AI co-founder" placeholder="Ask about pricing, cash, hiring, a client, a risk…" style="flex-grow: 1; background: transparent; border: 0; outline: none; color: #EEF2F4; font-family: inherit; font-size: 14px">
+<span style="font-size: 10px; letter-spacing: 0.2em; color: #8C96A0">ALL ROLES ⌄</span>
+<button type="button" aria-label="Send" style="width: 36px; height: 36px; background: #EAF6F8; border: 0; color: #0A0D10; font-size: 14px">→</button>
+</label>
+</section>
+<aside style="border-left: 1px solid #1A1F26; padding: 20px 18px; display: flex; flex-direction: column; gap: 16px">
+<section aria-label="Data used" style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 10px; letter-spacing: 0.22em; color: #8C96A0">DATA IT USED</span>
+<sc-for list="{{tools}}" as="t" hint-placeholder-count="5">
+<div style="display: flex; gap: 8px; font-size: 12px"><span style="color: #9FE3C4">✓</span><div style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Geist Mono', monospace; font-size: 11px">{{t.fn}}</span><span style="color: #7B8590">{{t.out}}</span></div></div>
+</sc-for>
+</section>
+<section aria-label="Assumptions" style="border: 1px solid #7A6440; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #A4ADB6">
+<span style="font-size: 10px; letter-spacing: 0.22em; color: #D2AE72">ASSUMPTIONS</span>
+<span>Reserve €3,000 · from your message</span>
+<span>Setter ~$350/mo full-time · file 05, not confirmed</span>
+<span>Close rate stays 20–25%</span>
+</section>
+<section aria-label="Proposed actions" style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 10px; letter-spacing: 0.22em; color: #8C96A0">PROPOSED ACTIONS</span>
+<sc-for list="{{actions}}" as="a" hint-placeholder-count="3">
+<div style="border: 1px solid #1A1F26; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; font-size: 12px"><span>{{a.t}}</span><span style="color: #7B8590">{{a.m}}</span></div>
+</sc-for>
+<button type="button" style="height: 40px; background: #EAF6F8; border: 1px solid #EAF6F8; color: #0A0D10; font-family: inherit; font-size: 11px; letter-spacing: 0.22em">ACCEPT 3 TASKS</button>
+<button type="button" style="height: 38px; background: transparent; border: 1px solid #3A424C; color: #EEF2F4; font-family: inherit; font-size: 11px; letter-spacing: 0.22em">LOG AS PROPOSED DECISION</button>
+</section>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const on = { bg: '#EAF6F8', fg: '#0A0D10' };
+    const off = { bg: 'transparent', fg: '#A4ADB6' };
+    return {
+      threads: [
+        { title: 'Hire setter #1 now?', meta: 'BOARD MEMO · TODAY', ...on },
+        { title: 'Monday briefing · W49', meta: 'AUTO · MON 07:00', ...off },
+        { title: 'Quote for Marina Crest (Dubai)', meta: 'PRICING · YESTERDAY', ...off },
+        { title: 'Cash plan Dec–Mar', meta: 'FINANCE · 26 NOV', ...off },
+        { title: 'Dubai 3D competitors', meta: 'MARKET · 24 NOV', ...off },
+        { title: 'Build vs buy: email sender', meta: 'ENGINEERING · 20 NOV', ...off }
+      ],
+      hats: ['CEO', 'CFO', 'OPERATIONS', 'RISK'],
+      options: [
+        { n: 'A · Hire setter now', cost: '+$350 + bonus', when: '3–4 weeks', risk: 'Cash low point −€3,600 in a slow case', pick: 'NO', pc: '#EE9A8C' },
+        { n: 'B · Wait for Gate 1 (3rd client)', cost: '$0', when: '~January', risk: 'Lose ~2 weeks of setter output', pick: 'YES', pc: '#9FE3C4' },
+        { n: 'C · List builder now + bench', cost: '+$150–200', when: '1 week', risk: 'Low', pick: 'WITH B', pc: '#9FE3C4' }
+      ],
+      tools: [
+        { fn: 'get_kpis(week=48)', out: 'MRR €456 · 5 meetings booked · close 25%' },
+        { fn: 'get_meetings(week=48)', out: 'Calendar ~60% full' },
+        { fn: 'run_scenario(slow, hire_at=[1,3])', out: 'Low point −€3,600 vs −€2,100' },
+        { fn: 'get_queue_shortfall()', out: '42 A/B leads a day short' },
+        { fn: 'search_knowledge("stage gates")', out: 'context/07 · Gate 1 rules' }
+      ],
+      actions: [
+        { t: 'Post the part-time list builder role', m: 'Co-founder · 1 h · Fri' },
+        { t: 'Shortlist 2 setters from BDR applicants', m: 'Co-founder · 1 h · next week' },
+        { t: 'Add a Gate 1 alert to Reports', m: 'Codex · 0.5 h review' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

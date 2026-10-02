@@ -32,3 +32,9 @@ tmp/
 public/metal-fluid-amber.webp
 public/metal-fluid-cobalt.webp
 public/metal-fluid-pearl.webp
+
+.vercel
+.env
+.env.local
+.env.*.local
+supabase/.temp/

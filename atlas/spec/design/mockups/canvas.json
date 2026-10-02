@@ -1,0 +1,364 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Admin.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "12 Admin",
+      "w": 1440,
+      "x": 3040,
+      "y": 3960
+    },
+    "Call.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "03 Call workspace",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "CallReview.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "23 AI call review",
+      "w": 1440,
+      "x": 3040,
+      "y": 10560
+    },
+    "Clients.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "10 Clients and usage",
+      "w": 1440,
+      "x": 0,
+      "y": 3960
+    },
+    "Deal.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "09 Deal and quote",
+      "w": 1440,
+      "x": 3040,
+      "y": 2640
+    },
+    "Import.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "06 Import leads",
+      "w": 1440,
+      "x": 3040,
+      "y": 1320
+    },
+    "LeadDetail.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "05 Lead detail",
+      "w": 1440,
+      "x": 1520,
+      "y": 1320
+    },
+    "Leads.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "04 Leads",
+      "w": 1440,
+      "x": 0,
+      "y": 1320
+    },
+    "Login.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "01 Sign in",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "02 Today",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "Meetings.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "08 Meetings and approval",
+      "w": 1440,
+      "x": 1520,
+      "y": 2640
+    },
+    "Overlays.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "13 Search and notifications",
+      "w": 1440,
+      "x": 0,
+      "y": 5280
+    },
+    "Pipeline.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "07 Pipeline",
+      "w": 1440,
+      "x": 0,
+      "y": 2640
+    },
+    "Planner.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "20 AI planner",
+      "w": 1440,
+      "x": 3040,
+      "y": 7920
+    },
+    "Reports.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "11 Reports",
+      "w": 1440,
+      "x": 1520,
+      "y": 3960
+    },
+    "Scorecard.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "22 Scorecard",
+      "w": 1440,
+      "x": 1520,
+      "y": 10560
+    },
+    "Sidebar.dc.html": {
+      "h": 900,
+      "title": "Component \u00b7 sidebar",
+      "w": 240,
+      "x": 3040,
+      "y": 5280
+    },
+    "StyleGuide.dc.html": {
+      "h": 900,
+      "title": "14 Style guide",
+      "w": 1440,
+      "x": 1520,
+      "y": 5280
+    },
+    "TaskBoard.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "16 Tasks \u00b7 board",
+      "w": 1440,
+      "x": 1520,
+      "y": 6600
+    },
+    "TaskDetail.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "17 Task detail",
+      "w": 1440,
+      "x": 3040,
+      "y": 6600
+    },
+    "TaskSpaces.dc.html": {
+      "h": 828,
+      "title": "Component \u00b7 task spaces",
+      "w": 220,
+      "x": 0,
+      "y": 9240
+    },
+    "Tasks.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "15 Tasks \u00b7 list",
+      "w": 1440,
+      "x": 0,
+      "y": 6600
+    },
+    "Team.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "21 Team performance",
+      "w": 1440,
+      "x": 0,
+      "y": 10560
+    },
+    "Timeline.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "18 Timeline and capacity",
+      "w": 1440,
+      "x": 0,
+      "y": 7920
+    },
+    "TopBar.dc.html": {
+      "h": 72,
+      "title": "Component \u00b7 top bar",
+      "w": 1200,
+      "x": 3360,
+      "y": 5280
+    },
+    "ViewTabs.dc.html": {
+      "h": 64,
+      "title": "Component \u00b7 view tabs",
+      "w": 980,
+      "x": 300,
+      "y": 9240
+    },
+    "Workload.dc.html": {
+      "h": 900,
+      "is_interactive": true,
+      "title": "19 Workload and availability",
+      "w": 1440,
+      "x": 1520,
+      "y": 7920
+    },
+    "Time.dc.html": {
+      "x": 0,
+      "y": 11880,
+      "w": 1440,
+      "h": 900,
+      "title": "24 Time tracking \u00b7 my week",
+      "is_interactive": true
+    },
+    "TimeReports.dc.html": {
+      "x": 1520,
+      "y": 11880,
+      "w": 1440,
+      "h": 900,
+      "title": "25 Time reports",
+      "is_interactive": true
+    },
+    "Advisor.dc.html": {
+      "x": 3040,
+      "y": 11880,
+      "w": 1440,
+      "h": 900,
+      "title": "26 AI co-founder",
+      "is_interactive": true
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-09-28T12:00:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "row1": {
+      "kind": "title1",
+      "maxW": 4480,
+      "text": "Sign in and daily work",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "row2": {
+      "kind": "title1",
+      "maxW": 4480,
+      "text": "Leads",
+      "w": 240,
+      "x": 0,
+      "y": 1020
+    },
+    "row3": {
+      "kind": "title1",
+      "maxW": 4480,
+      "text": "Pipeline, meetings and quotes",
+      "w": 240,
+      "x": 0,
+      "y": 2340
+    },
+    "row4": {
+      "kind": "title1",
+      "maxW": 4480,
+      "text": "Clients, reports and admin",
+      "w": 240,
+      "x": 0,
+      "y": 3660
+    },
+    "row5": {
+      "kind": "title1",
+      "maxW": 4560,
+      "text": "System and shared parts",
+      "w": 240,
+      "x": 0,
+      "y": 4980
+    },
+    "row6": {
+      "kind": "title1",
+      "maxW": 4480,
+      "text": "Tasks (ClickUp-style)",
+      "w": 240,
+      "x": 0,
+      "y": 6300
+    },
+    "row7": {
+      "kind": "title1",
+      "maxW": 4480,
+      "text": "Time, capacity and the AI planner",
+      "w": 240,
+      "x": 0,
+      "y": 7620
+    },
+    "row8": {
+      "kind": "title1",
+      "maxW": 1280,
+      "text": "Tasks module parts",
+      "w": 240,
+      "x": 0,
+      "y": 8940
+    },
+    "row9": {
+      "kind": "title1",
+      "maxW": 4480,
+      "text": "Team performance and AI coaching",
+      "w": 240,
+      "x": 0,
+      "y": 10260
+    },
+    "row10": {
+      "x": 0,
+      "y": 11580,
+      "text": "Time tracking and the AI co-founder",
+      "kind": "title1",
+      "maxW": 4480
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Login.dc.html",
+    "Call.dc.html",
+    "Leads.dc.html",
+    "LeadDetail.dc.html",
+    "Import.dc.html",
+    "Pipeline.dc.html",
+    "Meetings.dc.html",
+    "Deal.dc.html",
+    "Clients.dc.html",
+    "Reports.dc.html",
+    "Admin.dc.html",
+    "Overlays.dc.html",
+    "StyleGuide.dc.html",
+    "Sidebar.dc.html",
+    "TopBar.dc.html",
+    "Tasks.dc.html",
+    "TaskBoard.dc.html",
+    "TaskDetail.dc.html",
+    "Timeline.dc.html",
+    "Workload.dc.html",
+    "Planner.dc.html",
+    "TaskSpaces.dc.html",
+    "ViewTabs.dc.html",
+    "Team.dc.html",
+    "Scorecard.dc.html",
+    "CallReview.dc.html",
+    "Time.dc.html",
+    "TimeReports.dc.html",
+    "Advisor.dc.html"
+  ],
+  "pages": [],
+  "title": "Atlas CRM \u2014 Gllarix design"
+}

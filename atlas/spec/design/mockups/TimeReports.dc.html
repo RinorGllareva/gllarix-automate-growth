@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Time reports</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<dc-import name="Sidebar" active="time" hint-size="240px,900px"></dc-import>
+<main style="width: 1200px; display: flex; flex-direction: column">
+<dc-import name="TopBar" context="TIME REPORTS · NOVEMBER 2026 · ADMINS" action="EXPORT CSV" href="TimeReports.dc.html" hint-size="1200px,72px"></dc-import>
+<div style="padding: 24px 40px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; align-items: flex-end; justify-content: space-between">
+<h1 style="margin: 0; font-weight: 300; font-size: 36px; letter-spacing: -0.02em">Time reports</h1>
+<div style="display: flex; gap: 8px; font-size: 13px">
+<button type="button" style="height: 34px; padding: 0 12px; background: #EAF6F8; border: 1px solid #EAF6F8; color: #0A0D10; font-family: inherit">By client and project</button>
+<button type="button" style="height: 34px; padding: 0 12px; background: transparent; border: 1px solid #2A313A; color: #EEF2F4; font-family: inherit">By person</button>
+<button type="button" style="height: 34px; padding: 0 12px; background: transparent; border: 1px solid #2A313A; color: #EEF2F4; font-family: inherit">By category</button>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div style="background: #0A0D11; border: 1px solid #1A1F26; padding: 16px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 10px; letter-spacing: 0.2em; color: #8C96A0">{{k.k}}</span><span style="font-size: 28px; font-weight: 300; color: {{k.c}}">{{k.v}}</span><span style="font-size: 11px; color: #7B8590">{{k.n}}</span></div>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 340px; gap: 18px">
+<section aria-label="Clients and projects" style="border: 1px solid #1A1F26; background: #0A0D11">
+<div style="display: grid; grid-template-columns: 1.6fr 100px 70px 110px 100px 90px; gap: 10px; padding: 12px 16px; font-size: 10px; letter-spacing: 0.2em; color: #7B8590; border-bottom: 1px solid #1A1F26"><span>CLIENT OR PROJECT</span><span>TYPE</span><span>HOURS</span><span>REVENUE</span><span>PER HOUR</span><span>STATUS</span></div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+<div style="display: grid; grid-template-columns: 1.6fr 100px 70px 110px 100px 90px; gap: 10px; align-items: center; height: 50px; padding: 0 16px; border-bottom: 1px solid #12161C; font-size: 13px">
+<div style="display: flex; flex-direction: column; gap: 2px"><span>{{r.t}}</span><span style="font-size: 11px; color: #7B8590">{{r.sub}}</span></div>
+<span style="font-size: 11px; color: #A4ADB6">{{r.type}}</span>
+<span style="font-family: 'Geist Mono', monospace">{{r.h}}</span>
+<span style="font-family: 'Geist Mono', monospace; color: #A4ADB6">{{r.rev}}</span>
+<span style="font-family: 'Geist Mono', monospace; color: {{r.c}}">{{r.ph}}</span>
+<span style="font-size: 10px; letter-spacing: 0.16em; color: {{r.c}}">{{r.s}}</span>
+</div>
+</sc-for>
+</section>
+<div style="display: flex; flex-direction: column; gap: 14px">
+<section aria-label="Hours by week" style="background: #0A0D11; border: 1px solid #1A1F26; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">RINOR · WEEKEND HOURS VS 12 H</span>
+<div style="height: 120px; display: flex; align-items: flex-end; gap: 14px; border-bottom: 1px solid #1A1F26; position: relative">
+<div style="position: absolute; left: 0; right: 0; bottom: 96px; border-top: 1px dashed #C6C0FF"></div>
+<sc-for list="{{weeks}}" as="w" hint-placeholder-count="4">
+<div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 4px"><span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #A4ADB6">{{w.v}}</span><div style="width: 100%; height: {{w.h}}; background: {{w.c}}"></div></div>
+</sc-for>
+</div>
+<div style="display: flex; justify-content: space-between; font-size: 11px; color: #7B8590"><span>W45</span><span>W46</span><span>W47</span><span>W48</span></div>
+<span style="font-size: 12px; color: #A4ADB6">Feeds the profit-split rule for buying back Rinor's time.</span>
+</section>
+<section aria-label="Estimate accuracy" style="border: 1px solid #1A1F26; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; font-size: 13px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">ESTIMATE ACCURACY · ACTUAL ÷ ESTIMATE</span>
+<sc-for list="{{acc}}" as="a" hint-placeholder-count="4">
+<div style="display: flex; justify-content: space-between"><span style="color: #A4ADB6">{{a.k}}</span><span style="font-family: 'Geist Mono', monospace; color: {{a.c}}">{{a.v}}</span></div>
+</sc-for>
+</section>
+</div>
+</div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const G = '#9FE3C4', A = '#D2AE72', M = '#7B8590';
+    const wk = (v) => ({ v: v + ' h', h: Math.round(v / 12 * 96) + 'px', c: v > 12 ? '#EE9A8C' : '#C6C0FF' });
+    return {
+      kpis: [
+        { k: 'HOURS LOGGED', v: '345', n: 'Rinor 49 · Co-founder 128 · BDR 168', c: '#EEF2F4' },
+        { k: 'CLIENT WORK', v: '34.5 h', n: '10% of all hours', c: '#8FE3EE' },
+        { k: 'BILLABLE BY THE HOUR', v: '0 h', n: 'custom software only · none yet', c: M },
+        { k: 'ESTIMATES', v: '1.2×', n: 'actual vs estimate, all tasks', c: A }
+      ],
+      rows: [
+        { t: 'Prishtina Tower Residences', sub: '3D building · fixed €3,250 · freelancer extra', type: 'Arcadian', h: '22.0', rev: '€3,250', ph: '€148', s: 'HEALTHY', c: G },
+        { t: 'Sunrise HVAC', sub: 'Receptionist setup · pilot', type: 'Gllarix', h: '7.5', rev: '$600', ph: '$80', s: 'OK', c: '#8FE3EE' },
+        { t: 'Bluewater Plumbing', sub: 'Receptionist setup · pilot', type: 'Gllarix', h: '5.0', rev: '$600', ph: '$120', s: 'HEALTHY', c: G },
+        { t: 'Thameside Homes', sub: 'Proposal and meeting prep', type: 'Pre-sale', h: '6.0', rev: '—', ph: '—', s: 'SALES', c: M },
+        { t: 'Atlas CRM', sub: 'Internal · reviews and setup', type: 'Internal', h: '31.0', rev: '—', ph: '—', s: 'INTERNAL', c: M },
+        { t: 'Outreach and calls', sub: 'BDR shifts + co-founder mornings', type: 'Internal', h: '273.5', rev: '—', ph: '—', s: 'INTERNAL', c: M }
+      ],
+      weeks: [wk(11), wk(12), wk(14), wk(12)],
+      acc: [
+        { k: 'Development', v: '1.3×', c: A },
+        { k: 'Client setup (delivery)', v: '1.1×', c: G },
+        { k: 'Sales tasks', v: '1.0×', c: G },
+        { k: 'Research', v: '1.4×', c: A }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

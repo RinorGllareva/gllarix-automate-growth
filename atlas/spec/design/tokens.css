@@ -1,0 +1,28 @@
+/* Atlas design tokens — matched to gllarix.com (dark only). Source of truth for app/web/static/css. */
+:root {
+  --bg: #050608;          /* ground */
+  --bg-deep: #030406;     /* sign-in, overlays */
+  --surface: #0A0D11;     /* cards, tables */
+  --surface-2: #0E1319;   /* selected row */
+  --line: #1A1F26;        /* 1px hairlines */
+  --line-soft: #12161C;   /* row separators */
+  --line-strong: #2A313A; /* inputs, chips */
+  --line-button: #3A424C; /* outline buttons */
+  --text: #EEF2F4;
+  --text-2: #A4ADB6;
+  --text-3: #7B8590;      /* muted, still >= 4.5:1 on --bg */
+  --label: #8C96A0;       /* tracked caps labels */
+  --ice: #EAF6F8;         /* active nav item, primary button bg */
+  --ice-ink: #0A0D10;     /* text on --ice */
+  --cyan: #8FE3EE;        /* Gllarix, links, tier B, progress */
+  --mint: #9FE3C4;        /* good, tier A, money in */
+  --lavender: #C6C0FF;    /* plan lines, tier C, pending */
+  --amber: #D2AE72;       /* Arcadian, warnings */
+  --coral: #EE9A8C;       /* stop, danger, do-not-contact */
+  --cyan-line: #5E8C92;   /* brand chip border (Gllarix) */
+  --amber-line: #7A6440;  /* brand chip border (Arcadian) */
+  --font: 'Geist', 'Helvetica Neue', Helvetica, sans-serif;
+  --mono: 'Geist Mono', ui-monospace, monospace;
+  --radius: 0;            /* square corners everywhere */
+  --label-tracking: 0.22em;
+}

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas tasks view tabs</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 980px; height: 64px; box-sizing: border-box; background: #050608; border-bottom: 1px solid #1A1F26; display: flex; align-items: center; gap: 4px; padding: 0 32px; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; color: #EEF2F4">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="6">
+<a href="{{t.href}}" style="height: 36px; display: flex; align-items: center; padding: 0 14px; text-decoration: none; font-size: 13px; background: {{t.bg}}; color: {{t.fg}}">{{t.label}}</a>
+</sc-for>
+<div style="margin-left: auto; display: flex; gap: 8px">
+<button type="button" style="height: 36px; padding: 0 12px; background: transparent; border: 1px solid #2A313A; color: #A4ADB6; font-family: inherit; font-size: 12px">Group: status</button>
+<button type="button" style="height: 36px; padding: 0 12px; background: transparent; border: 1px solid #2A313A; color: #A4ADB6; font-family: inherit; font-size: 12px">Filter</button>
+<button type="button" style="height: 36px; padding: 0 14px; background: #EAF6F8; border: 1px solid #EAF6F8; color: #0A0D10; font-family: inherit; font-size: 11px; letter-spacing: 0.2em">+ TASK</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","options":["list","board","timeline","workload","planner"],"default":"list"},"$preview":{"width":980,"height":64}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const a = this.props.active ?? 'list';
+    const tabs = [
+      { id: 'list', label: 'List', href: 'Tasks.dc.html' },
+      { id: 'board', label: 'Board', href: 'TaskBoard.dc.html' },
+      { id: 'timeline', label: 'Timeline', href: 'Timeline.dc.html' },
+      { id: 'workload', label: 'Workload', href: 'Workload.dc.html' },
+      { id: 'planner', label: 'AI planner', href: 'Planner.dc.html' }
+    ];
+    return { tabs: tabs.map((t) => ({ ...t, bg: t.id === a ? '#EAF6F8' : 'transparent', fg: t.id === a ? '#0A0D10' : '#A4ADB6' })) };
+  }
+}
+</script>
+</body>
+</html>

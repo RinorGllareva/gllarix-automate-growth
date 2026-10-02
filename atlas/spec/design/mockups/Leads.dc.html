@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Leads</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<dc-import name="Sidebar" active="leads" hint-size="240px,900px"></dc-import>
+<main style="width: 1200px; display: flex; flex-direction: column">
+<dc-import name="TopBar" context="4,812 LEADS · 1,204 TIER A/B" action="IMPORT CSV" href="Import.dc.html" hint-size="1200px,72px"></dc-import>
+<div style="padding: 28px 40px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: flex-end; justify-content: space-between">
+<h1 style="margin: 0; font-weight: 300; font-size: 40px; letter-spacing: -0.02em">Leads</h1>
+<div style="display: flex; gap: 8px">
+<button type="button" style="height: 36px; padding: 0 14px; background: transparent; border: 1px solid #2A313A; color: #A4ADB6; font-family: inherit; font-size: 11px; letter-spacing: 0.2em">ASSIGN</button>
+<button type="button" style="height: 36px; padding: 0 14px; background: transparent; border: 1px solid #2A313A; color: #A4ADB6; font-family: inherit; font-size: 11px; letter-spacing: 0.2em">ADD TO CADENCE</button>
+<button type="button" style="height: 36px; padding: 0 14px; background: transparent; border: 1px solid #2A313A; color: #A4ADB6; font-family: inherit; font-size: 11px; letter-spacing: 0.2em">RESCORE</button>
+</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="7">
+<button type="button" style="height: 36px; display: flex; align-items: center; gap: 8px; padding: 0 12px; background: {{f.bg}}; border: 1px solid {{f.bd}}; color: {{f.fg}}; font-family: inherit; font-size: 13px"><span style="font-size: 10px; letter-spacing: 0.2em; opacity: 0.8">{{f.k}}</span><span>{{f.v}}</span><span aria-hidden="true">⌄</span></button>
+</sc-for>
+<button type="button" style="height: 36px; padding: 0 12px; background: transparent; border: 1px dashed #2A313A; color: #7B8590; font-family: inherit; font-size: 13px">+ Filter</button>
+</div>
+<section aria-label="Leads table" style="border: 1px solid #1A1F26; background: #0A0D11">
+<div style="display: grid; grid-template-columns: 28px 56px 1.8fr 1fr 1.4fr 64px 1fr 0.9fr 1.3fr 56px; gap: 12px; padding: 12px 18px; font-size: 10px; letter-spacing: 0.2em; color: #7B8590; border-bottom: 1px solid #1A1F26">
+<span></span><span>SCORE</span><span>COMPANY</span><span>INDUSTRY</span><span>LOCATION</span><span>LOCAL</span><span>STAGE</span><span>OWNER</span><span>NEXT ACTION</span><span>LAST</span>
+</div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+<div style="display: grid; grid-template-columns: 28px 56px 1.8fr 1fr 1.4fr 64px 1fr 0.9fr 1.3fr 56px; gap: 12px; align-items: center; padding: 0 18px; height: 54px; border-bottom: 1px solid #12161C; font-size: 13px">
+<input type="checkbox" aria-label="Select {{r.co}}" style="accent-color: #8FE3EE">
+<span style="width: 42px; height: 26px; border: 1px solid {{r.tc}}; color: {{r.tc}}; display: flex; align-items: center; justify-content: center; font-family: 'Geist Mono', monospace; font-size: 12px">{{r.t}} {{r.s}}</span>
+<a href="LeadDetail.dc.html" style="color: #EEF2F4; text-decoration: none; font-size: 14px">{{r.co}}</a>
+<span style="color: #A4ADB6">{{r.ind}}</span>
+<span style="color: #A4ADB6">{{r.loc}}</span>
+<span style="font-family: 'Geist Mono', monospace; color: #A4ADB6">{{r.local}}</span>
+<span style="justify-self: start; font-size: 10px; letter-spacing: 0.18em; border: 1px solid #2A313A; padding: 4px 8px; color: #A4ADB6">{{r.stage}}</span>
+<span style="color: #A4ADB6">{{r.owner}}</span>
+<span>{{r.next}}</span>
+<span style="font-family: 'Geist Mono', monospace; color: #7B8590">{{r.last}}</span>
+</div>
+</sc-for>
+<div style="display: flex; justify-content: space-between; padding: 14px 18px; font-size: 12px; color: #7B8590"><span>Showing 10 of 1,204 · sorted by score, then local time</span><span style="font-family: 'Geist Mono', monospace">1 / 121  ‹  ›</span></div>
+</section>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const tc = { A: '#9FE3C4', B: '#8FE3EE', C: '#C6C0FF', D: '#7B8590' };
+    const on = { bg: '#EAF6F8', bd: '#EAF6F8', fg: '#0A0D10' };
+    const off = { bg: 'transparent', bd: '#2A313A', fg: '#EEF2F4' };
+    const filters = [
+      { k: 'TIER', v: 'A, B', ...on }, { k: 'LIST', v: 'All lists', ...off }, { k: 'COUNTRY', v: 'All', ...off },
+      { k: 'STAGE', v: 'Open', ...off }, { k: 'OWNER', v: 'Anyone', ...off }, { k: 'SOURCE', v: 'All', ...off }, { k: 'BRAND', v: 'Both', ...off }
+    ];
+    const rows = [
+      { t: 'A', s: '81', co: 'Blue Line Plumbing', ind: 'Plumbing', loc: 'Charlotte, NC · US', local: '07:42', stage: 'NEW', owner: 'BDR', next: 'Call today', last: '—' },
+      { t: 'A', s: '80', co: 'Ridgeway Heating & Air', ind: 'HVAC', loc: 'Tampa, FL · US', local: '07:42', stage: 'CONTACTED', owner: 'BDR', next: 'Call today', last: '1d' },
+      { t: 'A', s: '78', co: 'Summit Roofing Co.', ind: 'Roofing', loc: 'Atlanta, GA · US', local: '07:42', stage: 'CONTACTED', owner: 'BDR', next: 'Call · day 3', last: '2d' },
+      { t: 'A', s: '71', co: 'Thameside Homes', ind: 'Developer', loc: 'London · UK', local: '12:42', stage: 'MEETING', owner: 'Co-founder', next: 'Meeting Thu 10:00', last: '3h' },
+      { t: 'A', s: '70', co: 'Prishtina Tower Residences', ind: 'Developer', loc: 'Prishtinë · XK', local: '13:42', stage: 'QUALIFIED', owner: 'Co-founder', next: 'Send 3D teaser', last: '1d' },
+      { t: 'B', s: '66', co: 'Marina Crest Properties', ind: 'Developer', loc: 'Dubai · AE', local: '16:42', stage: 'RESEARCHED', owner: 'Co-founder', next: 'LinkedIn connect', last: '—' },
+      { t: 'B', s: '64', co: 'Keystone Electric', ind: 'Electrical', loc: 'Columbus, OH · US', local: '07:42', stage: 'REPLIED', owner: 'BDR', next: 'Follow-up Wed', last: '2d' },
+      { t: 'B', s: '61', co: 'Harbor Air Services', ind: 'HVAC', loc: 'Richmond, VA · US', local: '07:42', stage: 'CONTACTED', owner: 'BDR', next: 'Callback 07:45', last: '1d' },
+      { t: 'B', s: '58', co: 'Alpenblick Wohnbau', ind: 'Developer', loc: 'Zug · CH', local: '13:42', stage: 'CONTACTED', owner: 'Co-founder', next: 'Call · no cold email', last: '4d' },
+      { t: 'C', s: '41', co: 'Lakeview Roofing', ind: 'Roofing', loc: 'Madison, WI · US', local: '06:42', stage: 'NURTURE', owner: 'BDR', next: 'Email in 90 days', last: '12d' }
+    ].map((r) => ({ ...r, tc: tc[r.t] }));
+    return { filters, rows };
+  }
+}
+</script>
+</body>
+</html>

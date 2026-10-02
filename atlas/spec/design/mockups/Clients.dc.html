@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Clients and usage</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<dc-import name="Sidebar" active="clients" hint-size="240px,900px"></dc-import>
+<main style="width: 1200px; display: flex; flex-direction: column">
+<dc-import name="TopBar" context="2 CLIENTS · MRR $524 · NEXT INVOICE 3 DEC" action="ONBOARDING" href="Clients.dc.html" hint-size="1200px,72px"></dc-import>
+<div style="padding: 28px 40px; display: grid; grid-template-columns: 360px 1fr; gap: 24px">
+<section aria-label="Clients" style="display: flex; flex-direction: column; gap: 12px">
+<h1 style="margin: 0 0 6px 0; font-weight: 300; font-size: 40px; letter-spacing: -0.02em">Clients</h1>
+<sc-for list="{{clients}}" as="c" hint-placeholder-count="3">
+<div style="padding: 16px; background: {{c.bg}}; border: 1px solid {{c.bd}}; color: {{c.fg}}; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 15px">{{c.name}}</span><span style="font-size: 10px; letter-spacing: 0.2em">{{c.status}}</span></div>
+<span style="font-size: 12px; opacity: 0.8">{{c.plan}}</span>
+<div style="height: 3px; background: {{c.track}}"><div style="width: {{c.w}}; height: 3px; background: {{c.bar}}"></div></div>
+<span style="font-family: 'Geist Mono', monospace; font-size: 11px; opacity: 0.8">{{c.use}}</span>
+</div>
+</sc-for>
+<div style="border: 1px solid #1A1F26; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">ONBOARDING · BLUEWATER PLUMBING</span>
+<sc-for list="{{onb}}" as="o" hint-placeholder-count="5">
+<div style="display: flex; gap: 10px; font-size: 13px; color: {{o.fg}}"><span style="font-family: 'Geist Mono', monospace; width: 16px">{{o.mark}}</span><span>{{o.label}}</span></div>
+</sc-for>
+</div>
+</section>
+<section aria-label="Sunrise HVAC usage" style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: flex-end; justify-content: space-between">
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">SUNRISE HVAC · NOVEMBER</span><span style="font-size: 26px; font-weight: 300">Live since 3 Nov · pilot rate</span></div>
+<button type="button" style="height: 40px; padding: 0 16px; background: transparent; border: 1px solid #3A424C; color: #EEF2F4; font-family: inherit; font-size: 11px; letter-spacing: 0.22em">SEND MONTHLY REPORT ↗</button>
+</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div style="background: #0A0D11; border: 1px solid #1A1F26; padding: 16px; display: flex; flex-direction: column; gap: 8px"><span style="font-size: 10px; letter-spacing: 0.2em; color: #8C96A0">{{k.label}}</span><span style="font-size: 30px; font-weight: 300; color: {{k.c}}">{{k.v}}</span></div>
+</sc-for>
+</div>
+<div style="background: #0A0D11; border: 1px solid #1A1F26; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 0.22em; color: #8C96A0"><span>MINUTES PER DAY</span><span>1,420 USED · 1,250 INCLUDED</span></div>
+<div style="height: 150px; display: flex; align-items: flex-end; gap: 4px; border-bottom: 1px solid #1A1F26">
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="30">
+<div style="flex-grow: 1; height: {{b.h}}; background: {{b.c}}"></div>
+</sc-for>
+</div>
+<div style="display: flex; gap: 20px; font-size: 12px; color: #A4ADB6"><span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; background: #8FE3EE"></span>Included</span><span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; background: #D2AE72"></span>Over the limit (from 27 Nov)</span></div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div style="border: 1px solid #1A1F26; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; font-size: 13px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">NEXT INVOICE · 3 DEC</span>
+<div style="display: flex; justify-content: space-between"><span style="color: #A4ADB6">Monthly (pilot)</span><span style="font-family: 'Geist Mono', monospace">$524.00</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #A4ADB6">Overage · 170 min × $0.25</span><span style="font-family: 'Geist Mono', monospace">$42.50</span></div>
+<div style="display: flex; justify-content: space-between; border-top: 1px solid #1A1F26; padding-top: 8px"><span>Total</span><span style="font-family: 'Geist Mono', monospace; color: #8FE3EE">$566.50</span></div>
+</div>
+<div style="border: 1px solid #1A1F26; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; font-size: 13px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">HEALTH</span>
+<div style="display: flex; justify-content: space-between"><span style="color: #A4ADB6">Our usage cost (est.)</span><span style="font-family: 'Geist Mono', monospace">$142</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #A4ADB6">Margin after usage</span><span style="font-family: 'Geist Mono', monospace; color: #9FE3C4">75%</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #A4ADB6">Churn risk</span><span style="color: #9FE3C4">Low · usage steady, paid on time</span></div>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const sel = { bg: '#EAF6F8', bd: '#EAF6F8', fg: '#0A0D10', track: '#C9D6DA', bar: '#0A0D10' };
+    const off = { bg: '#0A0D11', bd: '#1A1F26', fg: '#EEF2F4', track: '#1A1F26', bar: '#8FE3EE' };
+    const mins = [38,41,52,47,55,30,22,44,49,51,58,46,33,25,47,52,56,60,49,31,27,50,54,60,68,70,47,34,64,60];
+    let run = 0;
+    const bars = mins.map((m) => { run += m; return { h: Math.round(m / 70 * 140) + 'px', c: run > 1250 ? '#D2AE72' : '#8FE3EE' }; });
+    return {
+      clients: [
+        { name: 'Sunrise HVAC', status: 'LIVE', plan: 'Standard · pilot · $524/mo', w: '100%', use: '1,420 / 1,250 min · +170 over', ...sel },
+        { name: 'Bluewater Plumbing', status: 'ONBOARDING', plan: 'Standard · pilot · first month free', w: '40%', use: 'Step 2 of 5 · go-live 8 Dec', ...off },
+        { name: 'Palmetto Plumbing', status: 'PROPOSAL', plan: 'Standard + add-ons · pilot quote', w: '0%', use: 'Waiting for deposit', ...off }
+      ],
+      onb: [
+        { mark: '✓', label: 'Intake form received', fg: '#EEF2F4' },
+        { mark: '✓', label: 'Agent drafted from website FAQ', fg: '#EEF2F4' },
+        { mark: '○', label: 'Business number forwarded', fg: '#A4ADB6' },
+        { mark: '○', label: 'Automatic test calls pass', fg: '#A4ADB6' },
+        { mark: '○', label: 'Go live and start billing', fg: '#A4ADB6' }
+      ],
+      kpis: [
+        { label: 'CALLS ANSWERED', v: '571', c: '#EEF2F4' },
+        { label: 'AFTER-HOURS CAPTURED', v: '138', c: '#8FE3EE' },
+        { label: 'JOBS BOOKED', v: '74', c: '#9FE3C4' },
+        { label: 'MISSED', v: '0', c: '#C6C0FF' }
+      ],
+      bars
+    };
+  }
+}
+</script>
+</body>
+</html>

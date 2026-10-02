@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Task detail</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<dc-import name="Sidebar" active="tasks" hint-size="240px,900px"></dc-import>
+<main style="width: 1200px; display: flex; flex-direction: column">
+<dc-import name="TopBar" context="Q4 LAUNCH / DEVELOPMENT" action="BACK TO LIST" href="Tasks.dc.html" hint-size="1200px,72px"></dc-import>
+<div style="padding: 28px 40px; display: grid; grid-template-columns: 1fr 340px; gap: 32px">
+<div style="display: flex; flex-direction: column; gap: 22px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; gap: 8px"><span style="font-size: 10px; letter-spacing: 0.2em; border: 1px solid #8FE3EE; color: #8FE3EE; padding: 3px 8px">IN PROGRESS</span><span style="font-size: 10px; letter-spacing: 0.2em; border: 1px solid #2A313A; color: #A4ADB6; padding: 3px 8px">DEVELOPMENT</span><span style="font-size: 10px; letter-spacing: 0.2em; border: 1px solid #EE9A8C; color: #EE9A8C; padding: 3px 8px">HIGH</span></div>
+<h1 style="margin: 0; font-weight: 300; font-size: 36px; letter-spacing: -0.02em">Build the live Gllarix demo line</h1>
+</div>
+<section aria-label="Description" style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">DESCRIPTION</span>
+<p style="margin: 0; font-size: 14px; line-height: 1.65; color: #A4ADB6">A US phone number prospects can call during a sales meeting. It answers as a sample HVAC business, books into a test calendar and sends a missed-call text. The BDR uses it from day 1 of training, so it must be live before 12 Oct.</p>
+</section>
+<section aria-label="Subtasks" style="border: 1px solid #1A1F26; background: #0A0D11">
+<div style="display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #1A1F26; font-size: 11px; letter-spacing: 0.22em; color: #8C96A0"><span>SUBTASKS · 2 OF 6</span><span style="color: #8FE3EE">SPLIT WITH AI ↗</span></div>
+<sc-for list="{{subs}}" as="s" hint-placeholder-count="6">
+<label style="display: grid; grid-template-columns: 20px 1fr 60px 50px; gap: 12px; align-items: center; height: 42px; padding: 0 16px; border-bottom: 1px solid #12161C; font-size: 13px">
+<input type="checkbox" checked="{{s.done}}" style="accent-color: #9FE3C4">
+<span style="color: {{s.fg}}">{{s.t}}</span>
+<span style="font-size: 11px; color: #7B8590">{{s.o}}</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #A4ADB6">{{s.e}}</span>
+</label>
+</sc-for>
+</section>
+<section aria-label="Comments" style="display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">COMMENTS</span>
+<div style="display: flex; gap: 12px"><span style="width: 32px; height: 32px; border: 1px solid #3A424C; display: flex; align-items: center; justify-content: center; font-size: 11px">CF</span><div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #7B8590">Co-founder · Tue 10:12</span><span style="font-size: 14px">Can it greet with the prospect's business name? That would be the strongest demo.</span></div></div>
+<div style="display: flex; gap: 12px"><span style="width: 32px; height: 32px; border: 1px solid #3A424C; display: flex; align-items: center; justify-content: center; font-size: 11px">RG</span><div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #7B8590">Rinor · Tue 21:40</span><span style="font-size: 14px">Yes, as a follow-up task after the base line works. Added to the backlog.</span></div></div>
+<label style="display: flex"><textarea aria-label="Write a comment" placeholder="Write a comment, @ to mention" style="flex-grow: 1; height: 56px; background: #0A0D11; border: 1px solid #1A1F26; color: #EEF2F4; font-family: inherit; font-size: 13px; padding: 10px; resize: none"></textarea></label>
+</section>
+</div>
+<aside style="display: flex; flex-direction: column; gap: 14px">
+<section aria-label="Fields" style="border: 1px solid #1A1F26; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; font-size: 13px">
+<sc-for list="{{fields}}" as="f" hint-placeholder-count="7">
+<div style="display: flex; justify-content: space-between; gap: 12px"><span style="color: #7B8590">{{f.k}}</span><span style="font-family: {{f.font}}; text-align: right">{{f.v}}</span></div>
+</sc-for>
+</section>
+<section aria-label="Time" style="background: #0A0D11; border: 1px solid #1A1F26; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 0.22em; color: #8C96A0"><span>TIME</span><span style="font-family: 'Geist Mono', monospace; letter-spacing: 0">2h / 8h</span></div>
+<div style="height: 3px; background: #1A1F26"><div style="width: 25%; height: 3px; background: #8FE3EE"></div></div>
+<button type="button" style="height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; background: transparent; border: 1px solid #3A424C; color: #EEF2F4; font-family: inherit; font-size: 11px; letter-spacing: 0.22em"><span>START TIMER</span><span style="font-family: 'Geist Mono', monospace; letter-spacing: 0">00:00</span></button>
+</section>
+<section aria-label="Dependencies" style="border: 1px solid #1A1F26; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; font-size: 13px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">BLOCKS</span>
+<span style="color: #A4ADB6">BDR training · day 1 (12 Oct)</span>
+<span style="color: #A4ADB6">Send demo line in outreach emails</span>
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0; margin-top: 6px">WAITING ON</span>
+<span style="color: #A4ADB6">Register US SMS for the demo number</span>
+</section>
+<section aria-label="AI" style="border: 1px solid #5E8C92; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; font-size: 13px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8FE3EE">AI PLANNER</span>
+<span style="color: #A4ADB6">Rinor has 12 h this weekend; this task needs 6 h more. It fits on Sat 3 Oct, leaving 4 h for the M0 review and SMS registration.</span>
+<span style="color: #D2AE72">Risk: SMS approval can take days; start it first.</span>
+</section>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = (t, o, e, done) => ({ t, o, e, done, fg: done ? '#7B8590' : '#EEF2F4' });
+    const mono = "'Geist Mono', monospace", sans = 'inherit';
+    return {
+      subs: [
+        s('Choose the voice platform (Retell or Vapi)', 'Rinor', '1h', true),
+        s('Buy a US number and connect it', 'Rinor', '0.5h', true),
+        s('Write the receptionist prompt for a sample HVAC business', 'Rinor', '1.5h', false),
+        s('Connect calendar booking', 'Rinor', '1.5h', false),
+        s('Add missed-call text-back', 'Rinor', '1h', false),
+        s('Run 10 test calls and fix issues', 'Rinor', '2.5h', false)
+      ],
+      fields: [
+        { k: 'Owner', v: 'Rinor', font: sans },
+        { k: 'Start', v: 'Sat 26 Sep', font: mono },
+        { k: 'Due', v: 'Sat 3 Oct', font: mono },
+        { k: 'Estimate', v: '8h', font: mono },
+        { k: 'List', v: 'Q4 launch', font: sans },
+        { k: 'Linked', v: 'Plan: context/03, BDR training', font: sans },
+        { k: 'Created by', v: 'AI planner · accepted by Rinor', font: sans }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

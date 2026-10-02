@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Admin</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<dc-import name="Sidebar" active="admin" hint-size="240px,900px"></dc-import>
+<main style="width: 1200px; display: flex; flex-direction: column">
+<dc-import name="TopBar" context="ADMIN · COUNTRY RULES" action="SAVE CHANGES" href="Admin.dc.html" hint-size="1200px,72px"></dc-import>
+<div style="display: grid; grid-template-columns: 220px 1fr 330px; flex-grow: 1">
+<nav aria-label="Admin sections" style="border-right: 1px solid #1A1F26; padding: 28px 16px; display: flex; flex-direction: column; gap: 2px">
+<sc-for list="{{sections}}" as="s" hint-placeholder-count="8">
+<a href="Admin.dc.html" style="height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; text-decoration: none; font-size: 13px; background: {{s.bg}}; color: {{s.fg}}"><span>{{s.label}}</span><span style="font-family: 'Geist Mono', monospace; font-size: 11px">{{s.n}}</span></a>
+</sc-for>
+</nav>
+<section aria-label="Country rules" style="padding: 28px 28px; display: flex; flex-direction: column; gap: 16px">
+<h1 style="margin: 0; font-weight: 300; font-size: 34px; letter-spacing: -0.02em">Country rules</h1>
+<div style="border: 1px solid #7A6440; padding: 12px 14px; font-size: 13px; color: #D2AE72">8 of 12 markets are not yet confirmed by a lawyer. They show a warning until someone marks them verified.</div>
+<div style="border: 1px solid #1A1F26; background: #0A0D11">
+<div style="display: grid; grid-template-columns: 56px 1fr 1fr 1.3fr 90px; gap: 10px; padding: 12px 16px; font-size: 10px; letter-spacing: 0.2em; color: #7B8590; border-bottom: 1px solid #1A1F26"><span>MARKET</span><span>CALLS</span><span>COLD EMAIL</span><span>NOTES</span><span>VERIFIED</span></div>
+<sc-for list="{{rules}}" as="r" hint-placeholder-count="8">
+<div style="display: grid; grid-template-columns: 56px 1fr 1fr 1.3fr 90px; gap: 10px; align-items: center; padding: 0 16px; height: 46px; border-bottom: 1px solid #12161C; font-size: 13px">
+<span style="font-family: 'Geist Mono', monospace">{{r.m}}</span>
+<span style="color: {{r.cc}}">{{r.call}}</span>
+<span style="color: {{r.ec}}">{{r.email}}</span>
+<span style="font-size: 12px; color: #A4ADB6">{{r.note}}</span>
+<span style="font-size: 10px; letter-spacing: 0.18em; color: {{r.vc}}">{{r.v}}</span>
+</div>
+</sc-for>
+</div>
+</section>
+<aside style="border-left: 1px solid #1A1F26; padding: 28px 24px; display: flex; flex-direction: column; gap: 18px">
+<section aria-label="Jobs" style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">BACKGROUND JOBS</span>
+<sc-for list="{{jobs}}" as="j" hint-placeholder-count="5">
+<div style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #12161C">
+<span style="width: 8px; height: 8px; margin-top: 5px; background: {{j.c}}"></span>
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px">{{j.name}}</span><span style="font-size: 11px; color: #7B8590">{{j.detail}}</span></div>
+</div>
+</sc-for>
+</section>
+<section aria-label="Cost caps" style="display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">PAID API CAPS · DECEMBER</span>
+<sc-for list="{{caps}}" as="c" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span>{{c.label}}</span><span style="font-family: 'Geist Mono', monospace; color: #A4ADB6">{{c.v}}</span></div>
+<div style="height: 3px; background: #1A1F26"><div style="width: {{c.w}}; height: 3px; background: {{c.col}}"></div></div>
+</div>
+</sc-for>
+</section>
+<section aria-label="Opt-out list" style="border: 1px solid #1A1F26; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; font-size: 13px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">OPT-OUT LIST</span>
+<span><span style="font-family: 'Geist Mono', monospace">214</span> entries · checked before every queue and send</span>
+<span style="font-size: 12px; color: #7B8590">Last added: metrohomeservices.com · "remove me"</span>
+</section>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const secs = [['Users and roles', '4'], ['Settings', ''], ['Country rules', '12'], ['Scoring models', '2'], ['Cadences', '2'], ['Price book', 'v2'], ['Opt-out list', '214'], ['Background jobs', '9'], ['Integrations', '5'], ['Audit log', '']];
+    const sections = secs.map(([label, n]) => ({ label, n, bg: label === 'Country rules' ? '#EAF6F8' : 'transparent', fg: label === 'Country rules' ? '#0A0D10' : '#A4ADB6' }));
+    const Y = '#9FE3C4', N = '#EE9A8C', C = '#D2AE72';
+    const r = (m, call, cc, email, ec, note, ver) => ({ m, call, cc, email, ec, note, v: ver ? 'YES' : 'NOT YET', vc: ver ? Y : C });
+    return {
+      sections,
+      rules: [
+        r('US', 'Yes, dialed by hand', Y, 'Yes', Y, 'Opt-out link + postal address', true),
+        r('CA', 'Yes', Y, 'Limited', C, 'Only published business emails', false),
+        r('GB', 'Yes, CTPS check', Y, 'Companies only', C, 'Not to sole traders', true),
+        r('CH', 'Yes, not ✱ numbers', Y, 'No', N, 'No mass cold email', true),
+        r('DE', 'No', N, 'No', N, 'LinkedIn, events, referrals', true),
+        r('AT', 'No', N, 'No', N, 'As Germany', false),
+        r('AE', '09:00–18:00 local', C, 'Check', C, 'Confirm telemarketing rules', false),
+        r('XK', 'Yes', Y, 'Yes', Y, 'Opt-out in every message', false)
+      ],
+      jobs: [
+        { name: 'Queue build · BDR', detail: '05:00 VET · 150 items in 3.8 s', c: Y },
+        { name: 'Nightly rescoring', detail: '03:00 · 4,812 leads · 118 changed tier', c: Y },
+        { name: 'Places import · Florida HVAC', detail: 'Paused · monthly cost cap reached', c: N },
+        { name: 'Email reply sync', detail: 'Every 5 min · last run 2 min ago', c: Y },
+        { name: 'Stripe webhooks', detail: '12 events today · 0 failed', c: Y }
+      ],
+      caps: [
+        { label: 'Places API', v: '€40 / €40', w: '100%', col: N },
+        { label: 'Email verification', v: '€6 / €15', w: '40%', col: '#8FE3EE' },
+        { label: 'AI drafts and summaries', v: '€3 / €10', w: '30%', col: '#C6C0FF' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

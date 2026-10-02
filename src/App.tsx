@@ -10,12 +10,12 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { Suspense, lazy, useCallback, useEffect, useState } from "react";
-import LoadingScreen from "@/components/LoadingScreen";
-import { IntroProvider } from "@/contexts/IntroContext";
+import { IntroProvider, type IntroPhase } from "@/contexts/IntroContext";
 
 const queryClient = new QueryClient();
 const INTRO_SESSION_KEY = "gllarix-intro-complete";
 
+const GlassIntro = lazy(() => import("@/components/intro/GlassIntro"));
 const Index = lazy(() => import("./pages/Index"));
 const Contact = lazy(() => import("./pages/Contact"));
 const About = lazy(() => import("./pages/About"));
@@ -95,22 +95,24 @@ const CanonicalizeUrl = () => {
 
 const RoutedExperience = () => {
   const { pathname } = useLocation();
-  const [hasCompletedIntro, setHasCompletedIntro] = useState(() => {
+  const [introPhase, setIntroPhase] = useState<IntroPhase>(() => {
     if (typeof window === "undefined") {
-      return false;
+      return "done";
     }
 
-    return sessionStorage.getItem(INTRO_SESSION_KEY) === "true";
+    return sessionStorage.getItem(INTRO_SESSION_KEY) === "true"
+      ? "done"
+      : "playing";
   });
-  const isIntroActive = pathname === "/" && !hasCompletedIntro;
+  const isIntroActive = pathname === "/" && introPhase !== "done";
 
-  const handleLoadingComplete = useCallback(() => {
+  const handleIntroComplete = useCallback(() => {
     sessionStorage.setItem(INTRO_SESSION_KEY, "true");
-    setHasCompletedIntro(true);
+    setIntroPhase("done");
   }, []);
 
   return (
-    <IntroProvider value={isIntroActive}>
+    <IntroProvider value={isIntroActive ? introPhase : "done"}>
       <CanonicalizeUrl />
       <ScrollToTop />
       <Suspense fallback={<RouteFallback />}>
@@ -127,7 +129,16 @@ const RoutedExperience = () => {
       </Suspense>
 
       {isIntroActive ? (
-        <LoadingScreen onComplete={handleLoadingComplete} />
+        <Suspense
+          fallback={
+            <div className="fixed inset-0 z-[100] bg-[#030208]" aria-hidden="true" />
+          }
+        >
+          <GlassIntro
+            onPhase={setIntroPhase}
+            onComplete={handleIntroComplete}
+          />
+        </Suspense>
       ) : null}
     </IntroProvider>
   );

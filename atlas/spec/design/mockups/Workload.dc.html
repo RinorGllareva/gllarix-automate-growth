@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Workload</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<dc-import name="Sidebar" active="tasks" hint-size="240px,900px"></dc-import>
+<main style="width: 1200px; display: flex; flex-direction: column">
+<dc-import name="TopBar" context="TEAM WORKLOAD · NEXT 5 WEEKS" action="PLAN WITH AI" href="Planner.dc.html" hint-size="1200px,72px"></dc-import>
+<div style="display: flex; flex-grow: 1">
+<dc-import name="TaskSpaces" hint-size="220px,828px"></dc-import>
+<div style="width: 980px; display: flex; flex-direction: column">
+<dc-import name="ViewTabs" active="workload" hint-size="980px,64px"></dc-import>
+<div style="padding: 20px 32px; display: grid; grid-template-columns: 1fr 300px; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<section aria-label="Workload grid" style="border: 1px solid #1A1F26; background: #0A0D11">
+<div style="display: grid; grid-template-columns: 150px repeat(5, minmax(0, 1fr)); gap: 6px; padding: 12px 14px; font-size: 10px; letter-spacing: 0.2em; color: #7B8590; border-bottom: 1px solid #1A1F26"><span>PERSON</span><span>W40</span><span>W41</span><span>W42</span><span>W43</span><span>W44</span></div>
+<sc-for list="{{people}}" as="p" hint-placeholder-count="4">
+<div style="display: grid; grid-template-columns: 150px repeat(5, minmax(0, 1fr)); gap: 6px; align-items: center; padding: 10px 14px; border-bottom: 1px solid #12161C">
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px">{{p.name}}</span><span style="font-size: 11px; color: #7B8590">{{p.cap}}</span></div>
+<sc-for list="{{p.weeks}}" as="w" hint-placeholder-count="5">
+<div style="height: 56px; background: #050608; border: 1px solid {{w.bd}}; display: flex; flex-direction: column; justify-content: space-between; padding: 8px">
+<span style="font-family: 'Geist Mono', monospace; font-size: 13px; color: {{w.fg}}">{{w.v}}</span>
+<div style="height: 3px; background: #1A1F26"><div style="width: {{w.w}}; height: 3px; background: {{w.fg}}"></div></div>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</section>
+<section aria-label="Suggestions" style="border: 1px solid #5E8C92; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8FE3EE">AI SUGGESTIONS · WEEK 41</span>
+<sc-for list="{{tips}}" as="t" hint-placeholder-count="3">
+<div style="display: flex; align-items: center; gap: 14px; font-size: 13px">
+<span style="flex-grow: 1; color: #A4ADB6">{{t.text}}</span>
+<button type="button" style="height: 32px; padding: 0 12px; background: transparent; border: 1px solid #3A424C; color: #EEF2F4; font-family: inherit; font-size: 11px; letter-spacing: 0.18em">{{t.action}}</button>
+</div>
+</sc-for>
+</section>
+</div>
+<aside aria-label="Availability" style="border: 1px solid #1A1F26; padding: 16px 18px; display: flex; flex-direction: column; gap: 14px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">AVAILABILITY</span>
+<sc-for list="{{avail}}" as="a" hint-placeholder-count="4">
+<div style="display: flex; flex-direction: column; gap: 6px; padding-bottom: 12px; border-bottom: 1px solid #12161C">
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span>{{a.name}}</span><span style="font-family: 'Geist Mono', monospace; color: {{a.c}}">{{a.h}}</span></div>
+<span style="font-size: 12px; color: #A4ADB6">{{a.when}}</span>
+<span style="font-size: 11px; color: #7B8590">{{a.split}}</span>
+</div>
+</sc-for>
+<button type="button" style="height: 40px; background: transparent; border: 1px solid #3A424C; color: #EEF2F4; font-family: inherit; font-size: 11px; letter-spacing: 0.22em">EDIT HOURS AND TIME OFF</button>
+</aside>
+</div>
+</div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const w = (used, cap) => {
+      const r = cap ? used / cap : 0;
+      const fg = r > 1 ? '#EE9A8C' : (r >= 0.9 ? '#D2AE72' : '#9FE3C4');
+      return { v: cap ? used + ' / ' + cap + ' h' : used + ' PRs', fg, bd: r > 1 ? '#8A4A42' : '#1A1F26', w: Math.min(100, Math.round(r * 100)) + '%' };
+    };
+    const agent = (n, rev) => ({ v: n + ' PR · ' + rev + ' h rev', fg: '#9FE3C4', bd: '#1A1F26', w: '100%' });
+    return {
+      people: [
+        { name: 'Rinor', cap: 'Weekends · 12 h', weeks: [w(12, 12), w(14, 12), w(9, 12), w(10, 12), w(6, 12)] },
+        { name: 'Co-founder', cap: 'Ops + dev · 13 h', weeks: [w(11, 13), w(12, 13), w(9, 13), w(8, 13), w(5, 13)] },
+        { name: 'BDR', cap: 'Sales · 40 h', weeks: [w(0, 40), w(40, 40), w(40, 40), w(40, 40), w(40, 40)] },
+        { name: 'Codex agent', cap: 'Needs founder review', weeks: [agent(1, 2), agent(1, 2), agent(1, 2), agent(1, 2), agent(1, 2)] }
+      ],
+      tips: [
+        { text: 'Rinor is 2 h over in W41. Move "Measure cost per minute" to W42, where he has 3 h free.', action: 'MOVE' },
+        { text: 'The Atlas M1 review can go to the co-founder (full-stack) on Wed 7 Oct, 1 h.', action: 'REASSIGN' },
+        { text: '"Confirm country rules" has no hours booked yet; block 1 h on Mon 5 Oct.', action: 'SCHEDULE' }
+      ],
+      avail: [
+        { name: 'Rinor', h: '12 h / wk', c: '#C6C0FF', when: 'Sat and Sun · 09:00–15:00 CET', split: 'Development 70% · review 20% · management 10%' },
+        { name: 'Co-founder', h: '35 h / wk', c: '#8FE3EE', when: 'Mon–Fri · 08:00–15:00 CET', split: 'Sales 22 h · operations 8 h · development 5 h' },
+        { name: 'BDR', h: '40 h / wk', c: '#D2AE72', when: 'Mon–Fri · 08:00–16:00 VET', split: 'Sales only · from 5 Oct (trial week)' },
+        { name: 'Codex agent', h: 'no limit', c: '#9FE3C4', when: 'Any time', split: 'Each PR books 1–2 h of founder review' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

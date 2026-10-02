@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Sign in</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="position: relative; width: 1440px; height: 900px; background: #030406; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<svg width="1440" height="900" viewBox="0 0 1440 900" aria-hidden="true" style="position: absolute; left: 0; top: 0">
+<g fill="none" stroke-linecap="round">
+<path d="M-60 180C200 60 420 260 640 180S980 -20 1180 90 1480 260 1520 160" stroke="#1B2533" stroke-width="18"></path>
+<path d="M-60 180C200 60 420 260 640 180S980 -20 1180 90 1480 260 1520 160" stroke="#2A3A4E" stroke-width="2"></path>
+<path d="M-40 640C160 520 300 760 520 700S860 460 1060 560 1320 820 1500 700" stroke="#161E2A" stroke-width="26"></path>
+<path d="M-40 640C160 520 300 760 520 700S860 460 1060 560 1320 820 1500 700" stroke="#2C3D55" stroke-width="2"></path>
+<path d="M900 -40C860 160 1060 260 1000 420S760 620 820 820 1040 960 1080 960" stroke="#1A1D33" stroke-width="22"></path>
+<path d="M900 -40C860 160 1060 260 1000 420S760 620 820 820 1040 960 1080 960" stroke="#34355A" stroke-width="2"></path>
+<path d="M1200 980C1160 780 1400 700 1380 520S1180 320 1260 140 1480 40 1500 20" stroke="#18182C" stroke-width="16"></path>
+</g>
+</svg>
+<div style="position: absolute; left: 0; top: 0; width: 1440px; height: 900px; box-sizing: border-box; padding: 56px 120px; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 12px">
+<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EEF2F4" stroke-width="1.6" aria-hidden="true"><path d="M12 2.5l8.2 4.75v9.5L12 21.5l-8.2-4.75v-9.5z"></path><path d="M12 8v8M8 10.3l8 3.4"></path></svg>
+<span style="font-size: 15px; font-weight: 500; letter-spacing: 0.28em">ATLAS</span>
+</div>
+<div style="margin-top: auto; margin-bottom: auto; display: grid; grid-template-columns: 1fr 400px; gap: 80px; align-items: center">
+<div style="display: flex; flex-direction: column; gap: 22px">
+<div style="display: flex; align-items: center; gap: 14px; font-size: 11px; letter-spacing: 0.3em; color: #8C96A0"><span style="width: 48px; height: 1px; background: #5E8C92"></span><span>SALES OPERATIONS · ARCADIAN × GLLARIX</span></div>
+<h1 style="margin: 0; font-weight: 300; font-size: 96px; letter-spacing: -0.03em; line-height: 0.95">Every lead.<br><span style="font-weight: 600; color: #DDF6F9">On the dot.</span></h1>
+<p style="margin: 0; max-width: 460px; font-size: 16px; line-height: 1.6; color: #A4ADB6">Your queue, your calls and every deal in one place, ready before your shift starts.</p>
+</div>
+<form aria-label="Sign in" style="background: rgba(5, 6, 8, 0.86); border: 1px solid #1A1F26; padding: 32px; display: flex; flex-direction: column; gap: 18px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">SIGN IN</span>
+<label style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; color: #A4ADB6">Work email</span><input type="email" value="rinor@arcadian-labs.com" style="height: 46px; background: #050608; border: 1px solid #2A313A; color: #EEF2F4; font-family: inherit; font-size: 15px; padding: 0 14px"></label>
+<label style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; color: #A4ADB6">Password</span><input type="password" value="password" style="height: 46px; background: #050608; border: 1px solid #2A313A; color: #EEF2F4; font-family: inherit; font-size: 15px; padding: 0 14px"></label>
+<a href="Main.dc.html" style="height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; background: #EAF6F8; color: #0A0D10; text-decoration: none; font-size: 12px; letter-spacing: 0.24em"><span>SIGN IN</span><span>→</span></a>
+<a href="Main.dc.html" style="height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid #3A424C; color: #EEF2F4; text-decoration: none; font-size: 11px; letter-spacing: 0.22em">EMAIL ME A MAGIC LINK</a>
+<span style="font-size: 12px; color: #7B8590">Access is by invite. Ask an admin to add you.</span>
+</form>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

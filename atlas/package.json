@@ -1,0 +1,43 @@
+{
+  "name": "atlas",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:qa": "vitest run --config vitest.qa.config.ts",
+    "test:all": "vitest run && vitest run --config vitest.qa.config.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.83.0",
+    "libphonenumber-js": "^1.12.10",
+    "papaparse": "^5.5.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.1"
+  },
+  "devDependencies": {
+    "@swc/core": "1.13.2",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^16.3.0",
+    "@types/node": "^22.16.5",
+    "@types/papaparse": "^5.3.16",
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react-swc": "^3.11.0",
+    "autoprefixer": "^10.4.21",
+    "jsdom": "^25.0.1",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.3",
+    "vite": "^5.4.19",
+    "vitest": "^2.1.9"
+  },
+  "overrides": {
+    "@swc/core": "1.13.2"
+  }
+}

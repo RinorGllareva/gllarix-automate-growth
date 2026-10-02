@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — AI planner</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<dc-import name="Sidebar" active="tasks" hint-size="240px,900px"></dc-import>
+<main style="width: 1200px; display: flex; flex-direction: column">
+<dc-import name="TopBar" context="AI PLANNER · DRAFT, NOTHING SAVED YET" action="BACK TO TASKS" href="Tasks.dc.html" hint-size="1200px,72px"></dc-import>
+<div style="display: flex; flex-grow: 1">
+<dc-import name="TaskSpaces" hint-size="220px,828px"></dc-import>
+<div style="width: 980px; display: flex; flex-direction: column">
+<dc-import name="ViewTabs" active="planner" hint-size="980px,64px"></dc-import>
+<div style="padding: 18px 32px; display: flex; flex-direction: column; gap: 14px">
+<section aria-label="Your idea" style="display: grid; grid-template-columns: 1fr 250px; gap: 14px">
+<label style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">YOUR IDEA</span>
+<textarea style="height: 74px; background: #0A0D11; border: 1px solid #2A313A; color: #EEF2F4; font-family: inherit; font-size: 14px; line-height: 1.5; padding: 12px; resize: none">Launch a 3D showcase for developer outreach: one demo building with a unit picker, a landing page, and outreach to 20 Dubai developers. Done by 31 Oct.</textarea>
+</label>
+<div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: #A4ADB6">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">SETTINGS</span>
+<span>Deadline <span style="font-family: 'Geist Mono', monospace; color: #EEF2F4">31 Oct</span> · buffer <span style="font-family: 'Geist Mono', monospace; color: #EEF2F4">+30%</span></span>
+<span>People: Rinor, Co-founder, Codex, freelancer</span>
+<span>Uses: price book, sales plan, calendar</span>
+<button type="button" style="height: 36px; background: #EAF6F8; border: 1px solid #EAF6F8; color: #0A0D10; font-family: inherit; font-size: 11px; letter-spacing: 0.22em">REGENERATE PLAN</button>
+</div>
+</section>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px">
+<sc-for list="{{sum}}" as="s" hint-placeholder-count="4">
+<div style="background: #0A0D11; border: 1px solid #1A1F26; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 10px; letter-spacing: 0.2em; color: #8C96A0">{{s.k}}</span><span style="font-size: 22px; font-weight: 300; color: {{s.c}}">{{s.v}}</span></div>
+</sc-for>
+</div>
+<section aria-label="Proposed tasks" style="border: 1px solid #1A1F26; background: #0A0D11">
+<div style="display: grid; grid-template-columns: 28px 1fr 120px 56px 110px 60px; gap: 10px; padding: 10px 14px; font-size: 10px; letter-spacing: 0.2em; color: #7B8590; border-bottom: 1px solid #1A1F26"><span>#</span><span>TASK</span><span>OWNER</span><span>EST.</span><span>SCHEDULED</span><span>AFTER</span></div>
+<sc-for list="{{tasks}}" as="t" hint-placeholder-count="9">
+<div style="display: grid; grid-template-columns: 28px 1fr 120px 56px 110px 60px; gap: 10px; align-items: center; height: 38px; padding: 0 14px; border-bottom: 1px solid #12161C; font-size: 13px">
+<span style="font-family: 'Geist Mono', monospace; color: #7B8590">{{t.n}}</span>
+<span>{{t.t}}</span>
+<span style="color: {{t.oc}}">{{t.o}}</span>
+<span style="font-family: 'Geist Mono', monospace; color: #A4ADB6">{{t.e}}</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #A4ADB6">{{t.d}}</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #7B8590">{{t.dep}}</span>
+</div>
+</sc-for>
+</section>
+<div style="display: grid; grid-template-columns: 1fr 250px; gap: 14px">
+<section aria-label="Checks" style="border: 1px solid #7A6440; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; font-size: 12px">
+<span style="font-size: 10px; letter-spacing: 0.22em; color: #D2AE72">WHAT THE PLANNER CHANGED OR FLAGGED</span>
+<span style="color: #A4ADB6">Rinor is full on 3–4 Oct (demo line). The landing page moved to 10–11 Oct.</span>
+<span style="color: #A4ADB6">UAE outreach rules aren't verified yet. Task 8 waits on "Confirm country rules".</span>
+<span style="color: #A4ADB6">Freelancer cost isn't in the budget yet: add a quote, [€ amount].</span>
+</section>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<button type="button" style="height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: #EAF6F8; border: 1px solid #EAF6F8; color: #0A0D10; font-family: inherit; font-size: 11px; letter-spacing: 0.22em"><span>ACCEPT 9 TASKS</span><span>→</span></button>
+<button type="button" style="height: 40px; background: transparent; border: 1px solid #3A424C; color: #EEF2F4; font-family: inherit; font-size: 11px; letter-spacing: 0.22em">EDIT BEFORE SAVING</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const C = { Rinor: '#C6C0FF', 'Co-founder': '#8FE3EE', 'Codex agent': '#9FE3C4', Freelancer: '#7B8590' };
+    const t = (n, task, o, e, d, dep) => ({ n, t: task, o, e, d, dep, oc: C[o] });
+    return {
+      sum: [
+        { k: 'TASKS', v: '9', c: '#EEF2F4' },
+        { k: 'TEAM HOURS', v: '20 h', c: '#8FE3EE' },
+        { k: 'FREELANCER', v: '16 h', c: '#7B8590' },
+        { k: 'FINISHES', v: 'Tue 27 Oct ✓', c: '#9FE3C4' }
+      ],
+      tasks: [
+        t('1', 'Choose a sample building and write the scope', 'Co-founder', '2h', 'Wed 30 Sep', '—'),
+        t('2', 'Brief a freelance 3D artist and get a quote', 'Co-founder', '1h', 'Thu 1 Oct', '1'),
+        t('3', 'Model the building in 3D', 'Freelancer', '16h', '2–14 Oct', '2'),
+        t('4', 'List 40 Dubai developers from public sources', 'Co-founder', '3h', '5–9 Oct', '—'),
+        t('5', 'Build the showcase landing page', 'Rinor', '4h', 'Sat 10 Oct', '1'),
+        t('6', 'Build the unit picker with live availability', 'Codex agent', '2h rev', '12–18 Oct', '3'),
+        t('7', 'Record a 90-second walkthrough video', 'Co-founder', '1h', 'Mon 19 Oct', '6'),
+        t('8', 'Write the outreach sequence (UAE rules checked)', 'Co-founder', '2h', 'Tue 20 Oct', '4'),
+        t('9', 'Contact 20 developers and book 3 meetings', 'Co-founder', '5h', '20–27 Oct', '7, 8')
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

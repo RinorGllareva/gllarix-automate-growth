@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Call review</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<dc-import name="Sidebar" active="team" hint-size="240px,900px"></dc-import>
+<main style="width: 1200px; display: flex; flex-direction: column">
+<dc-import name="TopBar" context="TEAM / BDR / CALL REVIEW" action="BACK TO SCORECARD" href="Scorecard.dc.html" hint-size="1200px,72px"></dc-import>
+<div style="padding: 24px 40px; display: grid; grid-template-columns: 1fr 360px; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; gap: 8px"><span style="font-size: 10px; letter-spacing: 0.2em; border: 1px solid #9FE3C4; color: #9FE3C4; padding: 3px 8px">MEETING BOOKED</span><span style="font-size: 10px; letter-spacing: 0.2em; border: 1px solid #2A313A; color: #A4ADB6; padding: 3px 8px">COLD CALL · 04:12</span></div>
+<h1 style="margin: 0; font-weight: 300; font-size: 32px; letter-spacing: -0.02em">Harbor Air Services · Tue 07:46 ET</h1>
+</div>
+<div style="border: 1px solid #1A1F26; background: #0A0D11; padding: 14px 16px; display: flex; align-items: center; gap: 14px">
+<button type="button" aria-label="Play recording" style="width: 40px; height: 40px; background: #EAF6F8; border: 0; color: #0A0D10; font-family: inherit; font-size: 14px">▶</button>
+<div style="flex-grow: 1; height: 28px; display: flex; align-items: center; gap: 2px">
+<sc-for list="{{wave}}" as="w" hint-placeholder-count="60">
+<span style="flex-grow: 1; height: {{w.h}}; background: {{w.c}}"></span>
+</sc-for>
+</div>
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #A4ADB6">00:00 / 04:12</span>
+</div>
+<section aria-label="Transcript" style="border: 1px solid #1A1F26; display: flex; flex-direction: column">
+<sc-for list="{{lines}}" as="l" hint-placeholder-count="7">
+<div style="display: grid; grid-template-columns: 54px 80px 1fr; gap: 12px; padding: 11px 16px; border-bottom: 1px solid #12161C; background: {{l.bg}}">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #7B8590">{{l.t}}</span>
+<span style="font-size: 11px; letter-spacing: 0.16em; color: {{l.wc}}">{{l.who}}</span>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 14px; line-height: 1.5">{{l.text}}</span><span style="font-size: 11px; letter-spacing: 0.14em; color: {{l.tc}}">{{l.tag}}</span></div>
+</div>
+</sc-for>
+</section>
+</div>
+<aside style="display: flex; flex-direction: column; gap: 14px">
+<section aria-label="Scores" style="background: #0A0D11; border: 1px solid #1A1F26; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">AI SCORE · DISCOVERY COUNTS DOUBLE</span><span style="font-family: 'Geist Mono', monospace; font-size: 28px">76</span></div>
+<sc-for list="{{scores}}" as="s" hint-placeholder-count="5">
+<div style="display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; border-bottom: 1px solid #12161C"><span style="color: #A4ADB6">{{s.k}}</span><span style="font-family: 'Geist Mono', monospace; color: {{s.c}}">{{s.v}}</span></div>
+</sc-for>
+</section>
+<section aria-label="Suggestion" style="border: 1px solid #5E8C92; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; line-height: 1.5">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8FE3EE">TRY NEXT TIME</span>
+<span style="color: #A4ADB6">At 02:31, before booking, ask: "When a job slips through, what's it usually worth?" It anchors the price talk in the meeting.</span>
+</section>
+<section aria-label="Human check" style="border: 1px solid #1A1F26; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">HUMAN CHECK · CO-FOUNDER</span>
+<label style="display: flex; align-items: center; justify-content: space-between; font-size: 13px"><span style="color: #A4ADB6">Your score</span><input type="number" value="74" aria-label="Reviewer score" style="width: 70px; height: 36px; background: #050608; border: 1px solid #2A313A; color: #EEF2F4; font-family: 'Geist Mono', monospace; font-size: 14px; padding: 0 8px"></label>
+<span style="font-size: 12px; color: #7B8590">Within 15 points of the AI: accepted. Bigger gaps flag the rubric for review.</span>
+<button type="button" style="height: 40px; background: #EAF6F8; border: 1px solid #EAF6F8; color: #0A0D10; font-family: inherit; font-size: 11px; letter-spacing: 0.22em">CONFIRM REVIEW</button>
+</section>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const heights = [8,14,20,12,6,18,24,16,10,22,26,14,8,12,20,28,18,10,6,14,22,16,12,8,18,24,20,10,14,26,22,12,8,16,20,14,10,18,24,12,6,14,20,16,10,22,18,12,8,14,20,24,16,10,12,18,8,6,10,4];
+    const wave = heights.map((h, i) => ({ h: h + 'px', c: i < 36 ? '#3E6E78' : '#1F2A33' }));
+    const B = '#8FE3EE', P = '#C6C0FF';
+    const good = '#9FE3C4', warn = '#D2AE72', none = '#7B8590';
+    const l = (t, who, text, tag, tc, flag) => ({ t, who, wc: who === 'BDR' ? B : P, text, tag, tc, bg: flag ? '#141008' : 'transparent' });
+    return {
+      wave,
+      lines: [
+        l('00:00', 'BDR', 'Hi, is this Dan? It\'s [BDR name] with Gllarix. This call is recorded. Quick one: when your techs are out on a job, who answers the phone?', 'OPENER 14 S · RECORDING NOTICE GIVEN', good),
+        l('00:16', 'PROSPECT', 'Honestly, mostly nobody. My wife when she can.', '', none),
+        l('00:22', 'BDR', 'How many calls would you say go to voicemail in a normal week?', 'DISCOVERY · MISSED CALLS', good),
+        l('01:12', 'PROSPECT', 'Maybe ten. But these AI things sound robotic.', 'OBJECTION · SOUNDS ROBOTIC', warn),
+        l('01:18', 'BDR', 'Fair. Don\'t take my word for it: call this number now and try to trip it up. It also tells callers it\'s an AI.', 'HANDLED WITH THE LIVE DEMO LINE', good),
+        l('02:31', 'BDR', 'Great. Can we do 20 minutes Thursday at 11?', 'MISSED: JOB VALUE NOT ASKED BEFORE BOOKING', warn, true),
+        l('02:40', 'PROSPECT', 'Thursday works.', 'NEXT STEP BOOKED', good)
+      ],
+      scores: [
+        { k: 'Opener under 20 s', v: '95', c: good },
+        { k: 'Discovery', v: '55', c: warn },
+        { k: 'Objection handling', v: '85', c: good },
+        { k: 'Next step', v: '90', c: good },
+        { k: 'Compliance', v: 'Pass', c: good }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

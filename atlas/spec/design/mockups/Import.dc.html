@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Import leads</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<dc-import name="Sidebar" active="leads" hint-size="240px,900px"></dc-import>
+<main style="width: 1200px; display: flex; flex-direction: column">
+<dc-import name="TopBar" context="LEADS / IMPORT" action="BACK TO LEADS" href="Leads.dc.html" hint-size="1200px,72px"></dc-import>
+<div style="padding: 28px 40px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 14px; font-size: 11px; letter-spacing: 0.22em; color: #8C96A0"><span style="width: 40px; height: 1px; background: #5E8C92"></span><span>FLORIDA HVAC · PLACES API EXPORT · 2,000 ROWS · PARSED IN 11 S</span></div>
+<h1 style="margin: 0; font-weight: 300; font-size: 40px; letter-spacing: -0.02em">Import leads</h1>
+</div>
+<ol aria-label="Steps" style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid #1A1F26">
+<sc-for list="{{steps}}" as="st" hint-placeholder-count="4">
+<li style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 18px; background: {{st.bg}}; color: {{st.fg}}; font-size: 14px"><span style="font-family: 'Geist Mono', monospace; font-size: 12px">{{st.n}}</span><span>{{st.label}}</span><span style="margin-left: auto; font-size: 12px">{{st.mark}}</span></li>
+</sc-for>
+</ol>
+<div style="display: grid; grid-template-columns: 1fr 380px; gap: 24px">
+<section aria-label="Duplicate report" style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+<sc-for list="{{stats}}" as="s" hint-placeholder-count="4">
+<div style="background: #0A0D11; border: 1px solid #1A1F26; padding: 16px; display: flex; flex-direction: column; gap: 10px"><span style="font-size: 10px; letter-spacing: 0.2em; color: #8C96A0">{{s.label}}</span><span style="font-size: 30px; font-weight: 300; color: {{s.c}}">{{s.v}}</span></div>
+</sc-for>
+</div>
+<div style="border: 1px solid #1A1F26; background: #0A0D11">
+<div style="display: grid; grid-template-columns: 1.4fr 1.4fr 70px 150px; gap: 12px; padding: 12px 18px; font-size: 10px; letter-spacing: 0.2em; color: #7B8590; border-bottom: 1px solid #1A1F26"><span>IN THIS FILE</span><span>ALREADY IN ATLAS</span><span>MATCH</span><span>ACTION</span></div>
+<sc-for list="{{dupes}}" as="d" hint-placeholder-count="5">
+<div style="display: grid; grid-template-columns: 1.4fr 1.4fr 70px 150px; gap: 12px; align-items: center; padding: 0 18px; height: 56px; border-bottom: 1px solid #12161C; font-size: 13px">
+<div style="display: flex; flex-direction: column; gap: 2px"><span>{{d.a}}</span><span style="font-size: 11px; color: #7B8590">{{d.aa}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="color: #A4ADB6">{{d.b}}</span><span style="font-size: 11px; color: #7B8590">{{d.bb}}</span></div>
+<span style="font-family: 'Geist Mono', monospace; color: #D2AE72">{{d.m}}</span>
+<div style="display: flex; gap: 6px"><button type="button" style="height: 30px; padding: 0 10px; background: transparent; border: 1px solid #3A424C; color: #EEF2F4; font-family: inherit; font-size: 11px">Merge</button><button type="button" style="height: 30px; padding: 0 10px; background: transparent; border: 1px solid #2A313A; color: #A4ADB6; font-family: inherit; font-size: 11px">Keep both</button></div>
+</div>
+</sc-for>
+<div style="padding: 12px 18px; font-size: 12px; color: #7B8590">Showing 5 of 47 possible duplicates (fuzzy name + city ≥ 90)</div>
+</div>
+</section>
+<section aria-label="Assign" style="background: #0A0D11; border: 1px solid #1A1F26; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">ASSIGN THE 1,712 NEW LEADS</span>
+<sc-for list="{{fields}}" as="f" hint-placeholder-count="5">
+<label style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #A4ADB6">{{f.label}}</span><select style="height: 40px; background: #050608; border: 1px solid #2A313A; color: #EEF2F4; font-family: inherit; font-size: 14px; padding: 0 10px"><option>{{f.value}}</option></select></label>
+</sc-for>
+<label style="display: flex; gap: 10px; align-items: center; font-size: 13px; color: #A4ADB6"><input type="checkbox" checked="checked" style="accent-color: #8FE3EE"><span>Score and add to tomorrow's queue</span></label>
+<button type="button" style="height: 46px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: #EAF6F8; border: 1px solid #EAF6F8; color: #0A0D10; font-family: inherit; font-size: 12px; letter-spacing: 0.22em"><span>IMPORT 1,712 LEADS</span><span>→</span></button>
+<span style="font-size: 12px; color: #7B8590">Opt-out list and country rules are checked before anything is queued.</span>
+</section>
+</div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const done = { bg: 'transparent', fg: '#7B8590', mark: '✓' };
+    return {
+      steps: [
+        { n: '01', label: 'Upload', ...done },
+        { n: '02', label: 'Map columns', ...done },
+        { n: '03', label: 'Review duplicates', bg: '#EAF6F8', fg: '#0A0D10', mark: '47 to check' },
+        { n: '04', label: 'Assign and import', bg: 'transparent', fg: '#A4ADB6', mark: '' }
+      ],
+      stats: [
+        { label: 'ROWS', v: '2,000', c: '#EEF2F4' },
+        { label: 'NEW', v: '1,712', c: '#9FE3C4' },
+        { label: 'EXACT DUPLICATES', v: '241', c: '#7B8590' },
+        { label: 'POSSIBLE DUPLICATES', v: '47', c: '#D2AE72' }
+      ],
+      dupes: [
+        { a: 'Ridgeway Heating and Air LLC', aa: 'Tampa · +1 813 555 0142', b: 'Ridgeway Heating & Air', bb: 'Tampa · same phone', m: '98' },
+        { a: 'Sun Coast Plumbing', aa: 'Clearwater · suncoastplumb.com', b: 'Suncoast Plumbing Inc.', bb: 'Clearwater · suncoastplumb.com', m: '96' },
+        { a: 'Bay Area AC Repair', aa: 'St. Petersburg', b: 'Bay Area A/C & Repair', bb: 'St. Petersburg', m: '93' },
+        { a: 'Gulf Breeze Cooling', aa: 'Sarasota', b: 'Gulfbreeze Cooling Co', bb: 'Sarasota', m: '92' },
+        { a: 'Tampa Comfort Pros', aa: 'Tampa', b: 'Comfort Pros Tampa', bb: 'Brandon', m: '90' }
+      ],
+      fields: [
+        { label: 'Owner', value: 'BDR' },
+        { label: 'List', value: 'Trades' },
+        { label: 'Cadence', value: 'Trades v1' },
+        { label: 'Source', value: 'Places API · Florida HVAC' },
+        { label: 'Reason on record', value: 'Legitimate interest · B2B' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

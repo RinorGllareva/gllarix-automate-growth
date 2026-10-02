@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Time tracking</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<dc-import name="Sidebar" active="time" hint-size="240px,900px"></dc-import>
+<main style="width: 1200px; display: flex; flex-direction: column">
+<dc-import name="TopBar" context="MY TIME · CO-FOUNDER · WEEK 40" action="TEAM REPORTS" href="TimeReports.dc.html" hint-size="1200px,72px"></dc-import>
+<div style="padding: 24px 40px; display: flex; flex-direction: column; gap: 18px">
+<div style="background: #0A0D11; border: 1px solid #5E8C92; padding: 14px 18px; display: flex; align-items: center; gap: 18px">
+<span style="width: 10px; height: 10px; background: #9FE3C4"></span>
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px">Diaspora and developer outreach</span><span style="font-size: 11px; letter-spacing: 0.18em; color: #7B8590">SALES · COMPANY / Q4 LAUNCH</span></div>
+<span style="margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 26px">00:42:10</span>
+<button type="button" style="height: 40px; padding: 0 16px; background: #EE9A8C; border: 1px solid #EE9A8C; color: #1A0B08; font-family: inherit; font-size: 11px; letter-spacing: 0.22em">STOP</button>
+<button type="button" style="height: 40px; padding: 0 16px; background: transparent; border: 1px solid #3A424C; color: #EEF2F4; font-family: inherit; font-size: 11px; letter-spacing: 0.22em">SWITCH TASK</button>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 300px; gap: 20px">
+<section aria-label="Timesheet" style="border: 1px solid #1A1F26; background: #0A0D11">
+<div style="display: grid; grid-template-columns: 1.7fr repeat(7, 50px) 60px; gap: 6px; padding: 12px 14px; font-size: 10px; letter-spacing: 0.2em; color: #7B8590; border-bottom: 1px solid #1A1F26"><span>TASK OR CLIENT</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span><span>TOTAL</span></div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="7">
+<div style="display: grid; grid-template-columns: 1.7fr repeat(7, 50px) 60px; gap: 6px; align-items: center; height: 48px; padding: 0 14px; border-bottom: 1px solid #12161C; font-size: 13px">
+<div style="display: flex; flex-direction: column; gap: 2px"><span>{{r.t}}</span><span style="font-size: 10px; letter-spacing: 0.16em; color: {{r.cc}}">{{r.cat}}</span></div>
+<sc-for list="{{r.d}}" as="h" hint-placeholder-count="7">
+<span style="height: 32px; display: flex; align-items: center; justify-content: center; font-family: 'Geist Mono', monospace; font-size: 12px; border: 1px solid #1A1F26; color: {{h.c}}">{{h.v}}</span>
+</sc-for>
+<span style="font-family: 'Geist Mono', monospace; text-align: right">{{r.tot}}</span>
+</div>
+</sc-for>
+<div style="display: grid; grid-template-columns: 1.7fr repeat(7, 50px) 60px; gap: 6px; align-items: center; height: 44px; padding: 0 14px; font-size: 13px">
+<span style="font-size: 11px; letter-spacing: 0.2em; color: #8C96A0">DAY TOTAL</span>
+<sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+<span style="text-align: center; font-family: 'Geist Mono', monospace; font-size: 12px; color: #A4ADB6">{{d}}</span>
+</sc-for>
+<span style="font-family: 'Geist Mono', monospace; text-align: right; color: #9FE3C4">29.0</span>
+</div>
+<div style="padding: 10px 14px; border-top: 1px solid #1A1F26"><button type="button" style="height: 32px; padding: 0 12px; background: transparent; border: 1px dashed #2A313A; color: #A4ADB6; font-family: inherit; font-size: 12px">+ Add row or manual entry</button></div>
+</section>
+<aside style="display: flex; flex-direction: column; gap: 14px">
+<section aria-label="Week against capacity" style="background: #0A0D11; border: 1px solid #1A1F26; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">THIS WEEK</span><span style="font-family: 'Geist Mono', monospace; font-size: 24px">29.0 <span style="color: #7B8590; font-size: 14px">/ 35 h</span></span></div>
+<sc-for list="{{split}}" as="s" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 5px">
+<div style="display: flex; justify-content: space-between; font-size: 12px"><span style="color: #A4ADB6">{{s.k}}</span><span style="font-family: 'Geist Mono', monospace">{{s.v}}</span></div>
+<div style="height: 3px; background: #1A1F26"><div style="width: {{s.w}}; height: 3px; background: {{s.c}}"></div></div>
+</div>
+</sc-for>
+</section>
+<section aria-label="Estimates" style="border: 1px solid #1A1F26; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; font-size: 13px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">ESTIMATES VS ACTUAL</span>
+<div style="display: flex; justify-content: space-between"><span style="color: #A4ADB6">Tasks finished</span><span style="font-family: 'Geist Mono', monospace">3</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #A4ADB6">Estimated</span><span style="font-family: 'Geist Mono', monospace">6.0 h</span></div>
+<div style="display: flex; justify-content: space-between"><span style="color: #A4ADB6">Actual</span><span style="font-family: 'Geist Mono', monospace; color: #D2AE72">7.5 h · 1.25×</span></div>
+<span style="font-size: 12px; color: #7B8590">The AI planner uses this ratio for your future estimates.</span>
+</section>
+<button type="button" style="height: 46px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: #EAF6F8; border: 1px solid #EAF6F8; color: #0A0D10; font-family: inherit; font-size: 11px; letter-spacing: 0.22em"><span>SUBMIT WEEK</span><span>→</span></button>
+<span style="font-size: 12px; color: #7B8590">You enter your own time. No activity, screen or idle tracking.</span>
+</aside>
+</div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const cc = { SALES: '#8FE3EE', 'LEAD GEN': '#9FE3C4', MANAGEMENT: '#C6C0FF', FINANCE: '#D2AE72', DEVELOPMENT: '#C6C0FF', CLIENT: '#D2AE72' };
+    const days = (arr) => arr.map((v) => ({ v: v ? v.toFixed(1) : '—', c: v ? '#EEF2F4' : '#3A424C' }));
+    const row = (t, cat, arr) => ({ t, cat, cc: cc[cat.split(' ·')[0]] || '#A4ADB6', d: days(arr), tot: arr.reduce((a, b) => a + b, 0).toFixed(1) });
+    return {
+      rows: [
+        row('Diaspora and developer outreach', 'SALES', [3, 3.5, 3, 3.5, 3, 0, 0]),
+        row('Offer sheet and call script', 'SALES', [0, 1, 1.5, 0, 0, 0, 0]),
+        row('Volution Development · 3D proposal', 'CLIENT · NON-BILLABLE', [0, 0, 0, 0, 1.5, 0, 0]),
+        row('First 500 US trades leads', 'LEAD GEN', [0, 0, 1, 2, 1, 0, 0]),
+        row('Post BDR job and screen applicants', 'MANAGEMENT', [1, 0.5, 1, 0.5, 0.5, 0, 0]),
+        row('Approve price book v2', 'FINANCE', [0, 0, 0.5, 0, 0, 0, 0]),
+        row('Review Atlas M1 pull request', 'DEVELOPMENT', [0, 0, 0, 1, 0, 0, 0])
+      ],
+      days: ['4.0', '5.0', '7.0', '7.0', '6.0', '—', '—'],
+      split: [
+        { k: 'Sales · target 22 h', v: '20.0', w: '91%', c: '#8FE3EE' },
+        { k: 'Operations and management · target 8 h', v: '8.0', w: '100%', c: '#C6C0FF' },
+        { k: 'Development · target 5 h', v: '1.0', w: '20%', c: '#D2AE72' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

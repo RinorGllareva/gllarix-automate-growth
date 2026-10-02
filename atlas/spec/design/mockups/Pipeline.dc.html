@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Pipeline</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<dc-import name="Sidebar" active="pipeline" hint-size="240px,900px"></dc-import>
+<main style="width: 1200px; display: flex; flex-direction: column">
+<dc-import name="TopBar" context="OPEN PIPELINE · $10.3K + €48.3K SETUP" action="NEW DEAL" href="Deal.dc.html" hint-size="1200px,72px"></dc-import>
+<div style="padding: 28px 40px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: flex-end; justify-content: space-between">
+<h1 style="margin: 0; font-weight: 300; font-size: 40px; letter-spacing: -0.02em">Pipeline</h1>
+<div style="display: flex; gap: 8px; font-size: 13px">
+<button type="button" style="height: 36px; padding: 0 12px; background: #EAF6F8; border: 1px solid #EAF6F8; color: #0A0D10; font-family: inherit">Both brands</button>
+<button type="button" style="height: 36px; padding: 0 12px; background: transparent; border: 1px solid #2A313A; color: #EEF2F4; font-family: inherit">Gllarix</button>
+<button type="button" style="height: 36px; padding: 0 12px; background: transparent; border: 1px solid #2A313A; color: #EEF2F4; font-family: inherit">Arcadian</button>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{cols}}" as="col" hint-placeholder-count="7">
+<section aria-label="{{col.name}}" style="background: #0A0D11; border: 1px solid #1A1F26; min-height: 700px; display: flex; flex-direction: column">
+<div style="padding: 14px 12px; border-bottom: 1px solid #1A1F26; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.2em; color: #8C96A0"><span>{{col.name}}</span><span style="font-family: 'Geist Mono', monospace">{{col.n}}</span></div>
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: #A4ADB6">{{col.sum}}</span>
+</div>
+<div style="padding: 8px; display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{col.cards}}" as="c" hint-placeholder-count="2">
+<a href="Deal.dc.html" style="display: flex; flex-direction: column; gap: 8px; padding: 12px; background: #050608; border: 1px solid #1A1F26; text-decoration: none; color: #EEF2F4">
+<span style="align-self: flex-start; font-size: 9px; letter-spacing: 0.2em; border: 1px solid {{c.bc}}; color: {{c.bt}}; padding: 2px 6px">{{c.brand}}</span>
+<span style="font-size: 13px; line-height: 1.3">{{c.co}}</span>
+<span style="font-family: 'Geist Mono', monospace; font-size: 11px; color: #A4ADB6">{{c.val}}</span>
+<div style="display: flex; justify-content: space-between; font-size: 11px; color: #7B8590"><span>{{c.owner}}</span><span>{{c.age}}</span></div>
+</a>
+</sc-for>
+</div>
+</section>
+</sc-for>
+</div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const G = { brand: 'GLLARIX', bc: '#5E8C92', bt: '#8FE3EE' };
+    const A = { brand: 'ARCADIAN', bc: '#7A6440', bt: '#D2AE72' };
+    return {
+      cols: [
+        { name: 'QUALIFIED', n: '3', sum: '$3.0K + €3.3K', cards: [
+          { ...G, co: 'Keystone Electric', val: '$1,500 + $699/mo', owner: 'BDR', age: '2d' },
+          { ...A, co: 'Prishtina Tower Residences', val: '€3,250 + €125/mo', owner: 'Co-founder', age: '1d' },
+          { ...G, co: 'Coastline Drains', val: '$1,500 + $699/mo', owner: 'BDR', age: '4d' } ] },
+        { name: 'MEETING BOOKED', n: '2', sum: '$1.5K + €12K', cards: [
+          { ...A, co: 'Thameside Homes', val: '€12,000 + €449/mo', owner: 'Co-founder', age: 'Thu' },
+          { ...G, co: 'Harbor Air Services', val: '$1,500 + $699/mo', owner: 'BDR', age: 'Thu' } ] },
+        { name: 'MEETING HELD', n: '2', sum: '$4.0K', cards: [
+          { ...G, co: 'Summit Roofing Co.', val: '$1,500 + $699/mo', owner: 'BDR', age: '1d' },
+          { ...G, co: 'Coastal Comfort HVAC', val: '$2,500 + $1,199/mo', owner: 'BDR', age: '1d' } ] },
+        { name: 'OPPORTUNITY', n: '1', sum: '€18K', cards: [
+          { ...A, co: 'Marina Crest Properties', val: '€18,000 + €549/mo', owner: 'Co-founder', age: '6d' } ] },
+        { name: 'PROPOSAL SENT', n: '1', sum: '$1.8K', cards: [
+          { ...G, co: 'Palmetto Plumbing', val: '$1,780 + $786/mo · pilot', owner: 'BDR', age: '2d' } ] },
+        { name: 'NEGOTIATION', n: '1', sum: '€15K', cards: [
+          { ...A, co: 'Alpine Residences Lucerne', val: '€15,000 + €561/mo', owner: 'Co-founder', age: '9d' } ] },
+        { name: 'WON · DEC', n: '2', sum: 'MRR $1,048', cards: [
+          { ...G, co: 'Sunrise HVAC', val: '$600 + $524/mo · pilot', owner: 'BDR', age: 'Live' },
+          { ...G, co: 'Bluewater Plumbing', val: '$600 + $524/mo · pilot', owner: 'BDR', age: 'Onboarding' } ] }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

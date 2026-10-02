@@ -25,21 +25,16 @@ const Index = () => {
     <main className="min-h-screen bg-black">
       <Navigation />
 
-      {isIntroActive ? (
-        <div className="min-h-screen bg-black" aria-hidden="true" />
-      ) : (
-        <>
-          <Suspense fallback={<div className="min-h-screen bg-black" aria-hidden="true" />}>
-            <Hero />
-          </Suspense>
+      {/* The hero renders behind the intro so the glass mark lands on the live page. */}
+      <Suspense fallback={<div className="min-h-screen bg-black" aria-hidden="true" />}>
+        <Hero />
+      </Suspense>
 
-          {showHomepageSections ? (
-            <Suspense fallback={null}>
-              <HomepageSections />
-            </Suspense>
-          ) : null}
-        </>
-      )}
+      {showHomepageSections ? (
+        <Suspense fallback={null}>
+          <HomepageSections />
+        </Suspense>
+      ) : null}
     </main>
   );
 };

@@ -1,0 +1,9 @@
+# The repo is public. Only the screen specs and design mockups (fictional sample data) are committed.
+# Everything else here (business context, pricing, plans, prompts with rules and commissions) stays local.
+*
+!.gitignore
+!SPEC_INDEX.md
+!screens/
+!screens/**
+!design/
+!design/**

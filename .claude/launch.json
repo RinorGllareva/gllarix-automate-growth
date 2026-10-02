@@ -1,0 +1,7 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "web", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 8080 },
+    { "name": "atlas", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev", "--prefix", "atlas"], "port": 8081, "url": "http://atlas.localhost:8081" }
+  ]
+}

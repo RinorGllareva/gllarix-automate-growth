@@ -1,0 +1,94 @@
+/*
+ * Atlas design tokens — matched to gllarix.com. Dark is the default; light is set with <html data-theme="light">.
+ * Layers, darkest to lightest in dark mode: chrome (sidebar, top bar) → page → card → raised. Light mode is a soft
+ * slate scheme (no pure white anywhere) so it is easy on the eyes.
+ * Every component reads these names; never hard-code colors. Category colors (stages, statuses, people) live in
+ * src/config/colors.ts and use the hue tokens below.
+ */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  /* Layers */
+  --chrome: #07090C;      /* sidebar and top bar */
+  --bg: #0C0F14;          /* page ground */
+  --bg-deep: #040507;     /* sign-in, overlay scrim */
+  --surface: #13171E;     /* cards, tables, panels */
+  --surface-2: #1A1F28;   /* raised: table headers, hover, selected row */
+  --inset: #0A0D11;       /* inputs, wells inside cards */
+  /* Lines */
+  --line: #262D37;
+  --line-soft: #1D232C;
+  --line-strong: #37404C;
+  --line-button: #4A5461;
+  /* Text */
+  --text: #F0F3F5;
+  --text-2: #B3BCC5;
+  --text-3: #8C96A1;
+  --label: #9AA4AE;
+  /* Primary (ice): active nav item, primary button */
+  --ice: #EAF6F8;
+  --ice-ink: #0A0D10;
+  /* Hues */
+  --cyan: #8FE3EE;        /* Gllarix, links, tier B */
+  --mint: #9FE3C4;        /* good, tier A, won, money in */
+  --lavender: #C6C0FF;    /* plan, tier C, review */
+  --amber: #E0B977;       /* Arcadian, warnings, pending */
+  --coral: #F0A193;       /* stop, danger, lost, urgent */
+  --blue: #8DB4FF;        /* in progress, booked, video */
+  --teal: #6FD6C0;        /* phone, delivery */
+  --orange: #F5B27A;      /* high priority, opportunity */
+  --pink: #F2A2D0;        /* negotiation, in person */
+  --lime: #C7E27F;        /* research, growth */
+  --cyan-line: #4F7E85;
+  --amber-line: #7E6640;
+  --tint-strength: 15%;
+  --card-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+  --font: 'Geist', 'Helvetica Neue', Helvetica, sans-serif;
+  --mono: 'Geist Mono', ui-monospace, monospace;
+  --radius: 0;
+  --label-tracking: 0.22em;
+}
+
+/* Light: soft slate. Every layer is a tinted grey (nothing near pure white); text is dark slate, not black. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --chrome: #CDD5DF;
+  --bg: #D8DEE6;
+  --bg-deep: #C7CFD9;
+  --surface: #E4E8EE;
+  --surface-2: #ECEFF3;
+  --inset: #DCE1E8;
+  --line: #BCC5D1;
+  --line-soft: #CBD2DB;
+  --line-strong: #A7B2C0;
+  --line-button: #8E9BAB;
+  --text: #18212C;
+  --text-2: #364352;
+  --text-3: #4F5B6A;
+  --label: #4A5664;
+  --ice: #1F2C3B;
+  --ice-ink: #E9EEF4;
+  --cyan: #076776;
+  --mint: #146B45;
+  --lavender: #4E3FB3;
+  --amber: #7E540A;
+  --coral: #A93422;
+  --blue: #2350B8;
+  --teal: #0B6B5C;
+  --orange: #9C4A0B;
+  --pink: #9C2C6B;
+  --lime: #4D6A0C;
+  --cyan-line: #6FA9B2;
+  --amber-line: #B99A62;
+  --tint-strength: 16%;
+  --card-shadow: 0 1px 2px rgba(24, 33, 44, 0.08);
+}
+
+/* Tints (derived, so they follow the theme). */
+:root {
+  --cyan-tint: color-mix(in srgb, var(--cyan) var(--tint-strength), transparent);
+  --mint-tint: color-mix(in srgb, var(--mint) var(--tint-strength), transparent);
+  --lavender-tint: color-mix(in srgb, var(--lavender) var(--tint-strength), transparent);
+  --amber-tint: color-mix(in srgb, var(--amber) var(--tint-strength), transparent);
+  --coral-tint: color-mix(in srgb, var(--coral) var(--tint-strength), transparent);
+}

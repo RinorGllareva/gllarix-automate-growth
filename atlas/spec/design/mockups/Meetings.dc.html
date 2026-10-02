@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Atlas — Meetings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#050608}a{color:#8FE3EE}a:hover{color:#BFF3F7}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; background: #050608; color: #EEF2F4; font-family: 'Geist', 'Helvetica Neue', Helvetica, sans-serif; overflow: hidden">
+<dc-import name="Sidebar" active="meetings" hint-size="240px,900px"></dc-import>
+<main style="width: 1200px; display: flex; flex-direction: column">
+<dc-import name="TopBar" context="WEEK 49 · 30 NOV – 4 DEC" action="BOOKING LINK" href="Meetings.dc.html" hint-size="1200px,72px"></dc-import>
+<div style="padding: 28px 40px; display: flex; flex-direction: column; gap: 22px">
+<h1 style="margin: 0; font-weight: 300; font-size: 40px; letter-spacing: -0.02em">Meetings</h1>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px">
+<sc-for list="{{stats}}" as="s" hint-placeholder-count="5">
+<div style="background: #0A0D11; border: 1px solid #1A1F26; padding: 16px; display: flex; flex-direction: column; gap: 8px"><span style="font-size: 10px; letter-spacing: 0.2em; color: #8C96A0">{{s.label}}</span><span style="font-size: 30px; font-weight: 300; color: {{s.c}}">{{s.v}}</span><span style="font-size: 11px; color: #7B8590">{{s.note}}</span></div>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 380px; gap: 24px">
+<section aria-label="This week" style="border: 1px solid #1A1F26; background: #0A0D11">
+<div style="display: grid; grid-template-columns: 110px 1.5fr 100px 130px 120px; gap: 12px; padding: 12px 18px; font-size: 10px; letter-spacing: 0.2em; color: #7B8590; border-bottom: 1px solid #1A1F26"><span>WHEN</span><span>COMPANY</span><span>OWNER</span><span>STATUS</span><span>BONUS</span></div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+<div style="display: grid; grid-template-columns: 110px 1.5fr 100px 130px 120px; gap: 12px; align-items: center; padding: 0 18px; height: 58px; border-bottom: 1px solid #12161C; font-size: 13px; background: {{r.bg}}">
+<span style="font-family: 'Geist Mono', monospace; color: #A4ADB6">{{r.when}}</span>
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px">{{r.co}}</span><span style="font-size: 11px; color: #7B8590">{{r.sub}}</span></div>
+<span style="color: #A4ADB6">{{r.owner}}</span>
+<span style="justify-self: start; font-size: 10px; letter-spacing: 0.18em; border: 1px solid {{r.sc}}; color: {{r.sc}}; padding: 4px 8px">{{r.status}}</span>
+<span style="font-family: 'Geist Mono', monospace; color: {{r.bc}}">{{r.bonus}}</span>
+</div>
+</sc-for>
+</section>
+<section aria-label="Approve meeting" style="background: #0A0D11; border: 1px solid #1A1F26; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<span style="font-size: 11px; letter-spacing: 0.22em; color: #8C96A0">APPROVE · COASTAL COMFORT HVAC</span>
+<div style="font-size: 13px; color: #A4ADB6">Held Wed 13:00 ET · 24 min · recording available</div>
+<fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px">
+<legend style="font-size: 12px; color: #A4ADB6; padding: 0 0 8px 0">Counts for the $15 bonus only if all are true</legend>
+<sc-for list="{{checks}}" as="c" hint-placeholder-count="6">
+<label style="display: flex; align-items: center; gap: 12px; height: 36px; padding: 0 12px; border: 1px solid #1A1F26; font-size: 13px"><input type="checkbox" checked="{{c.on}}" style="accent-color: #9FE3C4; width: 16px; height: 16px"><span>{{c.label}}</span></label>
+</sc-for>
+</fieldset>
+<div style="display: flex; gap: 8px">
+<button type="button" style="flex-grow: 1; height: 44px; background: #EAF6F8; border: 1px solid #EAF6F8; color: #0A0D10; font-family: inherit; font-size: 11px; letter-spacing: 0.22em">APPROVE · $15</button>
+<button type="button" style="height: 44px; padding: 0 16px; background: transparent; border: 1px solid #3A424C; color: #EEF2F4; font-family: inherit; font-size: 11px; letter-spacing: 0.22em">REJECT</button>
+</div>
+<span style="font-size: 12px; color: #7B8590">Rejections need a reason; the BDR sees it on his daily report.</span>
+</section>
+</div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const ok = { sc: '#9FE3C4', bc: '#9FE3C4' };
+    const pend = { sc: '#C6C0FF', bc: '#C6C0FF' };
+    const no = { sc: '#7B8590', bc: '#7B8590' };
+    const up = { sc: '#8FE3EE', bc: '#7B8590' };
+    return {
+      stats: [
+        { label: 'BOOKED', v: '5', note: 'target 4+', c: '#EEF2F4' },
+        { label: 'HELD', v: '3', note: '2 still to come', c: '#8FE3EE' },
+        { label: 'SHOW RATE', v: '75%', note: 'target 70%+', c: '#9FE3C4' },
+        { label: 'APPROVED', v: '2', note: '1 waiting', c: '#C6C0FF' },
+        { label: 'BONUS THIS WEEK', v: '$30', note: '$15 per approved', c: '#EEF2F4' }
+      ],
+      rows: [
+        { when: 'Mon 12:30', co: 'Summit Roofing Co.', sub: 'Owner · Gllarix Standard', owner: 'BDR', status: 'APPROVED', bonus: '+$15', bg: 'transparent', ...ok },
+        { when: 'Mon 14:00', co: 'Palmetto Plumbing', sub: 'Owner · pilot offer', owner: 'BDR', status: 'APPROVED', bonus: '+$15', bg: 'transparent', ...ok },
+        { when: 'Tue 13:30', co: 'Lakeshore Heating', sub: 'No-show · follow-up sent', owner: 'BDR', status: 'NO-SHOW', bonus: '—', bg: 'transparent', ...no },
+        { when: 'Wed 13:00', co: 'Coastal Comfort HVAC', sub: 'Owner + office manager', owner: 'BDR', status: 'TO APPROVE', bonus: 'pending', bg: '#0E1319', ...pend },
+        { when: 'Thu 10:00', co: 'Thameside Homes', sub: 'London · 3D sales platform', owner: 'Co-founder', status: 'UPCOMING', bonus: '—', bg: 'transparent', ...up },
+        { when: 'Thu 11:00', co: 'Harbor Air Services', sub: 'Owner · booked today', owner: 'BDR', status: 'UPCOMING', bonus: '—', bg: 'transparent', ...up }
+      ],
+      checks: [
+        { label: 'Matches the target customer', on: true },
+        { label: 'Contact details are valid', on: true },
+        { label: 'Real business need', on: true },
+        { label: 'Decision-maker attended', on: true },
+        { label: 'The meeting took place', on: true },
+        { label: 'Not a duplicate or out of target', on: false }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
