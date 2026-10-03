@@ -208,11 +208,19 @@ export interface BillingRun {
   autoSteps: number;
 }
 
+/** An invoice with its client's name (Money › Payments). */
+export interface InvoiceRow extends Invoice {
+  companyName: string;
+  clientId: string;
+}
+
 export interface ClientsApi {
   /** Daily usage import, month-end invoices + reports, auto onboarding steps, health tasks. Idempotent; a cron in Supabase mode. */
   runBillingJobs(): Promise<BillingRun>;
   clientsOverview(): Promise<ClientsOverview>;
   getClient(id: string, period?: string): Promise<ClientDetail>;
+  /** Admin: every invoice across clients, newest first. */
+  listInvoices(): Promise<InvoiceRow[]>;
   setOnboardingStep(clientId: string, key: OnboardingKey, done: boolean): Promise<void>;
   /** Pause (billing stops from the next period), resume, or cancel (final invoice, number release + export tasks). */
   setClientStatus(clientId: string, status: "live" | "paused" | "churned", reason: string): Promise<void>;

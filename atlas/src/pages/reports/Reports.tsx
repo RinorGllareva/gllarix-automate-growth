@@ -85,21 +85,21 @@ const DailyReportCard = ({ report }: { report: DailyBdrReport | null }) => (
         <div className="grid grid-cols-2 gap-3 text-[13px] sm:grid-cols-4">
           <span>
             <span className="num text-[22px] font-light">{report.dials}</span>
-            <span className="block text-[11px] uppercase tracking-[0.2em] text-label">Dials</span>
+            <span className="block text-[12px] font-medium text-label">Dials</span>
           </span>
           <span>
             <span className="num text-[22px] font-light">{report.conversations}</span>
-            <span className="block text-[11px] uppercase tracking-[0.2em] text-label">Conversations</span>
+            <span className="block text-[12px] font-medium text-label">Conversations</span>
           </span>
           <span>
             <span className="num text-[22px] font-light">{report.booked}</span>
-            <span className="block text-[11px] uppercase tracking-[0.2em] text-label">Booked</span>
+            <span className="block text-[12px] font-medium text-label">Booked</span>
           </span>
           <span>
             <span className="num text-[22px] font-light">
               {report.queueDone}/{report.queueTotal}
             </span>
-            <span className="block text-[11px] uppercase tracking-[0.2em] text-label">Queue</span>
+            <span className="block text-[12px] font-medium text-label">Queue</span>
           </span>
         </div>
         {report.outcomes.length ? (
@@ -109,7 +109,7 @@ const DailyReportCard = ({ report }: { report: DailyBdrReport | null }) => (
         )}
         {report.rejections.length ? (
           <div className="flex flex-col gap-1 border-t border-line-soft pt-2.5">
-            <span className="text-[11px] uppercase tracking-[0.2em] text-coral">Meetings rejected today</span>
+            <span className="text-[12px] font-medium text-coral">Meetings rejected today</span>
             {report.rejections.map((r) => (
               <span key={r.company} className="text-[13px]">
                 {r.company} · <span className="text-text-2">{r.reason}</span>
@@ -235,18 +235,18 @@ const Reports = () => {
               </div>
               <span className="text-right">
                 <span className="num">{f.count}</span>
-                {f.rate !== null ? <span className="ml-1.5 font-mono text-[11px] text-text-3">{pct(f.rate)}</span> : null}
+                {f.rate !== null ? <span className="ml-1.5 font-mono text-[12px] font-medium text-text-3">{pct(f.rate)}</span> : null}
               </span>
             </div>
           ))}
-          <span className="text-[11px] text-text-3">Connects = calls answered by a person. Rates are from the previous step.</span>
+          <span className="text-[12px] font-medium text-text-3">Connects = calls answered by a person. Rates are from the previous step.</span>
         </section>
         <MrrChart report={report} />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
         <section aria-label="KPIs" className="card min-w-0">
-          <div className="grid grid-cols-[minmax(0,1.6fr)_80px_minmax(0,1fr)_100px] gap-3 border-b border-line px-5 py-3 text-[10px] uppercase tracking-[0.2em] text-text-3 bg-surface-2">
+          <div className="grid grid-cols-[minmax(0,1.6fr)_80px_minmax(0,1fr)_100px] gap-3 border-b border-line px-5 py-3 text-[12px] font-medium text-text-3 bg-surface-2">
             <span>KPI</span>
             <span>{kind === "week" ? "This week" : "This month"}</span>
             <span>Target</span>
@@ -260,7 +260,7 @@ const Reports = () => {
               <span>{k.status ? <StatusChip status={k.status} /> : <span className="text-text-3">—</span>}</span>
             </div>
           ))}
-          <div className="px-5 py-3 text-[11px] text-text-3">Targets from the sales plan (context/03); "per day" uses business days so far in the period.</div>
+          <div className="px-5 py-3 text-[12px] font-medium text-text-3">Targets from the sales plan (context/03); "per day" uses business days so far in the period.</div>
         </section>
 
         <section aria-label="Stage gates" className="card flex flex-col gap-4 p-5">

@@ -102,6 +102,7 @@ export interface TeamMemberToday {
   dials: number;
   conversations: number;
   meetingsBookedWeek: number;
+  approvedWeek: number;
 }
 
 export interface ComplianceResult {

@@ -47,11 +47,11 @@ const Draft = ({ plan, setPlan, onAccepted }: { plan: PlanView; setPlan: (p: Pla
       <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
         {[
           { k: "TASKS", v: String(s.summary.tasks), c: "var(--text)" },
-          { k: "TEAM HOURS", v: `${fmtH(s.summary.teamHours)} h`, c: "var(--cyan)" },
+          { k: "Team hours", v: `${fmtH(s.summary.teamHours)} h`, c: "var(--cyan)" },
           { k: "FREELANCER", v: `${fmtH(s.summary.externalHours)} h`, c: "var(--text-3)" },
           { k: "FINISHES", v: s.summary.finish ? `${dayLabel(s.summary.finish)}${s.summary.beforeDeadline === false ? " · after deadline" : s.summary.beforeDeadline ? " ✓" : ""}` : "—", c: s.summary.beforeDeadline === false ? "var(--coral)" : "var(--mint)" },
         ].map((x) => (
-          <div key={x.k} className="flex flex-col gap-1.5 border border-line bg-surface px-3.5 py-3">
+          <div key={x.k} className="flex flex-col gap-1.5 border border-line rounded-lg bg-surface px-3.5 py-3">
             <span className="text-[10px] tracking-[0.2em] text-label">{x.k}</span>
             <span className="text-[22px] font-light" style={{ color: x.c }}>
               {x.v}
@@ -60,7 +60,7 @@ const Draft = ({ plan, setPlan, onAccepted }: { plan: PlanView; setPlan: (p: Pla
         ))}
       </div>
 
-      <section aria-label="Proposed tasks" className="min-w-0 overflow-x-auto border border-line bg-surface">
+      <section aria-label="Proposed tasks" className="min-w-0 overflow-x-auto border border-line rounded-lg bg-surface">
         <div className="grid min-w-[720px] grid-cols-[28px_minmax(0,1fr)_130px_70px_120px_70px_28px] gap-2.5 border-b border-line px-3.5 py-2.5 text-[10px] tracking-[0.2em] text-text-3 bg-surface-2">
           <span>#</span>
           <span>TASK</span>
@@ -157,7 +157,7 @@ const Draft = ({ plan, setPlan, onAccepted }: { plan: PlanView; setPlan: (p: Pla
 
       <div className="grid gap-3.5 lg:grid-cols-[minmax(0,1fr)_250px]">
         <section aria-label="Checks" className="flex flex-col gap-1.5 border border-amber-line px-3.5 py-3 text-[12px]">
-          <span className="text-[10px] tracking-[0.22em] text-amber">WHAT THE PLANNER CHANGED OR FLAGGED</span>
+          <span className="text-[12px] font-medium text-amber">What the planner changed or flagged</span>
           {s.flags.length ? s.flags.map((f) => <span key={f} className="text-text-2">{f}</span>) : <span className="text-text-3">Nothing to flag: it fits.</span>}
           {plan.openQuestions.length ? <span className="mt-1 text-text-3">Open questions: {plan.openQuestions.join(" · ")}</span> : null}
         </section>
@@ -191,11 +191,11 @@ const Draft = ({ plan, setPlan, onAccepted }: { plan: PlanView; setPlan: (p: Pla
                   }
                 }}
               >
-                <span>ACCEPT {plan.rows.length} TASKS</span>
+                <span>Accept {plan.rows.length} tasks</span>
                 <span aria-hidden="true">→</span>
               </button>
               <button type="button" className="btn-outline h-10 text-[11px]" aria-pressed={editing} onClick={() => setEditing((x) => !x)}>
-                {editing ? "DONE EDITING" : "EDIT BEFORE SAVING"}
+                {editing ? "Done editing" : "Edit before saving"}
               </button>
               <button type="button" className="btn-ghost h-8 text-[11px]" onClick={() => data.rejectPlan(plan.id).then(onAccepted)}>
                 Discard draft
@@ -263,7 +263,7 @@ const PlannerView = () => {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="m-0 text-[34px] font-light tracking-[-0.02em]">AI planner</h1>
+        <h1 className="page-title m-0">AI planner</h1>
         {log ? (
           <span className={`text-[12px] ${log.blocked ? "text-coral" : "text-text-3"}`}>
             AI this month €{(log.monthSpendEurMinor / 100).toFixed(2)} of €{(log.capEurMinor / 100).toFixed(0)}
@@ -325,7 +325,7 @@ const PlannerView = () => {
                 })}
               </span>
               <button type="button" className="btn-primary h-9 text-[11px]" disabled={busy || !settings.people.length} onClick={() => generate(tab === "notes" ? "notes" : "idea")}>
-                {busy ? "PLANNING…" : plan ? "REGENERATE PLAN" : "PLAN IT"}
+                {busy ? "Planning…" : plan ? "Regenerate plan" : "Plan it"}
               </button>
             </div>
           </section>
@@ -363,7 +363,7 @@ const PlannerView = () => {
                 }
               }}
             >
-              {busy ? "THINKING…" : "WHAT SHOULD WE DO THIS WEEK?"}
+              {busy ? "Thinking…" : "What should we do this week?"}
             </button>
           </div>
           {weekly ? (

@@ -65,7 +65,7 @@ const Book = () => {
         ) : done ? (
           <section aria-label="Booked" className="flex flex-col gap-4">
             <span className="label-caps">You're booked</span>
-            <h1 className="m-0 text-[40px] font-light leading-tight tracking-[-0.02em]">
+            <h1 className="page-title m-0 leading-tight">
               {dayTitle(done.meetingAt)}, {localHHMM(new Date(done.meetingAt), visitorTz)}
             </h1>
             <p className="m-0 text-[15px] text-text-2">
@@ -77,7 +77,7 @@ const Book = () => {
           <>
             <div className="flex flex-col gap-3">
               <span className="label-caps">Book 30 minutes with {page.ownerName}</span>
-              <h1 className="m-0 text-[40px] font-light leading-tight tracking-[-0.02em]">{slot ? "Your details" : "Pick a time"}</h1>
+              <h1 className="page-title m-0 leading-tight">{slot ? "Your details" : "Pick a time"}</h1>
               <p className="m-0 text-[14px] text-text-2">
                 Times are in your timezone ({visitorTz.replace(/_/g, " ")}). {page.ownerName} works in {zoneAbbr(page.timezone)}.
               </p>

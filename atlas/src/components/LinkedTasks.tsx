@@ -40,14 +40,14 @@ const LinkedTasks = ({ type, id, spaceHint = "Sales", compact = false }: { type:
   const open = rows?.filter((r) => isOpen(r.task.status)) ?? [];
   const closed = rows?.filter((r) => !isOpen(r.task.status)) ?? [];
   return (
-    <section aria-label="Tasks" className="flex flex-col border border-line">
+    <section aria-label="Tasks" className="flex flex-col overflow-hidden rounded-xl border border-line">
       <span className="label-caps border-b border-line px-4 py-3">
         Tasks{rows ? ` · ${open.length} open` : ""}
       </span>
       {[...open, ...(compact ? [] : closed)].map((r) => (
         <Link key={r.task.id} to={`/tasks/${r.task.id}`} className="flex items-center justify-between gap-3 border-b border-line-soft px-4 py-2.5 text-[13px] last:border-b-0 hover:bg-surface-2">
           <span className="flex min-w-0 items-center gap-2.5">
-            <span className={`h-3 w-3 shrink-0 border ${STATUS_META[r.task.status].border} ${r.task.status === "done" ? STATUS_META.done.bg : ""}`} />
+            <span className={`h-3 w-3 shrink-0 rounded-full border ${STATUS_META[r.task.status].border} ${r.task.status === "done" ? STATUS_META.done.bg : ""}`} />
             <span className={`truncate ${isOpen(r.task.status) ? "" : "text-text-3 line-through"}`}>{r.task.title}</span>
           </span>
           <span className="flex shrink-0 items-center gap-3 text-[11px]">

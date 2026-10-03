@@ -38,7 +38,7 @@ const SettingsSection = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="m-0 text-[34px] font-light tracking-[-0.02em]">Settings</h1>
+      <h1 className="page-title m-0">Settings</h1>
 
       <form
         className="card flex flex-col gap-4 p-5"

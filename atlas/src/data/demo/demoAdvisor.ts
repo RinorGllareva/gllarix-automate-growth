@@ -633,6 +633,35 @@ export const createDemoAdvisor = <S extends AdvisorStore>(ctx: Ctx<S>) => {
       return s.decisions.filter((d) => !status || d.status.startsWith(status));
     },
 
+    async logSpendDecision(input) {
+      const user = await viewer();
+      requireAdmin(user);
+      if (!input.title.trim()) throw new Error("Name the spend.");
+      if (!input.stopRule.trim()) throw new Error("Every spend needs a stop rule.");
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(input.reviewDate)) throw new Error("Pick a review date.");
+      if (!(input.monthlyCostEur >= 0) || !(input.oneOffCostEur >= 0) || input.monthlyCostEur + input.oneOffCostEur <= 0) throw new Error("Enter what it costs.");
+      const s = await load();
+      const cost = [input.monthlyCostEur ? `€${Math.round(input.monthlyCostEur).toLocaleString("en-US")}/month` : "", input.oneOffCostEur ? `€${Math.round(input.oneOffCostEur).toLocaleString("en-US")} once` : ""].filter(Boolean).join(" + ");
+      const d: Decision = {
+        id: uid("dc"),
+        title: `Spend: ${input.title.trim()}`,
+        date: iso().slice(0, 10),
+        owner: user.name,
+        status: "proposed",
+        reason: `Cost ${cost}. ${input.verdict} Stop rule: ${input.stopRule.trim()}`,
+        expectedImpact: input.expectedGain.trim(),
+        reviewDate: input.reviewDate,
+        links: ["/roi"],
+        source: "spend",
+        createdBy: user.id,
+      };
+      s.decisions.push(d);
+      audit(user.id, "spend.log", "decision", d.id, null, { title: d.title, cost });
+      for (const a of users.filter((u) => u.role === "admin" && u.active && u.id !== user.id)) notify({ userId: a.id, type: "briefing", text: `${user.name} proposed a spend: ${input.title.trim()} (${cost})`, href: "/roi" });
+      await save();
+      return d;
+    },
+
     async runAdvisorJobs() {
       const user = await viewer();
       const s = await load();
@@ -661,7 +690,7 @@ export const createDemoAdvisor = <S extends AdvisorStore>(ctx: Ctx<S>) => {
 
     async listFinanceData() {
       const user = await viewer();
-      requireAdmin(user);
+      if (user.role !== "viewer") requireAdmin(user); // the accountant reads; only founders write
       const s = await load();
       return { expenses: [...s.expenses].sort((a, b) => b.date.localeCompare(a.date)), cash: [...s.cashSnapshots].sort((a, b) => b.date.localeCompare(a.date)) };
     },

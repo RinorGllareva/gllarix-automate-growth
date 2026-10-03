@@ -72,7 +72,7 @@ const QuotePage = () => {
           <span className="label-caps">
             Quote v{q.version} · {m.label} · prices in {m.currency}, excluding VAT
           </span>
-          <h1 className="m-0 text-[40px] font-light leading-tight tracking-[-0.02em]">{pq.companyName}</h1>
+          <h1 className="page-title m-0 leading-tight">{pq.companyName}</h1>
           {pq.contactName ? <span className="text-[14px] text-text-2">For {pq.contactName}{pq.ownerName ? ` · from ${pq.ownerName}` : ""}</span> : null}
         </div>
 

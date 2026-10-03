@@ -59,6 +59,11 @@ export const MRR_PLAN_EUR: { month: string; eur: number }[] = [
   { month: "2027-06", eur: 11712 },
 ];
 
+/** Cash reserve rule (spec/backbone/03, proposed): keep €3,000 aside; it covers the worst-case low point. */
+export const CASH_RESERVE_EUR = 3000;
+/** The plan's headline target (plans/mrr_10k_strategy.md). */
+export const MRR_TARGET = { eur: 10_000, monthIndex: 8, label: "€10k MRR by Jun 27" } as const;
+
 export const GATES = [
   { key: "gate1", label: "Gate 1 · 3 paying clients", note: "Then promote the BDR to closer and hire setter #1" },
   { key: "gate2", label: "Gate 2 · €2,000 MRR for 2 months", note: "Then add a second channel and an implementer" },

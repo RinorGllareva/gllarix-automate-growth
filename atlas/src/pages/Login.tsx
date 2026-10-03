@@ -81,7 +81,7 @@ const Login = () => {
 
         <div className="my-auto grid items-center gap-12 py-12 lg:grid-cols-[1fr_400px] lg:gap-20">
           <div className="flex flex-col gap-[22px]">
-            <div className="flex items-center gap-3.5 text-[11px] uppercase tracking-[0.3em] text-label">
+            <div className="flex items-center gap-3.5 text-[12px] font-medium text-label">
               <span className="h-px w-12 bg-cyan-line" />
               <span>Sales operations · Arcadian × Gllarix</span>
             </div>

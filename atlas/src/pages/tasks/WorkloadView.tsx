@@ -10,7 +10,7 @@ import { capTone } from "./TimelineView";
 import { useTasks } from "./shared";
 
 const DAY_NAME: Record<Weekday, string> = { mon: "Monday", tue: "Tuesday", wed: "Wednesday", thu: "Thursday", fri: "Friday", sat: "Saturday", sun: "Sunday" };
-const ACTION: Record<string, string> = { move: "MOVE", reassign: "REASSIGN", schedule: "SCHEDULE", split: "SPLIT", flag: "SET DUE" };
+const ACTION: Record<string, string> = { move: "Move", reassign: "Reassign", schedule: "Schedule", split: "Split", flag: "Set due date" };
 
 /** Availability editor: windows per weekday (own timezone), split (sums to 100%), planned categories, time off; focus factor for admins. */
 const AvailabilityEditor = ({ plan, userId, onClose, onSaved }: { plan: CapacityPlan; userId: string; onClose: () => void; onSaved: () => void }) => {
@@ -182,8 +182,8 @@ const WorkloadView = () => {
   return (
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
       <div className="flex min-w-0 flex-col gap-4">
-        <h1 className="m-0 text-[34px] font-light tracking-[-0.02em]">Workload</h1>
-        <section aria-label="Workload grid" className="min-w-0 overflow-x-auto border border-line bg-surface">
+        <h1 className="page-title m-0">Workload</h1>
+        <section aria-label="Workload grid" className="min-w-0 overflow-x-auto border border-line rounded-lg bg-surface">
           <div className="grid min-w-[640px] grid-cols-[150px_repeat(5,minmax(0,1fr))] gap-1.5 border-b border-line px-3.5 py-3 text-[10px] tracking-[0.2em] text-text-3 bg-surface-2">
             <span>PERSON</span>
             {plan.weeks.map((w) => (
@@ -336,7 +336,7 @@ const WorkloadView = () => {
         ))}
         {plan.people.some((p) => p.id === me.id) ? (
           <button type="button" className="btn-outline h-10 text-[11px]" onClick={() => setEditing(me.id)}>
-            EDIT HOURS AND TIME OFF
+            Edit hours and time off
           </button>
         ) : null}
       </aside>

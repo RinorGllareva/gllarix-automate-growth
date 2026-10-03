@@ -116,7 +116,7 @@ const TimelineView = ({ listId, spaceId, title }: { listId?: string; spaceId?: s
   return (
     <div className="flex min-w-0 flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="m-0 text-[34px] font-light tracking-[-0.02em]">{title}</h1>
+        <h1 className="page-title m-0">{title}</h1>
         <div className="flex flex-wrap items-center gap-2 text-[12px]">
           <label className="flex items-center gap-2 text-text-2">
             <input type="checkbox" checked={autoDeps} onChange={(e) => setAutoDeps(e.target.checked)} className="accent-[var(--cyan)]" />
@@ -182,7 +182,7 @@ const TimelineView = ({ listId, spaceId, title }: { listId?: string; spaceId?: s
                     {b.milestone ? (
                       <span className="absolute flex items-center gap-2.5" style={{ left: LABEL + g.left + g.width - 7, top: 11 }}>
                         <span className="block h-3.5 w-3.5 rotate-45 bg-ice" />
-                        <span className="font-mono text-[11px] text-ice">{new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${b.end}T00:00:00Z`)).toUpperCase()}</span>
+                        <span className="font-mono text-[11px] text-ice">{new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${b.end}T00:00:00Z`))}</span>
                       </span>
                     ) : (
                       <div
@@ -208,7 +208,7 @@ const TimelineView = ({ listId, spaceId, title }: { listId?: string; spaceId?: s
             </div>
             {!bars.length ? <p className="m-0 py-6 text-[13px] text-text-2">No dated tasks in these weeks. Give tasks a due date, or drag one in from the tray.</p> : null}
 
-            <span className="mt-4 block text-[10px] tracking-[0.22em] text-label">CAPACITY USED · HOURS PER WEEK</span>
+            <span className="mt-4 block text-[12px] font-medium text-label">Capacity used · hours per week</span>
             {plan.people
               .filter((p) => p.kind === "person")
               .map((p) => (

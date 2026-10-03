@@ -14,6 +14,7 @@ const DOT: Record<NotificationType, string> = {
   mention: "bg-cyan",
   briefing: "bg-lavender",
   client_health: "bg-amber",
+  inbound: "bg-mint",
 };
 
 export const relativeTime = (iso: string, now = Date.now()) => {

@@ -60,7 +60,7 @@ const StyleGuide = () => {
     <div className="flex flex-col gap-9">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-2.5">
-          <div className="flex items-center gap-3.5 text-[11px] uppercase tracking-[0.3em] text-label">
+          <div className="flex items-center gap-3.5 text-[12px] font-medium text-label">
             <span className="h-px w-12 bg-cyan-line" />
             <span>Atlas UI · matches gllarix.com</span>
           </div>

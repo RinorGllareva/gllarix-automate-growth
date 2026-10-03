@@ -47,7 +47,7 @@ export const Modal = ({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="w-full shrink-0 border border-line-strong bg-surface shadow-card"
+        className="w-full shrink-0 border border-line-strong rounded-lg bg-surface shadow-card"
         style={{ maxWidth: width }}
         onMouseDown={(e) => e.stopPropagation()}
       >
@@ -141,7 +141,7 @@ export const useToast = () => useContext(ToastContext);
 export const Toast = ({ tone = "info", children }: { tone?: ToastTone; children: ReactNode }) => {
   const dot = { info: "bg-cyan", good: "bg-mint", error: "bg-coral" }[tone];
   return (
-    <div className="pointer-events-auto flex min-w-72 items-center gap-3 border border-line-strong bg-surface px-4 py-3 text-[13px]">
+    <div className="pointer-events-auto flex min-w-72 items-center gap-3 border border-line-strong rounded-lg bg-surface px-4 py-3 text-[13px]">
       <span className={`h-2 w-2 shrink-0 ${dot}`} aria-hidden="true" />
       {children}
     </div>

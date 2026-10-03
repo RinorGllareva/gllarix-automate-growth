@@ -127,7 +127,7 @@ const CalendarView = ({ timezone, userId, initialMode = "week", onSlot }: { time
         <span className="ml-1 text-[15px] font-medium">{title}</span>
         <div role="radiogroup" aria-label="Calendar view" className="ml-auto flex border border-line-strong">
           {(["week", "month"] as const).map((m) => (
-            <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)} className={`h-8 px-3 text-[11px] uppercase tracking-[0.16em] ${mode === m ? "bg-ice text-ice-ink" : "text-text-2 hover:bg-surface"}`}>
+            <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)} className={`h-8 px-3 text-[12px] font-medium ${mode === m ? "bg-ice text-ice-ink" : "text-text-2 hover:bg-surface"}`}>
               {m}
             </button>
           ))}
@@ -144,7 +144,7 @@ const CalendarView = ({ timezone, userId, initialMode = "week", onSlot }: { time
               <span />
               {range.days.map((d, i) => (
                 <div key={d} className={`flex flex-col items-center gap-0.5 border-l border-line-soft py-2 ${d === today ? "" : ""}`}>
-                  <span className="text-[10px] uppercase tracking-[0.16em] text-label">{DOW[i]}</span>
+                  <span className="text-[12px] font-medium text-label">{DOW[i]}</span>
                   <span className={`flex h-7 min-w-7 items-center justify-center px-1 text-[15px] ${d === today ? "bg-blue font-medium text-ice-ink" : "text-text"}`} style={d === today ? { background: hueVar("blue"), color: "var(--ice-ink)" } : undefined}>
                     {Number(d.slice(8))}
                   </span>
@@ -153,7 +153,7 @@ const CalendarView = ({ timezone, userId, initialMode = "week", onSlot }: { time
             </div>
             {/* All-day row (tasks due) */}
             <div className="grid grid-cols-[52px_repeat(7,minmax(0,1fr))] border-b border-line">
-              <span className="px-1.5 py-1.5 text-[9px] uppercase tracking-[0.14em] text-text-3">All day</span>
+              <span className="px-1.5 py-1.5 text-[9px] text-text-3">All day</span>
               {range.days.map((d) => (
                 <div key={d} className="flex min-h-7 flex-col gap-0.5 border-l border-line-soft p-0.5">
                   {(byDay.get(d) ?? []).filter((e) => e.allDay).slice(0, 3).map((e) => (
@@ -219,7 +219,7 @@ const CalendarView = ({ timezone, userId, initialMode = "week", onSlot }: { time
       ) : (
         <div className="grid grid-cols-7">
           {DOW.map((d) => (
-            <span key={d} className="border-b border-line px-2 py-1.5 text-[10px] uppercase tracking-[0.16em] text-label">
+            <span key={d} className="border-b border-line px-2 py-1.5 text-[12px] font-medium text-label">
               {d}
             </span>
           ))}

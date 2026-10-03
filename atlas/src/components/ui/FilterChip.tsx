@@ -50,12 +50,12 @@ const FilterChip = ({ label, summary, options, selected, onChange, active }: Fil
           active ? "border-ice bg-ice text-ice-ink" : "border-line-strong text-text hover:border-line-button"
         }`}
       >
-        <span className="text-[10px] uppercase tracking-[0.2em] opacity-80">{label}</span>
+        <span className="text-[12px] font-medium opacity-80">{label}</span>
         <span>{summary}</span>
         <span aria-hidden="true">⌄</span>
       </button>
       {open ? (
-        <div id={id} role="group" aria-label={`${label} filter`} className="absolute left-0 top-10 z-30 flex max-h-80 min-w-56 flex-col overflow-y-auto border border-line-strong bg-surface py-1">
+        <div id={id} role="group" aria-label={`${label} filter`} className="absolute left-0 top-10 z-30 flex max-h-80 min-w-56 flex-col overflow-y-auto border border-line-strong rounded-lg bg-surface py-1">
           {options.map((o) => (
             <label key={o.value} className="flex h-9 cursor-pointer items-center gap-2.5 px-3 text-[13px] text-text-2 hover:bg-surface-2 hover:text-text">
               <input type="checkbox" checked={selected.includes(o.value)} onChange={() => toggle(o.value)} className="h-4 w-4 accent-[var(--cyan)]" />

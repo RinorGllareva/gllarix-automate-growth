@@ -23,7 +23,7 @@ const lastMonths = (n: number) => {
 
 const Table = ({ rows, signal }: { rows: ConversionRow[]; signal?: boolean }) => (
   <div className="min-w-0 overflow-x-auto">
-    <div className="grid min-w-[560px] grid-cols-[minmax(0,1.6fr)_90px_90px_80px_80px_80px] gap-3 border-b border-line px-5 py-2.5 text-[10px] uppercase tracking-[0.2em] text-text-3 bg-surface-2">
+    <div className="grid min-w-[560px] grid-cols-[minmax(0,1.6fr)_90px_90px_80px_80px_80px] gap-3 border-b border-line px-5 py-2.5 text-[12px] font-medium text-text-3 bg-surface-2">
       <span>{signal ? "Rule" : "Tier"}</span>
       <span>Contacted</span>
       <span>Meetings</span>
@@ -59,7 +59,7 @@ const ScoringSection = () => {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="m-0 text-[34px] font-light tracking-[-0.02em]">Scoring models</h1>
+        <h1 className="page-title m-0">Scoring models</h1>
         <span className="text-[12px] text-text-3">
           Model {SCORING.modelVersion} · tiers A {SCORING.tiers.A} · B {SCORING.tiers.B} · C {SCORING.tiers.C}
         </span>
@@ -100,7 +100,7 @@ const ScoringSection = () => {
       <section aria-label="Rules" className="card flex flex-col">
         <div className="flex gap-1 border-b border-line px-3 pt-2">
           {(["trades", "developers"] as ListType[]).map((t) => (
-            <button key={t} type="button" onClick={() => setTab(t)} className={`px-3 py-2 text-[12px] uppercase tracking-[0.2em] ${tab === t ? "border-b-2 border-ice text-text" : "text-text-3 hover:text-text"}`}>
+            <button key={t} type="button" onClick={() => setTab(t)} className={`px-3 py-2 text-[12px] ${tab === t ? "border-b-2 border-ice text-text" : "text-text-3 hover:text-text"}`}>
               {t}
             </button>
           ))}

@@ -37,7 +37,7 @@ const JobsSection = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="m-0 text-[34px] font-light tracking-[-0.02em]">Background jobs</h1>
+      <h1 className="page-title m-0">Background jobs</h1>
 
       <section aria-label="Queue shortfalls" className="card flex flex-col p-5">
         <span className="label-caps pb-3">Queue shortfalls · what the list build tops up</span>

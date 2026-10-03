@@ -2,17 +2,18 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useUser } from "@/auth/AuthContext";
 import { usePageChrome } from "@/components/shell/PageChrome";
-import { useToast } from "@/components/ui/overlay";
+import { Modal, useToast } from "@/components/ui/overlay";
 import { BrandChip, EmptyState, SkeletonRows } from "@/components/ui/primitives";
 import { COUNTRY_RULES } from "@/config/countryRules";
 import { countryLabel, industryLabel, LIST_LABEL, STAGE_LABEL, STAGES, type Stage } from "@/config/leads";
 import { SCORING, SIGNAL_LABEL } from "@/config/scoring";
-import { AccessError, data, type Activity, type ActivityType, type LeadDetail as Detail, type User, type DealRow, DEAL_STAGE_LABEL } from "@/data";
+import { AccessError, data, type Activity, type ActivityType, type Contact, type ContactInput, type LeadDetail as Detail, type User, type DealRow, DEAL_STAGE_LABEL } from "@/data";
 import { localTime, tableDate, timelineDate } from "@/lib/format";
 import { Forbidden } from "@/pages/StatusPages";
 import EmailCompose from "@/components/EmailCompose";
 import LinkedTasks from "@/components/LinkedTasks";
 import OfferPrices from "@/components/OfferPrices";
+import RecordFiles from "@/components/RecordFiles";
 
 /** Deals tab: this lead's deals, linking into the deal builder. */
 const LeadDeals = ({ leadId }: { leadId: string }) => {
@@ -73,7 +74,7 @@ const TYPE_FILTERS: { label: string; types: ActivityType[] }[] = [
 ];
 
 const SideCard = ({ title, children, surface }: { title: string; children: ReactNode; surface?: boolean }) => (
-  <section aria-label={title} className={`flex flex-col gap-2.5 border border-line px-[18px] py-4 ${surface ? "bg-surface" : ""}`}>
+  <section aria-label={title} className={`flex flex-col gap-2.5 border border-line rounded-lg px-[18px] py-4 ${surface ? "bg-surface" : ""}`}>
     <span className="label-caps">{title}</span>
     {children}
   </section>
@@ -152,7 +153,108 @@ const Timeline = ({ detail, users, tz, onNote }: { detail: Detail; users: User[]
   );
 };
 
-const Contacts = ({ detail, onChanged }: { detail: Detail; onChanged: () => void }) => {
+const blankContact: ContactInput = { firstName: "", lastName: "", title: null, email: null, phone: null, isDecisionMaker: false };
+
+/** Add or edit one contact on the lead's company. A changed email or phone goes back to "not verified". */
+const ContactForm = ({ leadId, contact, onClose, onSaved }: { leadId: string; contact: Contact | null; onClose: () => void; onSaved: () => void }) => {
+  const toast = useToast();
+  const [f, setF] = useState<ContactInput>(
+    contact ? { id: contact.id, firstName: contact.firstName, lastName: contact.lastName, title: contact.title, email: contact.email, phone: contact.phone, isDecisionMaker: contact.isDecisionMaker } : blankContact,
+  );
+  const [busy, setBusy] = useState(false);
+  const field = (key: "firstName" | "lastName" | "title" | "email" | "phone", label: string, type = "text") => (
+    <label className="flex flex-col gap-1.5">
+      <span className="field-label">{label}</span>
+      <input className="input" type={type} required={key === "firstName"} value={f[key] ?? ""} onChange={(e) => setF({ ...f, [key]: e.target.value })} />
+    </label>
+  );
+  return (
+    <Modal open onClose={onClose} title={contact ? `Edit ${contact.firstName} ${contact.lastName}`.trim() : "Add a contact"}>
+      <form
+        className="flex flex-col gap-4"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          try {
+            await data.saveContact(leadId, f);
+            toast(contact ? "Contact updated" : "Contact added", "good");
+            onSaved();
+          } catch (err) {
+            toast((err as Error).message, "error");
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        <div className="grid gap-4 sm:grid-cols-2">
+          {field("firstName", "First name")}
+          {field("lastName", "Last name")}
+        </div>
+        {field("title", "Role, e.g. Owner, Office manager")}
+        <div className="grid gap-4 sm:grid-cols-2">
+          {field("email", "Email", "email")}
+          {field("phone", "Phone", "tel")}
+        </div>
+        <label className="flex items-center gap-2.5 text-[13px]">
+          <input type="checkbox" className="h-4 w-4 accent-[var(--mint)]" checked={f.isDecisionMaker} onChange={(e) => setF({ ...f, isDecisionMaker: e.target.checked })} />
+          Makes the buying decision
+        </label>
+        <button type="submit" className="btn-primary" disabled={busy || !f.firstName.trim()}>
+          {contact ? "Save contact" : "Add contact"}
+        </button>
+      </form>
+    </Modal>
+  );
+};
+
+/** Lead tags: short labels the team sets by hand ("referral", "has-crew"). Enter adds, x removes. */
+const LeadTags = ({ detail, canEdit, onChanged }: { detail: Detail; canEdit: boolean; onChanged: () => void }) => {
+  const toast = useToast();
+  const [draft, setDraft] = useState("");
+  const tags = detail.lead.tags ?? [];
+  const save = async (next: string[]) => {
+    try {
+      await data.setLeadTags(detail.lead.id, next);
+      onChanged();
+    } catch (e) {
+      toast((e as Error).message, "error");
+    }
+  };
+  if (!canEdit && !tags.length) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Tags">
+      {tags.map((t) => (
+        <span key={t} className="inline-flex h-6 items-center gap-1 rounded-full border border-line-strong bg-surface px-2.5 text-[12px] text-text-2">
+          #{t}
+          {canEdit ? (
+            <button type="button" aria-label={`Remove tag ${t}`} className="-mr-1 px-1 text-text-3 hover:text-coral" onClick={() => save(tags.filter((x) => x !== t))}>
+              ×
+            </button>
+          ) : null}
+        </span>
+      ))}
+      {canEdit ? (
+        <input
+          aria-label="Add a tag"
+          className="h-6 w-28 rounded-full border border-dashed border-line-strong bg-transparent px-2.5 text-[12px] text-text outline-none placeholder:text-text-3 focus:border-cyan"
+          placeholder="+ tag"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && draft.trim()) {
+              e.preventDefault();
+              save([...tags, draft]);
+              setDraft("");
+            }
+          }}
+        />
+      ) : null}
+    </div>
+  );
+};
+
+const Contacts = ({ detail, onChanged, canEdit }: { detail: Detail; onChanged: () => void; canEdit: boolean }) => {
+  const [editing, setEditing] = useState<Contact | null | false>(false);
   const toast = useToast();
   const act = async (fn: () => Promise<void>, msg: string) => {
     try {
@@ -163,11 +265,37 @@ const Contacts = ({ detail, onChanged }: { detail: Detail; onChanged: () => void
       toast((e as Error).message, "error");
     }
   };
-  if (!detail.contacts.length) return <EmptyState title="No contacts yet. Contacts come from imports and enrichment." />;
-  const cols = "grid-cols-[1.2fr_1.2fr_1.6fr_1.1fr_90px_150px]";
+  const form =
+    editing !== false ? (
+      <ContactForm
+        leadId={detail.lead.id}
+        contact={editing}
+        onClose={() => setEditing(false)}
+        onSaved={() => {
+          setEditing(false);
+          onChanged();
+        }}
+      />
+    ) : null;
+  const add = canEdit ? (
+    <button type="button" className="btn-outline h-9 self-start" onClick={() => setEditing(null)}>
+      + Add contact
+    </button>
+  ) : null;
+  if (!detail.contacts.length)
+    return (
+      <div className="flex flex-col gap-3">
+        <EmptyState title="No contacts yet. Add the person you spoke to, or wait for enrichment." action={add} />
+        {form}
+      </div>
+    );
+  const cols = "grid-cols-[1.2fr_1.2fr_1.6fr_1.1fr_90px_190px]";
   return (
-    <div className="card overflow-x-auto">
-      <div className={`grid ${cols} min-w-[820px] gap-3 border-b border-line px-4 py-3 text-[10px] uppercase tracking-[0.2em] text-text-3 bg-surface-2`}>
+    <div className="flex flex-col gap-3">
+      {add}
+      {form}
+      <div className="card overflow-x-auto">
+      <div className={`grid ${cols} min-w-[820px] gap-3 border-b border-line px-4 py-3 text-[12px] font-medium text-text-3 bg-surface-2`}>
         <span>Name</span>
         <span>Role</span>
         <span>Email</span>
@@ -181,8 +309,8 @@ const Contacts = ({ detail, onChanged }: { detail: Detail; onChanged: () => void
           <div key={c.id} className={`grid ${cols} min-w-[820px] items-center gap-3 border-b border-line-soft px-4 py-3 text-[13px] last:border-b-0`}>
             <span>
               {c.firstName} {c.lastName}
-              {primary ? <span className="ml-2 text-[10px] uppercase tracking-[0.18em] text-cyan">Primary</span> : null}
-              {detail.lead.suppressed ? <span className="ml-2 text-[10px] uppercase tracking-[0.18em] text-coral">Opt-out</span> : null}
+              {primary ? <span className="ml-2 text-[12px] font-medium text-cyan">Primary</span> : null}
+              {detail.lead.suppressed ? <span className="ml-2 text-[12px] font-medium text-coral">Opt-out</span> : null}
             </span>
             <span className="text-text-2">{c.title ?? "—"}</span>
             <span className="flex min-w-0 flex-col">
@@ -198,6 +326,11 @@ const Contacts = ({ detail, onChanged }: { detail: Detail; onChanged: () => void
             </span>
             <span className={c.isDecisionMaker ? "text-mint" : "text-text-3"}>{c.isDecisionMaker ? "Yes" : "No"}</span>
             <span className="flex flex-wrap gap-x-3 gap-y-1">
+              {canEdit ? (
+                <button type="button" className="btn-ghost" onClick={() => setEditing(c)}>
+                  Edit
+                </button>
+              ) : null}
               {!primary ? (
                 <button type="button" className="btn-ghost" onClick={() => act(() => data.setPrimaryContact(detail.lead.id, c.id), "Primary contact changed")}>
                   Make primary
@@ -223,6 +356,7 @@ const Contacts = ({ detail, onChanged }: { detail: Detail; onChanged: () => void
           </div>
         );
       })}
+      </div>
     </div>
   );
 };
@@ -309,7 +443,7 @@ const SignalsTable = ({ detail }: { detail: Detail }) => {
   const cols = "grid-cols-[1.8fr_80px_1fr_100px_100px_60px]";
   return (
     <div className="card overflow-x-auto">
-      <div className={`grid ${cols} min-w-[680px] gap-3 border-b border-line px-4 py-3 text-[10px] uppercase tracking-[0.2em] text-text-3 bg-surface-2`}>
+      <div className={`grid ${cols} min-w-[680px] gap-3 border-b border-line px-4 py-3 text-[12px] font-medium text-text-3 bg-surface-2`}>
         <span>Signal</span>
         <span>Value</span>
         <span>Source</span>
@@ -388,6 +522,7 @@ const LeadDetailPage = () => {
 
   const { lead, company } = detail;
   const isAdmin = user.role === "admin";
+  const canEditLead = ["admin", "bdr", "closer"].includes(user.role) && !lead.erasedAt;
   const rule = company.country ? COUNTRY_RULES[company.country] : undefined;
   const owners = users.filter((u) => ["admin", "bdr", "closer"].includes(u.role) && u.active);
 
@@ -414,7 +549,8 @@ const LeadDetailPage = () => {
             <span className="chip border-line-strong text-text-2">List · {LIST_LABEL[lead.listType]}</span>
             {lead.suppressed ? <span className="chip border-coral text-coral">Opt-out · never queued</span> : null}
           </div>
-          <h1 className="m-0 text-[44px] font-light leading-tight tracking-[-0.02em]">{company.name}</h1>
+          <h1 className="page-title m-0 leading-tight">{company.name}</h1>
+          <LeadTags detail={detail} canEdit={canEditLead} onChanged={load} />
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-text-2">
             <span>{industryLabel(company.industry)}</span>·
             <span>
@@ -506,7 +642,7 @@ const LeadDetailPage = () => {
               }}
             />
           ) : tab === "contacts" ? (
-            <Contacts detail={detail} onChanged={load} />
+            <Contacts detail={detail} onChanged={load} canEdit={canEditLead} />
           ) : tab === "signals" ? (
             <Signals detail={detail} onChanged={load} />
           ) : tab === "deals" ? (
@@ -514,11 +650,11 @@ const LeadDetailPage = () => {
           ) : tab === "tasks" ? (
             <LinkedTasks type="lead" id={id} spaceHint="Sales" />
           ) : (
-            <EmptyState title="No files yet. Uploads (proposals, floor plans, recordings) arrive with Supabase Storage." />
+            <RecordFiles entity="lead" id={lead.id} />
           )}
         </div>
 
-        <section aria-label="Score" className="flex flex-col gap-2.5 self-start border border-line bg-surface px-5 py-[18px]">
+        <section aria-label="Score" className="flex flex-col gap-2.5 self-start border border-line rounded-lg bg-surface px-5 py-[18px]">
           <div className="flex items-baseline justify-between">
             <span className="label-caps">Score · {lead.listType === "trades" ? "trades" : "developer"} model</span>
             <span className={`font-mono text-[26px] ${lead.tier === "A" ? "text-mint" : lead.tier === "B" ? "text-cyan" : lead.tier === "C" ? "text-lavender" : "text-text-3"}`}>

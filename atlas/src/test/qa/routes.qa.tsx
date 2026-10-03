@@ -7,7 +7,8 @@ import { MemoryRouter } from "react-router-dom";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { navForRole } from "@/lib/nav";
 
-const PW = "atlas-demo";
+// Same password the demo source uses (.env.local may set its own).
+const PW = (import.meta.env.VITE_DEMO_PASSWORD as string | undefined) || "atlas-demo";
 const USERS = { admin: "rinor@atlas.test", bdr: "diego@atlas.test", implementer: "lena@atlas.test", viewer: "books@atlas.test" } as const;
 type RoleKey = keyof typeof USERS;
 
@@ -25,7 +26,9 @@ beforeAll(() => {
 const problems: string[] = [];
 const seen: string[] = [];
 /** Pages only admins open, inside modules other roles can use. */
-const ADMIN_ONLY = ["/leads/import"];
+const ADMIN_ONLY = ["/leads/import", "/tasks/automations"];
+/** Routes outside the nav items, and the page whose access they follow. */
+const STANDALONE: Record<string, string> = { "/automations": "/admin", "/cadences": "/admin" };
 afterAll(() => {
   if (process.env.QA_VERBOSE) console.log(seen.join("\n"));
   if (problems.length) console.log(`\nQA problems (${problems.length}):\n${problems.join("\n")}`);
@@ -56,6 +59,8 @@ const idsFor = async (role: RoleKey) => {
   const team = await safe(() => data.teamOverview());
   const threads = await safe(() => data.advisorHome());
   const plans = await safe(() => data.planLog());
+  const meetings = await safe(() => data.searchMeetings(""));
+  const tickets = await safe(() => data.listTickets());
   return {
     lead: leads?.rows[0]?.lead.id,
     deal: deals?.[0]?.deal.id,
@@ -64,13 +69,15 @@ const idsFor = async (role: RoleKey) => {
     person: team && "cards" in team ? team.cards.find((c) => "userId" in c && c.userId)?.userId : undefined,
     thread: threads?.threads[0]?.id,
     plan: (plans as { id: string }[] | null)?.[0]?.id,
+    meeting: meetings?.[0]?.meeting.id,
+    ticket: tickets?.tickets[0]?.id,
   };
 };
 
 const pathsFor = async (role: RoleKey) => {
   const ids = await idsFor(role);
   const nav = navForRole(role).map((n) => n.path);
-  const all = new Set<string>(["/today", "/call", "/leads", "/pipeline", "/meetings", "/deals", "/clients", "/reports", "/tasks", "/team", "/time", "/advisor", "/admin/users"]);
+  const all = new Set<string>(["/today", "/call", "/leads", "/pipeline", "/meetings", "/deals", "/clients", "/reports", "/tasks", "/team", "/time", "/advisor", "/admin/users", "/automations", "/cadences"]);
   nav.forEach((p) => all.add(p));
   if (nav.includes("/leads")) ["/leads/import", ids.lead && `/leads/${ids.lead}`, ids.lead && `/call/${ids.lead}`].forEach((p) => p && all.add(p));
   if (nav.includes("/deals")) ["/deals/new", ids.deal && `/deals/${ids.deal}`].forEach((p) => p && all.add(p));
@@ -82,6 +89,8 @@ const pathsFor = async (role: RoleKey) => {
   }
   if (nav.includes("/team") && ids.person) all.add(`/team/${ids.person}`);
   if (nav.includes("/time")) all.add("/time/reports");
+  if (nav.includes("/meetings") && ids.meeting) all.add(`/meetings/${ids.meeting}`);
+  if (nav.includes("/support") && ids.ticket) all.add(`/support/${ids.ticket}`);
   if (nav.includes("/advisor") && ids.thread) all.add(`/advisor/${ids.thread}`);
   if (nav.includes("/admin")) ADMIN_SECTIONS.forEach((s) => all.add(`/admin/${s}`));
   ["/styleguide", "/does-not-exist"].forEach((p) => all.add(p));
@@ -148,8 +157,12 @@ describe("QA: every route renders cleanly for every role", () => {
       const { paths, nav } = await pathsFor(role);
       const failed: string[] = [];
       for (const p of paths) {
-        const base = `/${p.split("/")[1]}`;
-        const allowed = (nav.includes(base) && (role === "admin" || !ADMIN_ONLY.includes(p))) || p === "/styleguide" || p === "/does-not-exist";
+        // The page a route belongs to: the longest nav path it starts with ("/ai/agent", not "/ai").
+        const all = navForRole("admin").map((n) => n.path);
+        const owner = all.filter((n) => p === n || p.startsWith(`${n}/`)).sort((a, b) => b.length - a.length)[0];
+        // Growth's standalone pages follow the access of the module they come from.
+        const gate = STANDALONE[p] ?? owner ?? `/${p.split("/")[1]}`;
+        const allowed = (nav.includes(gate) && (role === "admin" || !ADMIN_ONLY.includes(p))) || p === "/styleguide" || p === "/does-not-exist";
         const issues = await run(role, p, allowed);
         if (issues.length) failed.push(`${p}: ${issues.join(" | ")}`);
       }

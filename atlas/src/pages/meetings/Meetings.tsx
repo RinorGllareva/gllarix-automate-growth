@@ -12,7 +12,7 @@ import { APPROVAL_CHECKS, MEETING_BONUS_MINOR, type ApprovalCheck } from "@/conf
 import { data, type MeetingRow, type MeetingStatus, type MeetingsWeek } from "@/data";
 import { isoWeekKey, localDateKey, localHHMM, rangeLabel, shiftWeek, zoneAbbr } from "@/services/time";
 
-const STATUS: Record<MeetingStatus, { label: string; hue: Hue }> = {
+export const STATUS: Record<MeetingStatus, { label: string; hue: Hue }> = {
   upcoming: { label: "Upcoming", hue: "blue" },
   to_hold: { label: "Mark held", hue: "amber" },
   to_approve: { label: "To approve", hue: "lavender" },
@@ -26,7 +26,7 @@ const usd = (minor: number) => `$${(minor / 100).toLocaleString("en-US")}`;
 const when = (iso: string, tz: string) =>
   `${new Intl.DateTimeFormat("en-GB", { weekday: "short", timeZone: tz }).format(new Date(iso))} ${localHHMM(new Date(iso), tz)}`;
 
-const ApprovalPanel = ({ row, isAdmin, canMark, onChanged }: { row: MeetingRow; isAdmin: boolean; canMark: boolean; onChanged: () => void }) => {
+export const ApprovalPanel = ({ row, isAdmin, canMark, onChanged, embedded = false }: { row: MeetingRow; isAdmin: boolean; canMark: boolean; onChanged: () => void; embedded?: boolean }) => {
   const toast = useToast();
   const m = row.meeting;
   const [checks, setChecks] = useState<Record<ApprovalCheck, boolean>>(() =>
@@ -54,7 +54,14 @@ const ApprovalPanel = ({ row, isAdmin, canMark, onChanged }: { row: MeetingRow; 
 
   return (
     <section aria-label={`Approve ${row.company.name}`} className="card flex flex-col gap-4 self-start p-5">
-      <span className="label-caps">Approve · {row.company.name}</span>
+      <span className="flex items-center justify-between gap-2">
+        <span className="label-caps">{embedded ? "Outcome and approval" : `Approve · ${row.company.name}`}</span>
+        {embedded ? null : (
+          <Link to={`/meetings/${m.id}`} className="text-[12px] text-cyan hover:underline">
+            Open meeting
+          </Link>
+        )}
+      </span>
       <span className="text-[13px] text-text-2">
         {m.attended === true ? "Held" : m.attended === false ? "No-show" : new Date(m.scheduledAt).getTime() > Date.now() ? "Scheduled" : "Was due"} {when(m.scheduledAt, tz)} {zoneAbbr(tz)} local
         {m.durationMin ? ` · ${m.durationMin} min` : ""}
@@ -65,7 +72,7 @@ const ApprovalPanel = ({ row, isAdmin, canMark, onChanged }: { row: MeetingRow; 
       </span>
 
       {row.status === "to_hold" && canMark ? (
-        <div className="flex flex-col gap-3 border border-amber/40 p-3.5">
+        <div className="flex flex-col gap-3 rounded-lg border border-amber/40 p-3.5">
           <span className="text-[13px]">Did this meeting happen?</span>
           <label className="flex items-center gap-2 text-[13px] text-text-2">
             Duration (min)
@@ -154,7 +161,9 @@ const Meetings = () => {
   const [view, setView] = useState<MeetingsWeek | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [bookingPath, setBookingPath] = useState<string | null>(null);
-  const mode = params.get("view") === "list" ? "list" : "calendar";
+  // Phones open on the list: a week calendar doesn't fit 375 px.
+  const narrow = typeof window !== "undefined" && window.matchMedia?.("(max-width: 1023px)").matches;
+  const mode = (params.get("view") ?? (narrow ? "list" : "calendar")) === "list" ? "list" : "calendar";
   const [calendarUser, setCalendarUser] = useState(user.id);
   const [calendarKey, setCalendarKey] = useState(0);
   const [booking, setBooking] = useState<{ date: string; time: string } | null | false>(false);
@@ -266,9 +275,9 @@ const Meetings = () => {
 
       {user.role !== "viewer" ? (
         <div className="flex flex-wrap items-center gap-2">
-          <div role="radiogroup" aria-label="Meetings view" className="flex border border-line-strong">
+          <div role="radiogroup" aria-label="Meetings view" className="flex overflow-hidden rounded-lg border border-line-strong">
             {(["calendar", "list"] as const).map((m) => (
-              <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setParams({ ...Object.fromEntries(params), view: m })} className={`h-8 px-3.5 text-[11px] uppercase tracking-[0.16em] ${mode === m ? "bg-ice text-ice-ink" : "text-text-2 hover:bg-surface-2"}`}>
+              <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setParams({ ...Object.fromEntries(params), view: m })} className={`h-8 px-3.5 text-[12px] font-medium ${mode === m ? "bg-ice text-ice-ink" : "text-text-2 hover:bg-surface-2"}`}>
                 {m}
               </button>
             ))}
@@ -300,9 +309,30 @@ const Meetings = () => {
       ) : !view.rows.length ? (
         <EmptyState title="No meetings scheduled this week. Booked meetings from the call workspace show up here." action={<Link className="btn-outline" to="/call">Start calling →</Link>} />
       ) : (
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <section aria-label="Meetings this week" className="card min-w-0 overflow-x-auto">
-            <div className={`grid ${cols} min-w-[640px] gap-3 border-b border-line px-5 py-3 text-[10px] uppercase tracking-[0.2em] text-text-3 bg-surface-2`}>
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+          {/* Phones: one card per meeting, opening its page. */}
+          <section aria-label="Meetings this week" className="flex flex-col gap-2 sm:hidden">
+            {view.rows.map((r) => {
+              const tz = r.company.timezone ?? user.timezone;
+              return (
+                <Link key={r.meeting.id} to={`/meetings/${r.meeting.id}`} className="card flex items-center gap-3 p-3.5">
+                  <span className="flex w-16 shrink-0 flex-col font-mono text-[12px]">
+                    {when(r.meeting.scheduledAt, tz)}
+                    <span className="text-[10px] text-text-3">{zoneAbbr(tz)}</span>
+                  </span>
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate text-[14px] font-medium">{r.company.name}</span>
+                    <span className="truncate text-[12px] text-text-3">{r.meeting.withWhom}</span>
+                  </span>
+                  <Pill hue={STATUS[r.status].hue} dot>
+                    {STATUS[r.status].label}
+                  </Pill>
+                </Link>
+              );
+            })}
+          </section>
+          <section aria-label="Meetings this week, table" className="card hidden min-w-0 overflow-x-auto sm:block">
+            <div className={`grid ${cols} min-w-[640px] gap-3 border-b border-line px-5 py-3 text-[12px] font-medium text-text-3 bg-surface-2`}>
               <span>When</span>
               <span>Company</span>
               <span>Owner</span>
@@ -348,12 +378,14 @@ const Meetings = () => {
             })}
           </section>
           {selected ? (
+            <div className="hidden sm:contents">
             <ApprovalPanel
               row={selected}
               isAdmin={isAdmin}
               canMark={isAdmin || selected.meeting.bookedBy === user.id || selected.meeting.ownerId === user.id}
               onChanged={load}
             />
+            </div>
           ) : null}
         </div>
       )}

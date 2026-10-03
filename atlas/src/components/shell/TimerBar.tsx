@@ -66,10 +66,10 @@ const TimerBar = () => {
       <Link to="/time" className="min-w-0 truncate text-text hover:text-cyan">
         {timer.label}
       </Link>
-      <span className="hidden truncate text-[11px] uppercase tracking-[0.18em] text-text-3 md:inline">{timer.sub}</span>
+      <span className="hidden truncate text-[12px] font-medium text-text-3 md:inline">{timer.sub}</span>
       <span className="ml-auto font-mono">{clock(now - new Date(timer.startedAt).getTime())}</span>
       <button type="button" className="btn-outline h-7 px-3 text-[11px] tracking-[0.2em]" onClick={() => stop()}>
-        STOP
+        Stop
       </button>
     </div>
   );

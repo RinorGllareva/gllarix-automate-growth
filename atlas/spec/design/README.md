@@ -1,12 +1,21 @@
 # Atlas design
 
-- **Look:** matched to gllarix.com from screenshots:
-  - near-black ground, 1 px hairlines, square corners;
-  - light Helvetica-style grotesque (Geist, weight 300) for big numbers and titles;
-  - 11 px tracked uppercase labels;
-  - ice-white active state;
-  - cyan/mint accents, lavender and amber secondary.
-- **Tokens:** `design/tokens.css`. Use these CSS variables in the app; never hard-code colors.
+- **Look (2026-10-02, replaces the first gllarix.com match):**
+  - The base is Raycast-style:
+    - near-black canvas `#07080A` with layered surfaces (`#111214`, `#18191C`);
+    - translucent 1 px edges with an inset top highlight;
+    - 8 px buttons and inputs, 12 px cards;
+    - keycaps (`.kbd`) for shortcuts.
+  - The brand accent is the Arcadian / Gllarix ice blue `#9CC7E6`, used for links, focus and the Sell app. Red `#FF6363` is only for errors and danger.
+  - Type:
+    - Inter for the interface (13–14 px, 500 for labels, sentence case; no tracked uppercase);
+    - page titles at 26 px / 600;
+    - Geist Mono for numbers.
+  - The primary button is light on dark. Other buttons are dark and glossy with an inset edge.
+  - Light mode uses soft greys, never white.
+- **Apps:** one platform, one login, with an app switcher (Sell, Work, Money, People, Growth, AI). Each app has an accent hue, which goes into `--app` for the active nav item, focus rings and tabs. The structure is defined in `src/lib/nav.ts` (`APPS`).
+- **Tokens:** `design/tokens.css` (a copy of `src/styles/tokens.css`). Use these CSS variables in the app; never hard-code colors.
+- **Mockups:** the `.dc.html` mockups below show the first look (square, uppercase). Their layouts still apply; colors and type follow the tokens.
 - **Mockups:** `design/mockups/*.dc.html` (one file per screen; open the live canvas for the real view). Screens:
 
 | File | Screen |

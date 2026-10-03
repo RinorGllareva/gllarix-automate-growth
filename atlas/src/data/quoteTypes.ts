@@ -115,6 +115,8 @@ export interface DealDetail {
   payments: Payment[];
   /** Highest extra discount this user may give without approval. */
   maxDiscount: number;
+  /** The primary contact's email, to prefill the contract signer. */
+  contactEmail?: string | null;
 }
 
 export interface PublicQuote {

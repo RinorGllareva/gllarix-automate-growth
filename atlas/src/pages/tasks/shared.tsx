@@ -79,7 +79,7 @@ export const CategoryChip = ({ c }: { c: string | null }) =>
 export const AiTag = () => <span className="text-[9px] tracking-[0.18em] text-cyan">AI</span>;
 
 export const StatusChip = ({ s }: { s: TaskStatus }) => (
-  <Pill hue={TASK_STATUS_HUE[s]} dot className="uppercase tracking-[0.12em]">
+  <Pill hue={TASK_STATUS_HUE[s]} dot className=" ">
     {STATUS_META[s].label}
   </Pill>
 );
@@ -89,7 +89,7 @@ export const GroupPill = ({ tone, children }: { tone: string; children: ReactNod
   const hue = tone.replace("text-", "");
   const v = hue === "text" || hue === "text-2" ? "var(--text-3)" : `var(--${hue})`;
   return (
-    <span className="inline-flex h-[22px] items-center px-2 text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ background: v, color: "var(--ice-ink)" }}>
+    <span className="inline-flex h-[22px] items-center px-2 text-[12px] font-medium font-semibold " style={{ background: v, color: "var(--ice-ink)" }}>
       {children}
     </span>
   );

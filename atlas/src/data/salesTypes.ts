@@ -53,6 +53,10 @@ export interface DealRow {
   ownerName: string | null;
   /** Next meeting, if any. */
   nextMeetingAt: string | null;
+  /** Primary contact's name (deals list). */
+  contactName?: string | null;
+  /** Newest quote that is not superseded (deals list progress). */
+  latestQuote?: { version: number; status: "draft" | "sent" | "accepted" | "paid" | "superseded"; sentAt: string | null; openedAt: string | null; paidAt: string | null } | null;
 }
 
 export interface PipelineQuery {

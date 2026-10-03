@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@/auth/AuthContext";
 import { Icon, ICONS } from "@/components/ui/primitives";
-import { data } from "@/data";
+import { data, DEAL_STAGE_LABEL, type DealRow } from "@/data";
 import { countryLabel } from "@/config/leads";
 import { CLEARED_QUERY } from "@/lib/leadQuery";
 import { canAccess, navForRole, type PageId } from "@/lib/nav";
@@ -71,6 +71,52 @@ const CommandPalette = ({ initialQuery, onClose }: CommandPaletteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [leadHits, setLeadHits] = useState<Result[]>([]);
   const [taskHits, setTaskHits] = useState<Result[]>([]);
+  const [recordHits, setRecordHits] = useState<{ deals: Result[]; clients: Result[]; meetings: Result[]; docs: Result[] }>({ deals: [], clients: [], meetings: [], docs: [] });
+  // Deals and clients are loaded once per palette and filtered locally; meetings are searched on the source.
+  const cache = useRef<{ deals?: Promise<DealRow[]>; clients?: Promise<{ id: string; companyName: string; status: string; href: string }[]>; docs?: Promise<{ id: string; title: string; icon: string | null }[]> }>({});
+
+  // Record search: deals, clients and meetings this person can see (the source applies the same access as each page).
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) {
+      setRecordHits({ deals: [], clients: [], meetings: [], docs: [] });
+      return;
+    }
+    let cancelled = false;
+    const t = window.setTimeout(async () => {
+      if (canAccess(user.role, "deals")) cache.current.deals ??= data.listDeals().catch(() => []);
+      if (canAccess(user.role, "clients")) cache.current.clients ??= data.clientsOverview().then((o) => o.cards, () => []);
+      if (canAccess(user.role, "docs")) cache.current.docs ??= data.listDocs().then((h) => h.docs, () => []);
+      const [deals, clients, meetings, docs] = await Promise.all([
+        cache.current.deals ?? Promise.resolve([] as DealRow[]),
+        cache.current.clients ?? Promise.resolve([]),
+        canAccess(user.role, "meetings") ? data.searchMeetings(q).catch(() => []) : Promise.resolve([]),
+        cache.current.docs ?? Promise.resolve([]),
+      ]);
+      if (cancelled) return;
+      const hit = (text: string) => matches(q, { id: "", label: text, meta: "", href: "" });
+      const when = (iso: string) => new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: user.timezone }).format(new Date(iso));
+      setRecordHits({
+        deals: deals
+          .filter((r) => hit(`${r.company.name} ${r.contactName ?? ""} ${r.deal.brand}`))
+          .slice(0, MAX_PER_GROUP)
+          .map((r) => ({ id: `d-${r.deal.id}`, label: r.company.name, meta: DEAL_STAGE_LABEL[r.deal.stage], href: `/deals/${r.deal.id}` })),
+        clients: clients
+          .filter((c) => hit(c.companyName))
+          .slice(0, MAX_PER_GROUP)
+          .map((c) => ({ id: `c-${c.id}`, label: c.companyName, meta: c.status, href: c.href })),
+        docs: docs
+          .filter((d) => hit(d.title))
+          .slice(0, MAX_PER_GROUP)
+          .map((d) => ({ id: `doc-${d.id}`, label: `${d.icon ?? "📄"} ${d.title}`, meta: "Doc", href: `/docs/${d.id}` })),
+        meetings: meetings.slice(0, MAX_PER_GROUP).map((m) => ({ id: `m-${m.meeting.id}`, label: `${m.company.name} · ${m.meeting.withWhom}`, meta: when(m.meeting.scheduledAt), href: `/meetings/${m.meeting.id}` })),
+      });
+    }, 120);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(t);
+    };
+  }, [query, user.role, user.timezone]);
 
   // Task search (A15): titles of tasks this person can see.
   useEffect(() => {
@@ -137,10 +183,13 @@ const CommandPalette = ({ initialQuery, onClose }: CommandPaletteProps) => {
     }));
     const actions = ACTIONS.filter((a) => canAccess(user.role, a.page) && (a.id !== "a-import" || user.role === "admin"));
     const q = query.trim();
-    // Record search (leads, deals, clients, tasks, meetings) joins these groups as each module lands.
     const all: Group[] = q
       ? [
           { name: "Leads", items: leadHits },
+          { name: "Deals", items: recordHits.deals },
+          { name: "Clients", items: recordHits.clients },
+          { name: "Meetings", items: recordHits.meetings },
+          { name: "Docs", items: recordHits.docs },
           { name: "Tasks", items: taskHits },
           { name: "Pages", items: pages.filter((r) => matches(q, r)).slice(0, MAX_PER_GROUP) },
           { name: "Actions", items: actions.filter((r) => matches(q, r)).slice(0, MAX_PER_GROUP) },
@@ -151,7 +200,7 @@ const CommandPalette = ({ initialQuery, onClose }: CommandPaletteProps) => {
           { name: "Pages", items: pages },
         ];
     return all.filter((g) => g.items.length);
-  }, [query, user.role, leadHits, taskHits]);
+  }, [query, user.role, leadHits, taskHits, recordHits]);
 
   const flat = groups.flatMap((g) => g.items);
   const current = Math.min(active, Math.max(flat.length - 1, 0));
@@ -187,7 +236,7 @@ const CommandPalette = ({ initialQuery, onClose }: CommandPaletteProps) => {
         role="dialog"
         aria-modal="true"
         aria-label="Command palette"
-        className="flex max-h-[70vh] w-full max-w-[700px] flex-col self-start border border-line-strong bg-surface"
+        className="flex max-h-[70vh] w-full max-w-[700px] flex-col self-start border border-line-strong rounded-lg bg-surface"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <label className="flex h-16 shrink-0 items-center gap-3 border-b border-line px-5">
@@ -216,7 +265,7 @@ const CommandPalette = ({ initialQuery, onClose }: CommandPaletteProps) => {
           {groups.length ? (
             groups.map((g) => (
               <div key={g.name} className="flex flex-col gap-0.5 border-b border-line-soft px-2 py-3">
-                <span className="px-3 pb-2 pt-1 text-[10px] uppercase tracking-label text-text-3">{g.name}</span>
+                <span className="px-3 pb-2 pt-1 text-[12px] font-medium text-text-3">{g.name}</span>
                 {g.items.map((r) => {
                   index += 1;
                   const isActive = index === current;
@@ -243,7 +292,7 @@ const CommandPalette = ({ initialQuery, onClose }: CommandPaletteProps) => {
             ))
           ) : (
             <p className="m-0 px-5 py-6 text-[14px] text-text-2">
-              Nothing matches "{query}". Deals, clients and tasks join search as those modules land.
+              Nothing matches "{query}". Search finds leads, deals, clients, meetings, docs, tasks and pages.
             </p>
           )}
         </div>

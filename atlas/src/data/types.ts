@@ -14,6 +14,14 @@ import type { TeamApi } from "./coachTypes";
 import type { TimeApi } from "./timeTypes";
 import type { AdvisorApi } from "./advisorTypes";
 import type { CalendarApi } from "./calendarTypes";
+import type { PeopleApi } from "./peopleTypes";
+import type { GrowthApi } from "./growthTypes";
+import type { InboundApi, OpsApi } from "./opsTypes";
+import type { RecordsApi } from "./recordTypes";
+import type { SupportApi } from "./supportTypes";
+import type { ContractsApi } from "./contractTypes";
+import type { DocsApi } from "./docTypes";
+import type { AgentApi } from "./aiTypes";
 import type { BookingInput, BookingPage, Branding, EmailMessage, EmailTemplate, InboxUsage, SenderRun, UnsubscribeResult } from "./emailTypes";
 import type { Commission, DailyBdrReport, DealRow, MeetingRow, MeetingsWeek, MoveDealInput, PipelineQuery, WeeklyReport } from "./salesTypes";
 
@@ -31,6 +39,14 @@ export * from "./coachTypes";
 export * from "./timeTypes";
 export * from "./advisorTypes";
 export * from "./calendarTypes";
+export * from "./peopleTypes";
+export * from "./growthTypes";
+export * from "./opsTypes";
+export * from "./recordTypes";
+export * from "./supportTypes";
+export * from "./contractTypes";
+export * from "./docTypes";
+export * from "./aiTypes";
 
 export type Role ="admin" | "bdr" | "closer" | "implementer" | "viewer";
 
@@ -65,7 +81,8 @@ export type NotificationType =
   | "task"
   | "mention"
   | "briefing"
-  | "client_health";
+  | "client_health"
+  | "inbound";
 
 export interface Notification {
   id: string;
@@ -172,6 +189,10 @@ export interface SalesApi {
   /** Meetings scheduled in an ISO week ("2026-W40"); default this week. Viewers get totals only. */
   listMeetings(week?: string): Promise<MeetingsWeek>;
   getMeeting(id: string): Promise<MeetingRow>;
+  /** Ctrl K: meetings this person can see, by company or attendee, soonest first. */
+  searchMeetings(q: string): Promise<MeetingRow[]>;
+  /** Prep before, notes after: anyone who can see the meeting (not viewers), any time, even after the month is closed. */
+  saveMeetingNotes(id: string, notes: string): Promise<void>;
   /** Owner (or admin) marks a past meeting held or no-show. A no-show schedules the follow-up. */
   markMeeting(id: string, patch: { attended: boolean; durationMin?: number; notes?: string }): Promise<void>;
   /** Book a meeting from the Meetings page (no call logged): deal, confirmation and reminders, calendar sync, as from a call. */
@@ -248,7 +269,7 @@ export interface DealsApi {
 }
 
 /** Everything the UI needs from a backend. The demo source and the Supabase source both implement it. */
-export interface DataSource extends LeadsApi, QueueApi, SalesApi, EmailApi, DealsApi, ClientsApi, LeadSourcesApi, TasksApi, CapacityApi, PlannerApi, AutomationsApi, TeamApi, TimeApi, AdvisorApi, CalendarApi {
+export interface DataSource extends LeadsApi, QueueApi, SalesApi, EmailApi, DealsApi, ClientsApi, LeadSourcesApi, TasksApi, CapacityApi, PlannerApi, AutomationsApi, TeamApi, TimeApi, AdvisorApi, CalendarApi, PeopleApi, GrowthApi, InboundApi, OpsApi, RecordsApi, SupportApi, ContractsApi, DocsApi, AgentApi {
   readonly kind: "demo" | "supabase";
   signInWithPassword(email: string, password: string): Promise<SignInResult>;
   sendMagicLink(email: string): Promise<void>;

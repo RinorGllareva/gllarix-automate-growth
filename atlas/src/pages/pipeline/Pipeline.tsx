@@ -122,7 +122,7 @@ const Pipeline = () => {
   if (error) return <EmptyState title={error} action={<button className="btn-outline" type="button" onClick={load}>Retry</button>} />;
   if (!rows) return <SkeletonRows rows={8} />;
 
-  const month = new Intl.DateTimeFormat("en-GB", { month: "short", timeZone: user.timezone }).format(new Date()).toUpperCase();
+  const month = new Intl.DateTimeFormat("en-GB", { month: "short", timeZone: user.timezone }).format(new Date());
   const owners = users.filter((u) => ["admin", "bdr", "closer"].includes(u.role) && u.active);
 
   return (
@@ -138,7 +138,7 @@ const Pipeline = () => {
                 role="radio"
                 aria-checked={query.brand === b}
                 onClick={() => setQuery({ ...query, brand: b })}
-                className={`h-8 px-3 text-[11px] uppercase tracking-[0.18em] ${query.brand === b ? "bg-ice text-ice-ink" : "text-text-2 hover:bg-surface-2 hover:text-text"}`}
+                className={`h-8 px-3 text-[12px] font-medium ${query.brand === b ? "bg-ice text-ice-ink" : "text-text-2 hover:bg-surface-2 hover:text-text"}`}
               >
                 {b === "both" ? "Both brands" : b}
               </button>
@@ -174,7 +174,7 @@ const Pipeline = () => {
               }}
               onDragLeave={() => setDragOver((d) => (d === stage ? null : d))}
               onDrop={onDrop(stage)}
-              className="flex h-full w-[216px] shrink-0 flex-col bg-surface"
+              className="flex h-full w-[216px] shrink-0 flex-col overflow-hidden rounded-lg bg-surface"
               style={{ borderTop: `3px solid ${hueVar(hue)}`, boxShadow: dragOver === stage ? `inset 0 0 0 1px ${hueVar(hue)}` : undefined }}
             >
               <div className="flex shrink-0 flex-col gap-0.5 px-3 py-2" style={{ background: hueTint(hue, 12) }}>
@@ -209,7 +209,7 @@ const Pipeline = () => {
                       onDragStart={(e) => e.dataTransfer.setData("text/plain", r.deal.id)}
                       onKeyDown={onCardKey(r)}
                       aria-label={`${r.company.name}, ${DEAL_STAGE_LABEL[stage]}. Shift and arrow keys move it.`}
-                      className="group flex shrink-0 flex-col gap-1.5 bg-surface-2 px-2.5 py-2 shadow-card outline-none hover:bg-[color-mix(in_srgb,var(--surface-2)_70%,var(--line-strong))] focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
+                      className="group flex shrink-0 flex-col gap-1.5 rounded-md bg-surface-2 px-2.5 py-2 shadow-card outline-none hover:bg-[color-mix(in_srgb,var(--surface-2)_70%,var(--line-strong))] focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
                     >
                       <Link to={`/deals/${r.deal.id}`} className="truncate text-[13px] font-medium leading-tight hover:text-cyan" draggable={false} title={r.company.name}>
                         {r.company.name}
@@ -261,7 +261,7 @@ const Pipeline = () => {
             }}
             onDragLeave={() => setDragOver((d) => (d === "lost" ? null : d))}
             onDrop={onDrop("lost")}
-            className="flex h-full w-[120px] shrink-0 items-center justify-center border border-dashed text-center text-[12px]"
+            className="flex h-full w-[120px] shrink-0 items-center justify-center rounded-lg border border-dashed text-center text-[12px]"
             style={{ borderColor: hueVar("coral"), color: hueVar("coral"), background: dragOver === "lost" ? hueTint("coral", 18) : hueTint("coral", 6) }}
           >
             Drop here to mark lost

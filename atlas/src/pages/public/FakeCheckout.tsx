@@ -23,7 +23,7 @@ const FakeCheckout = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-bg-deep px-6 text-text">
-      <div className="flex w-full max-w-md flex-col gap-5 border border-line-strong bg-surface p-7">
+      <div className="flex w-full max-w-md flex-col gap-5 border border-line-strong rounded-lg bg-surface p-7">
         <span className="chip self-start border-amber text-amber">Test mode · no real payment</span>
         <span className="label-caps">{companyName}</span>
         <span className="num text-[40px] font-light">{amount}</span>

@@ -25,10 +25,10 @@ describe("safeNext (no open redirects)", () => {
 describe("role access (00_SHARED_LAYOUT.md)", () => {
   const expected: Record<Role, string[]> = {
     admin: NAV_ITEMS.map((n) => n.id),
-    bdr: ["today", "call", "leads", "pipeline", "meetings", "deals", "tasks", "team", "time", "advisor"],
-    closer: ["today", "call", "leads", "pipeline", "meetings", "deals", "tasks", "team", "time", "advisor"],
-    viewer: ["pipeline", "reports", "team"],
-    implementer: ["clients", "tasks", "time"],
+    bdr: ["today", "call", "leads", "pipeline", "meetings", "deals", "tasks", "team", "time", "advisor", "commissions", "training", "marketing", "inbound", "ops", "docs", "tracker"],
+    closer: ["today", "call", "leads", "pipeline", "meetings", "deals", "tasks", "team", "time", "advisor", "commissions", "training", "marketing", "inbound", "ops", "docs", "tracker"],
+    viewer: ["pipeline", "reports", "finance", "payments", "commissions", "docs"],
+    implementer: ["clients", "support", "tasks", "time", "ops", "docs"],
   };
 
   it.each(Object.keys(expected) as Role[])("%s sees exactly its pages", (role) => {
@@ -47,10 +47,10 @@ describe("role access (00_SHARED_LAYOUT.md)", () => {
     expect(homePathFor("implementer")).toBe("/clients");
   });
 
-  it("has 13 unique G shortcuts", () => {
+  it("gives every page a unique G shortcut", () => {
     const keys = NAV_ITEMS.map((n) => n.key);
-    expect(keys).toHaveLength(13);
-    expect(new Set(keys).size).toBe(13);
+    expect(keys.length).toBeGreaterThanOrEqual(27);
+    expect(new Set(keys).size).toBe(keys.length);
   });
 });
 
@@ -140,7 +140,8 @@ describe("routes", () => {
   it("shows a 403 to a BDR on an admin page, and hides admin from the BDR's sidebar", async () => {
     await renderAt("/admin/users", "diego@atlas.test");
     expect(await screen.findByText("You don't have access to this page.")).toBeTruthy();
-    const nav = screen.getByRole("navigation", { name: "Main" });
+    const nav = screen.getByRole("navigation", { name: "Sell pages" });
+    expect(screen.queryByRole("link", { name: "Settings" })).toBeNull();
     expect(nav.textContent).not.toContain("Admin");
     expect(nav.textContent).toContain("Call workspace");
   });
@@ -153,7 +154,7 @@ describe("routes", () => {
 
   it("G then L goes to Leads, but not while typing in the search field", async () => {
     await renderAt("/today", "rinor@atlas.test");
-    await screen.findByRole("navigation", { name: "Main" });
+    await screen.findByRole("navigation", { name: "Sell pages" });
     await screen.findByRole("heading", { level: 1, name: "Today" });
     const search = screen.getByRole("searchbox", { name: "Search leads, companies, deals" });
     act(() => {

@@ -10,8 +10,8 @@ import { EMPTY_FILTERS, filterTasks, groupTasks, hours, listSummary, myWorkGroup
 import { AiTag, Flag, isOverdue, shortDue, StatusPill, taskEmoji, todayKey, ToolbarSlot, useTasks } from "./shared";
 import { Avatar, Icon, ICONS } from "@/components/ui/primitives";
 import { CATEGORY_HUE, hueTint, hueVar, PRIORITY_HUE, type Hue } from "@/config/colors";
+import { DataTable, type Column } from "@/components/DataTable";
 
-const COLS = "grid-cols-[38px_minmax(260px,1fr)_130px_140px_96px_110px_72px_130px]";
 const GROUPS: [GroupBy, string][] = [["status", "Status"], ["owner", "Owner"], ["priority", "Priority"], ["category", "Category"], ["due_week", "Due week"], ["none", "None"]];
 const SORTS: [SortBy, string][] = [["manual", "Manual"], ["due", "Due"], ["priority", "Priority"], ["created", "Created"]];
 const plain = "border-0 bg-transparent p-0 text-[12px] focus:outline-none focus-visible:outline-1";
@@ -33,121 +33,172 @@ const Tag = ({ hue, children }: { hue: Hue; children: ReactNode }) => (
   </span>
 );
 
-/** One table row, Notion database style: icon + title, then property cells. Every cell edits in place. */
-const Row = ({ row, selected, focused, onSelect, onPatch, onOpen }: { row: TaskRow; selected: boolean; focused: boolean; onSelect: () => void; onPatch: (p: TaskPatch) => void; onOpen: () => void }) => {
-  const { home } = useTasks();
-  const t = row.task;
-  const closed = t.status === "done" || t.status === "cancelled";
-  const cell = "flex h-full min-w-0 items-center border-l border-line-soft px-2.5";
-  return (
-    <div
-      role="row"
-      aria-selected={selected}
-      data-focused={focused || undefined}
-      className={`group grid ${COLS} min-w-[980px] items-stretch border-b border-line-soft text-[14px] ${focused || selected ? "bg-surface-2" : "hover:bg-surface-2/60"}`}
-      style={{ height: 38 }}
-    >
-      <span className="flex items-center justify-center">
-        <input
-          type="checkbox"
-          aria-label={`Select ${t.title}`}
-          checked={selected}
-          onChange={onSelect}
-          className={`h-3.5 w-3.5 accent-[var(--cyan)] ${selected ? "" : "opacity-0 focus:opacity-100 group-hover:opacity-100"}`}
-        />
-      </span>
-      <span className="flex min-w-0 items-center gap-2 pr-2.5">
-        <span className="shrink-0 text-[15px] leading-none" aria-hidden="true">
-          {taskEmoji(t)}
-        </span>
-        <button type="button" onClick={onOpen} className="flex min-w-0 items-center gap-2 text-left">
-          <span className={`truncate font-medium ${closed ? "text-text-3 line-through" : ""}`}>{t.title}</span>
-          {row.subtasks.total ? <span className="num shrink-0 font-mono text-[11px] text-text-3">☰ {row.subtasks.done}/{row.subtasks.total}</span> : null}
-          {t.createdByAi ? <AiTag /> : null}
-          {row.waitingOnOpen ? <span className="shrink-0 text-[11px] text-amber" title="Waiting on unfinished tasks">waiting</span> : null}
-        </button>
-        <button type="button" onClick={onOpen} tabIndex={-1} className="ml-auto hidden h-6 shrink-0 items-center gap-1 rounded-md border border-line-strong bg-surface px-1.5 text-[11px] font-medium tracking-[0.06em] text-text-2 hover:text-text group-hover:flex">
-          OPEN
-        </button>
-      </span>
-      <label className={`relative ${cell}`}>
-        <StatusPill s={t.status} className="h-[22px] text-[12px]" />
-        <select aria-label="Status" className="absolute inset-0 cursor-pointer opacity-0" value={t.status} onChange={(e) => onPatch({ status: e.target.value as TaskStatus })}>
-          {(Object.keys(STATUS_META) as TaskStatus[]).map((s) => (
-            <option key={s} value={s}>
-              {STATUS_META[s].label}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className={`relative gap-1.5 ${cell}`}>
-        {row.assignees.length ? (
-          <>
-            <span className="flex shrink-0 -space-x-1.5">
-              {row.assignees.slice(0, 3).map((a) => (
-                <Avatar key={a.id} id={a.id} name={a.name} size={20} round />
-              ))}
+/** The task columns, Notion database style: icon + title, then property cells. Every cell edits in place. */
+const taskColumns = (home: ReturnType<typeof useTasks>["home"], onPatch: (id: string, p: TaskPatch) => void, onOpen: (id: string) => void): Column<TaskRow>[] => {
+  const prop = "relative flex h-full w-full min-w-0 items-center gap-1.5";
+  return [
+    {
+      key: "task",
+      header: "Task",
+      width: "minmax(260px,1fr)",
+      render: (row) => {
+        const t = row.task;
+        const closed = t.status === "done" || t.status === "cancelled";
+        return (
+          <span className="flex w-full min-w-0 items-center gap-2">
+            <span className="shrink-0 text-[15px] leading-none" aria-hidden="true">
+              {taskEmoji(t)}
             </span>
-            <span className="truncate text-[13px] text-text-2">{row.assignees.length === 1 ? row.assignees[0].name.split(" ")[0] : `${row.assignees[0].name.split(" ")[0]} +${row.assignees.length - 1}`}</span>
-          </>
-        ) : (
-          <span className="text-[13px] text-text-3 opacity-0 group-hover:opacity-100">Empty</span>
-        )}
-        <select aria-label="Owner" className="absolute inset-0 cursor-pointer opacity-0" value={t.assigneeIds[0] ?? ""} onChange={(e) => onPatch({ assigneeIds: e.target.value ? [e.target.value, ...t.assigneeIds.filter((a) => a !== e.target.value).slice(1)] : [] })}>
-          <option value="">—</option>
-          {home.users.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.name.split(" ")[0]}
-              {t.assigneeIds.length > 1 && t.assigneeIds[0] === u.id ? ` +${t.assigneeIds.length - 1}` : ""}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className={`relative text-[13px] ${cell}`} style={{ color: isOverdue(row) ? hueVar("coral") : t.dueAt === todayKey() ? hueVar("orange") : "var(--text-2)" }}>
-        {t.dueAt ? <span>{shortDue(t.dueAt)}</span> : <span className="text-text-3 opacity-0 group-hover:opacity-100">Empty</span>}
-        <input type="date" aria-label="Due date" value={t.dueAt ?? ""} onChange={(e) => onPatch({ dueAt: e.target.value || null })} className="absolute inset-0 cursor-pointer opacity-0" />
-      </label>
-      <label className={`relative ${cell}`}>
-        <Tag hue={PRIORITY_HUE[t.priority]}>
-          <Flag p={t.priority} size={11} />
-          {PRIORITY_META[t.priority].label}
-        </Tag>
-        <select aria-label="Priority" className="absolute inset-0 cursor-pointer opacity-0" value={t.priority} onChange={(e) => onPatch({ priority: e.target.value as TaskPriority })}>
-          {(Object.keys(PRIORITY_META) as TaskPriority[]).map((p) => (
-            <option key={p} value={p}>
-              {PRIORITY_META[p].label}
-            </option>
-          ))}
-        </select>
-      </label>
-      <span className={cell}>
-        <input
-          aria-label="Estimate in hours"
-          className={`${plain} w-full text-[13px] text-text-2 placeholder:opacity-0 group-hover:placeholder:opacity-100`}
-          key={t.estimateMinutes ?? "none"}
-          defaultValue={t.estimateMinutes ? `${Math.round((t.estimateMinutes / 60) * 10) / 10}h` : ""}
-          placeholder="Empty"
-          inputMode="decimal"
-          onBlur={(e) => {
-            const v = e.target.value.trim().replace(/h$/i, "");
-            const minutes = v === "" ? null : Math.round(Number(v) * 60);
-            if (minutes === null || Number.isFinite(minutes)) if (minutes !== t.estimateMinutes) onPatch({ estimateMinutes: minutes });
-          }}
-        />
-      </span>
-      <label className={`relative ${cell}`}>
-        {t.category ? <Tag hue={CATEGORY_HUE[t.category] ?? "text-3"}>{t.category}</Tag> : <span className="text-[13px] text-text-3 opacity-0 group-hover:opacity-100">Empty</span>}
-        <select aria-label="Category" className="absolute inset-0 cursor-pointer opacity-0" value={t.category ?? ""} onChange={(e) => onPatch({ category: e.target.value || null })}>
-          <option value="">—</option>
-          {home.categories.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-      </label>
-    </div>
-  );
+            <button type="button" onClick={() => onOpen(t.id)} className="flex min-w-0 items-center gap-2 text-left text-[14px]">
+              <span className={`truncate font-medium ${closed ? "text-text-3 line-through" : ""}`}>{t.title}</span>
+              {row.subtasks.total ? <span className="num shrink-0 font-mono text-[11px] text-text-3">☰ {row.subtasks.done}/{row.subtasks.total}</span> : null}
+              {t.createdByAi ? <AiTag /> : null}
+              {row.waitingOnOpen ? <span className="shrink-0 text-[11px] text-amber" title="Waiting on unfinished tasks">waiting</span> : null}
+            </button>
+            <button type="button" onClick={() => onOpen(t.id)} tabIndex={-1} className="ml-auto hidden h-6 shrink-0 items-center gap-1 rounded-md border border-line-strong bg-surface px-1.5 text-[11px] font-medium text-text-2 hover:text-text group-hover:flex">
+              Open
+            </button>
+          </span>
+        );
+      },
+    },
+    {
+      key: "status",
+      header: "Status",
+      icon: ICONS.status,
+      width: "130px",
+      render: (row) => (
+        <label className={prop}>
+          <StatusPill s={row.task.status} className="h-[22px] text-[12px]" />
+          <select aria-label="Status" className="absolute inset-0 cursor-pointer opacity-0" value={row.task.status} onChange={(e) => onPatch(row.task.id, { status: e.target.value as TaskStatus })}>
+            {(Object.keys(STATUS_META) as TaskStatus[]).map((st) => (
+              <option key={st} value={st}>
+                {STATUS_META[st].label}
+              </option>
+            ))}
+          </select>
+        </label>
+      ),
+    },
+    {
+      key: "owner",
+      header: "Owner",
+      icon: ICONS.user,
+      width: "140px",
+      hideable: true,
+      render: (row) => {
+        const t = row.task;
+        return (
+          <label className={prop}>
+            {row.assignees.length ? (
+              <>
+                <span className="flex shrink-0 -space-x-1.5">
+                  {row.assignees.slice(0, 3).map((a) => (
+                    <Avatar key={a.id} id={a.id} name={a.name} size={20} round />
+                  ))}
+                </span>
+                <span className="truncate text-[13px] text-text-2">{row.assignees.length === 1 ? row.assignees[0].name.split(" ")[0] : `${row.assignees[0].name.split(" ")[0]} +${row.assignees.length - 1}`}</span>
+              </>
+            ) : (
+              <span className="text-[13px] text-text-3 opacity-0 group-hover:opacity-100">Empty</span>
+            )}
+            <select aria-label="Owner" className="absolute inset-0 cursor-pointer opacity-0" value={t.assigneeIds[0] ?? ""} onChange={(e) => onPatch(t.id, { assigneeIds: e.target.value ? [e.target.value, ...t.assigneeIds.filter((x) => x !== e.target.value).slice(1)] : [] })}>
+              <option value="">—</option>
+              {home.users.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name.split(" ")[0]}
+                  {t.assigneeIds.length > 1 && t.assigneeIds[0] === u.id ? ` +${t.assigneeIds.length - 1}` : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+        );
+      },
+    },
+    {
+      key: "due",
+      header: "Due",
+      icon: ICONS.calendar,
+      width: "96px",
+      hideable: true,
+      render: (row) => {
+        const t = row.task;
+        return (
+          <label className={`${prop} text-[13px]`} style={{ color: isOverdue(row) ? hueVar("coral") : t.dueAt === todayKey() ? hueVar("orange") : "var(--text-2)" }}>
+            {t.dueAt ? <span>{shortDue(t.dueAt)}</span> : <span className="text-text-3 opacity-0 group-hover:opacity-100">Empty</span>}
+            <input type="date" aria-label="Due date" value={t.dueAt ?? ""} onChange={(e) => onPatch(t.id, { dueAt: e.target.value || null })} className="absolute inset-0 cursor-pointer opacity-0" />
+          </label>
+        );
+      },
+    },
+    {
+      key: "priority",
+      header: "Priority",
+      icon: ICONS.flag,
+      width: "110px",
+      hideable: true,
+      render: (row) => (
+        <label className={prop}>
+          <Tag hue={PRIORITY_HUE[row.task.priority]}>
+            <Flag p={row.task.priority} size={11} />
+            {PRIORITY_META[row.task.priority].label}
+          </Tag>
+          <select aria-label="Priority" className="absolute inset-0 cursor-pointer opacity-0" value={row.task.priority} onChange={(e) => onPatch(row.task.id, { priority: e.target.value as TaskPriority })}>
+            {(Object.keys(PRIORITY_META) as TaskPriority[]).map((pr) => (
+              <option key={pr} value={pr}>
+                {PRIORITY_META[pr].label}
+              </option>
+            ))}
+          </select>
+        </label>
+      ),
+    },
+    {
+      key: "estimate",
+      header: "Est.",
+      icon: ICONS.clock,
+      width: "72px",
+      hideable: true,
+      render: (row) => {
+        const t = row.task;
+        return (
+          <input
+            aria-label="Estimate in hours"
+            className={`${plain} w-full text-[13px] text-text-2 placeholder:opacity-0 group-hover:placeholder:opacity-100`}
+            key={t.estimateMinutes ?? "none"}
+            defaultValue={t.estimateMinutes ? `${Math.round((t.estimateMinutes / 60) * 10) / 10}h` : ""}
+            placeholder="Empty"
+            inputMode="decimal"
+            onBlur={(e) => {
+              const v = e.target.value.trim().replace(/h$/i, "");
+              const minutes = v === "" ? null : Math.round(Number(v) * 60);
+              if (minutes === null || Number.isFinite(minutes)) if (minutes !== t.estimateMinutes) onPatch(t.id, { estimateMinutes: minutes });
+            }}
+          />
+        );
+      },
+    },
+    {
+      key: "category",
+      header: "Category",
+      icon: ICONS.tag,
+      width: "130px",
+      hideable: true,
+      render: (row) => (
+        <label className={prop}>
+          {row.task.category ? <Tag hue={CATEGORY_HUE[row.task.category] ?? "text-3"}>{row.task.category}</Tag> : <span className="text-[13px] text-text-3 opacity-0 group-hover:opacity-100">Empty</span>}
+          <select aria-label="Category" className="absolute inset-0 cursor-pointer opacity-0" value={row.task.category ?? ""} onChange={(e) => onPatch(row.task.id, { category: e.target.value || null })}>
+            <option value="">—</option>
+            {home.categories.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </label>
+      ),
+    },
+  ];
 };
 
 const InlineAdd = ({ onAdd }: { onAdd: (title: string) => Promise<void> }) => {
@@ -318,6 +369,7 @@ const ListView = ({ listId, spaceId, myWork, title }: { listId?: string; spaceId
     refresh();
   };
 
+  const columns = taskColumns(home, (id, p) => patch(id, p), openTask);
   if (error) return <EmptyState title={error} />;
   const nFilters = activeFilterCount(config.filters);
 
@@ -462,61 +514,40 @@ const ListView = ({ listId, spaceId, myWork, title }: { listId?: string; spaceId
       {!rows ? (
         <SkeletonRows rows={8} />
       ) : (
-        <div className="min-w-0 overflow-x-auto" role="grid" aria-label={title} tabIndex={0}>
-          <div className={`grid ${COLS} min-w-[980px] items-stretch border-b border-t border-line-soft text-[13px] text-text-3`} style={{ height: 34 }}>
-            <span />
-            <span className="flex items-center gap-1.5 pr-2.5">
-              <span className="font-serif text-[13px]">Aa</span> Task
-            </span>
-            {(
-              [
-                [ICONS.status, "Status"],
-                [ICONS.user, "Owner"],
-                [ICONS.calendar, "Due"],
-                [ICONS.flag, "Priority"],
-                [ICONS.clock, "Est."],
-                [ICONS.tag, "Category"],
-              ] as const
-            ).map(([icon, label]) => (
-              <span key={label} className="flex items-center gap-1.5 border-l border-line-soft px-2.5">
-                <Icon d={icon} size={14} />
-                {label}
-              </span>
-            ))}
-          </div>
-          {groups.map((g) => {
-            const isCollapsed = collapsed.has(g.key);
-            return (
-              <section key={g.key} aria-label={g.label} className="flex flex-col">
-                <button
-                  type="button"
-                  className="mt-5 flex h-9 min-w-[980px] items-center gap-2 px-1.5 text-[13px] first:mt-3"
-                  onClick={() => setCollapsed((c) => new Set(c.has(g.key) ? [...c].filter((x) => x !== g.key) : [...c, g.key]))}
-                  aria-expanded={!isCollapsed}
-                >
-                  <Icon d={ICONS.chevronRight} size={14} className={`text-text-3 transition-transform ${isCollapsed ? "" : "rotate-90"}`} />
+        <div tabIndex={0} aria-label={`${title}: use J and K to move`} className="min-w-0 rounded-lg">
+          <DataTable<TaskRow>
+            id="tasks"
+            label={title}
+            variant="plain"
+            minWidth={980}
+            rowHeight={38}
+            rowKey={(r) => r.task.id}
+            focusedKey={visibleRows[focus]?.task.id ?? null}
+            columns={columns}
+            selection={{
+              isSelected: (id) => selected.has(id),
+              toggle: (id) => setSelected((x) => new Set(x.has(id) ? [...x].filter((y) => y !== id) : [...x, id])),
+              allSelected: visibleRows.length > 0 && visibleRows.every((r) => selected.has(r.task.id)),
+              toggleAll: () => setSelected((x) => (visibleRows.every((r) => x.has(r.task.id)) ? new Set() : new Set(visibleRows.map((r) => r.task.id)))),
+              reveal: "hover",
+              label: (r) => `Select ${r.task.title}`,
+            }}
+            collapsed={collapsed}
+            onToggleGroup={(k) => setCollapsed((c) => new Set(c.has(k) ? [...c].filter((x) => x !== k) : [...c, k]))}
+            groups={groups.map((g) => ({
+              key: g.key,
+              header: (
+                <>
                   {g.status ? <StatusPill s={g.status} /> : <GroupTag tone={g.tone}>{g.label}</GroupTag>}
                   <span className="text-text-3">{g.rows.length}</span>
                   {g.rows.length ? <span className="ml-auto pr-2 text-[12px] text-text-3">{hours(g.rows.reduce((n, r) => n + (r.task.estimateMinutes ?? 0), 0))}</span> : null}
-                </button>
-                {!isCollapsed
-                  ? g.rows.map((r) => (
-                      <Row
-                        key={r.task.id}
-                        row={r}
-                        focused={visibleRows[focus]?.task.id === r.task.id}
-                        selected={selected.has(r.task.id)}
-                        onSelect={() => setSelected((s) => new Set(s.has(r.task.id) ? [...s].filter((x) => x !== r.task.id) : [...s, r.task.id]))}
-                        onPatch={(p) => patch(r.task.id, p)}
-                        onOpen={() => openTask(r.task.id)}
-                      />
-                    ))
-                  : null}
-                {!isCollapsed && (!myWork || g.key === "today" || g.key === "none") && (config.groupBy === "status" || myWork) ? <InlineAdd onAdd={(t) => addIn(g, t)} /> : null}
-              </section>
-            );
-          })}
-          {!groups.some((g) => g.rows.length) ? <p className="m-0 px-3 py-6 text-[13px] text-text-2">{nFilters ? "No tasks match the filters." : "No tasks here yet. Add one with + Add task or T."}</p> : null}
+                </>
+              ),
+              rows: g.rows,
+              after: (!myWork || g.key === "today" || g.key === "none") && (config.groupBy === "status" || myWork) ? <InlineAdd onAdd={(t) => addIn(g, t)} /> : null,
+            }))}
+            empty={<p className="m-0 text-[13px] text-text-2">{nFilters ? "No tasks match the filters." : "No tasks here yet. Add one with + Add task or T."}</p>}
+          />
         </div>
       )}
       <p className="m-0 text-[11px] text-text-3">Keys: J/K move · Enter open · X select · S status · A assign to me · T new task</p>

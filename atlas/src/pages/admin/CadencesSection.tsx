@@ -36,7 +36,7 @@ const CadencesSection = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="m-0 text-[34px] font-light tracking-[-0.02em]">Cadences</h1>
+      <h1 className="page-title m-0">Cadences</h1>
 
       <div className="grid gap-4 lg:grid-cols-2">
         {Object.entries(QUEUE.cadences).map(([id, steps]) => (
@@ -68,7 +68,7 @@ const CadencesSection = () => {
                   className={`flex h-10 items-center justify-between gap-2 px-3 text-left text-[13px] ${t.key === key ? "bg-ice text-ice-ink" : "text-text-2 hover:bg-surface hover:text-text"}`}
                 >
                   <span className="truncate">{t.name}</span>
-                  {/\[TO WRITE/.test(t.body) ? <span className="shrink-0 text-[10px] uppercase tracking-[0.16em] text-amber">To write</span> : null}
+                  {/\[TO WRITE/.test(t.body) ? <span className="shrink-0 text-[12px] font-medium text-amber">To write</span> : null}
                 </button>
               ))}
             </nav>

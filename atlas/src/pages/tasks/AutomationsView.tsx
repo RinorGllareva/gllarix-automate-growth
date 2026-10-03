@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { useUser } from "@/auth/AuthContext";
 import { Modal, useToast } from "@/components/ui/overlay";
 import { EmptyState, SkeletonRows } from "@/components/ui/primitives";
@@ -149,7 +149,8 @@ const AutomationEditor = ({ templates, onClose, onSaved }: { templates: TaskTemp
 };
 
 /** Automations ("when X then Y"), task templates and the run log (A15). */
-export const AutomationsView = () => {
+/** `intro` renders under the title (Growth › Automations puts "Runs by itself" there). */
+export const AutomationsView = ({ intro }: { intro?: ReactNode }) => {
   const user = useUser();
   const [d, setD] = useState<{ automations: Automation[]; templates: TaskTemplate[]; runs: AutomationRun[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -166,13 +167,15 @@ export const AutomationsView = () => {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="m-0 text-[34px] font-light tracking-[-0.02em]">Automations</h1>
+        <h1 className="page-title m-0">Automations</h1>
         {admin ? (
           <button type="button" className="btn-primary h-9 text-[11px]" onClick={() => setCreating(true)}>
-            + AUTOMATION
+            New automation
           </button>
         ) : null}
       </div>
+      {intro}
+      {intro ? <span className="-mb-2 text-[15px] font-semibold">Your rules</span> : null}
       <section aria-label="Automations" className="card flex flex-col">
         {d.automations.map((a) => (
           <div key={a.id} className="flex flex-wrap items-start justify-between gap-3 border-b border-line-soft px-4 py-3 text-[13px] last:border-b-0">
@@ -271,10 +274,10 @@ export const GoalsView = () => {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="m-0 text-[34px] font-light tracking-[-0.02em]">Goals</h1>
+        <h1 className="page-title m-0">Goals</h1>
         {user.role === "admin" ? (
           <button type="button" className="btn-primary h-9 text-[11px]" onClick={() => setForm({ title: "", kpi: "mrr_eur", target: "", dueAt: "", ownerId: user.id })}>
-            + GOAL
+            New goal
           </button>
         ) : null}
       </div>
@@ -283,7 +286,7 @@ export const GoalsView = () => {
           <section key={g.goal.id} aria-label={g.goal.title} className="card flex flex-col gap-2.5 p-5">
             <div className="flex justify-between gap-3">
               <span className="text-[15px]">{g.goal.title}</span>
-              <span className="text-[11px] uppercase tracking-[0.2em]" style={{ color: tone[g.status] }}>
+              <span className="text-[12px] font-medium " style={{ color: tone[g.status] }}>
                 {g.status.replace("_", " ")}
               </span>
             </div>

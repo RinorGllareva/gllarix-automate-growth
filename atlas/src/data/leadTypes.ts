@@ -88,6 +88,8 @@ export interface Lead {
   lawfulBasis: string;
   /** Personal data erased (GDPR request or retention); stats stay. */
   erasedAt?: string | null;
+  /** Free tags set on the lead page ("referral", "has-crew"), lowercase. */
+  tags?: string[];
   importJobId: string | null;
   createdAt: string;
   updatedAt: string;

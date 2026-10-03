@@ -12,12 +12,15 @@
   body {
     @apply bg-bg font-sans text-text antialiased;
     margin: 0;
+    /* Inter: straight-legged l/I and open digits read better in dense tables. */
+    font-feature-settings: "cv11", "ss01", "ss03";
+    letter-spacing: 0.1px;
   }
   input[type="search"]::-webkit-search-cancel-button {
     appearance: none;
   }
   :focus-visible {
-    outline: 2px solid var(--cyan);
+    outline: 2px solid color-mix(in srgb, var(--app) 70%, transparent);
     outline-offset: 2px;
   }
   @media (prefers-reduced-motion: reduce) {
@@ -31,49 +34,61 @@
 }
 
 @layer components {
-  /* 11 px tracked uppercase labels */
+  /* Section label: small, medium weight, muted. (Name kept for history; it is no longer upper case.) */
   .label-caps {
-    @apply text-[11px] uppercase tracking-label text-label;
+    @apply text-[12px] font-medium text-label;
   }
   .page-title {
-    @apply text-[40px] font-light leading-none tracking-[-0.02em] text-text;
+    @apply text-[26px] font-semibold leading-tight tracking-[-0.015em] text-text;
   }
   .num {
     @apply font-mono tabular-nums;
   }
 
   .btn {
-    @apply inline-flex h-11 select-none items-center justify-center gap-3 border px-[18px] text-[12px] uppercase tracking-label transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex h-9 select-none items-center justify-center gap-2 rounded-lg border px-3.5 text-[13px] font-medium transition-[background-color,border-color,transform] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100;
   }
+  /* Light button on dark (the one main action on a screen). */
   .btn-primary {
-    @apply btn border-ice bg-ice text-ice-ink hover:bg-text;
+    @apply btn border-transparent bg-ice text-ice-ink hover:opacity-90;
   }
+  /* Dark glossy button with an inset edge (everything else). */
   .btn-outline {
-    @apply btn border-line-button bg-surface text-text hover:border-text-3 hover:bg-surface-2;
+    @apply btn border-line-strong text-text hover:border-line-button;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--text) 3%, transparent), color-mix(in srgb, var(--text) 8%, transparent));
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text) 6%, transparent);
   }
   .btn-danger {
-    @apply btn border-coral bg-coral text-ice-ink hover:opacity-90;
+    @apply btn border-coral/50 bg-coral-tint text-coral hover:bg-coral/25;
   }
   .btn-ghost {
-    @apply inline-flex items-center gap-2 border-0 bg-transparent p-0 text-[11px] uppercase tracking-[0.2em] text-cyan hover:text-text;
+    @apply inline-flex items-center gap-1.5 rounded-md border-0 bg-transparent p-0 text-[13px] font-medium text-cyan hover:text-text;
   }
 
   .field-label {
-    @apply text-[13px] text-text-2;
+    @apply text-[13px] font-medium text-text-2;
   }
   .input {
-    @apply h-11 w-full border border-line-strong bg-inset px-3 font-sans text-[14px] text-text placeholder:text-text-3 focus:border-cyan focus:outline-none;
+    @apply h-9 w-full rounded-lg border border-line-strong bg-inset px-3 font-sans text-[14px] text-text placeholder:text-text-3 focus:border-cyan focus:outline-none;
   }
 
   .chip {
-    @apply inline-flex items-center border px-2 py-1 text-[10px] uppercase leading-none tracking-[0.2em];
+    @apply inline-flex items-center rounded-md border px-2 py-1 text-[11px] font-medium leading-none;
   }
 
+  /* Dark-metal card: diagonal gradient, hairline edge, inset top highlight. */
   .card {
-    @apply border border-line bg-surface shadow-card;
+    @apply rounded-xl border border-line shadow-card;
+    background: var(--card-gradient);
+  }
+
+  /* Keyboard key (shortcut hints). */
+  .kbd {
+    @apply inline-flex h-5 min-w-5 items-center justify-center rounded-[5px] border border-line px-1 font-mono text-[10px] font-medium text-text-3;
+    background: radial-gradient(100% 100% at 50% 0, var(--surface-2) 0, var(--inset) 100%);
   }
 
   .skeleton {
-    @apply animate-pulse bg-line-soft;
+    @apply animate-pulse rounded-md bg-line-soft;
   }
 }

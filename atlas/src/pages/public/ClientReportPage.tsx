@@ -51,20 +51,20 @@ const ClientReportPage = () => {
         </div>
         <div className="flex flex-col gap-2">
           <span className="label-caps">Monthly results · {monthLabel(r.period)}</span>
-          <h1 className="m-0 text-[40px] font-light leading-tight tracking-[-0.02em]">{r.companyName}</h1>
+          <h1 className="page-title m-0 leading-tight">{r.companyName}</h1>
           <span className="text-[14px] text-text-2">What your AI receptionist handled this month.</span>
         </div>
         <section aria-label="Results" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {kpis.map((k) => (
             <div key={k.label} className="flex flex-col gap-2 border border-line p-4">
-              <span className="text-[10px] uppercase tracking-[0.2em] text-label">{k.label}</span>
+              <span className="text-[12px] font-medium text-label">{k.label}</span>
               <span className={`num text-[30px] font-light ${k.cls}`}>{k.v.toLocaleString("en-US")}</span>
             </div>
           ))}
         </section>
         <section aria-label="Minutes per day" className="flex flex-col gap-3 border border-line p-5">
           <div className="flex flex-wrap justify-between gap-2 text-[11px] tracking-[0.22em] text-label">
-            <span>MINUTES PER DAY</span>
+            <span>Minutes per day</span>
             <span className="num">
               {r.kpis.minutes.toLocaleString("en-US")} USED · {r.includedMinutes.toLocaleString("en-US")} INCLUDED
             </span>

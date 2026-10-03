@@ -75,7 +75,7 @@ const NewMeetingModal = ({ open, onClose, onBooked, initial }: { open: boolean; 
         <div className="flex flex-col gap-1.5">
           <span className="field-label">Lead</span>
           {lead ? (
-            <div className="flex items-center gap-3 border border-line-strong bg-inset px-3 py-2">
+            <div className="flex items-center gap-3 border border-line-strong rounded-lg bg-inset px-3 py-2">
               <TierBadge tier={lead.lead.tier} score={lead.lead.score} />
               <div className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate text-[14px] font-medium">{lead.company.name}</span>

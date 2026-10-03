@@ -5,7 +5,8 @@ import { usePageChrome } from "@/components/shell/PageChrome";
 import { Modal, useToast } from "@/components/ui/overlay";
 import { EmptyState, SkeletonRows } from "@/components/ui/primitives";
 import { CATEGORY_COLOR, CELL_STEP_HOURS, TIME_CATEGORIES } from "@/config/time";
-import { data, type MyWeek, type ReportGroup, type TimeEntryView, type TimeLink, type TimeReport, type Timesheet } from "@/data";
+import { data, type MyWeek, type ReportGroup, type TimeEntryView, type TimeLink, type TimeReport, type TimeReportRow, type Timesheet } from "@/data";
+import { DataTable, type Column } from "@/components/DataTable";
 import { clock, TIMER_EVENT, timerChanged } from "@/lib/timer";
 import { shiftWeek } from "@/services/time";
 
@@ -216,7 +217,7 @@ const TimerCard = ({ timer, onChange }: { timer: NonNullable<MyWeek["timer"]>; o
       <span className="h-2.5 w-2.5" style={{ background: "var(--mint)" }} />
       <div className="flex min-w-0 flex-col gap-0.5">
         <span className="truncate text-[14px]">{timer.label}</span>
-        <span className="text-[11px] uppercase tracking-[0.18em] text-text-3">{timer.sub}</span>
+        <span className="text-[12px] font-medium text-text-3">{timer.sub}</span>
       </div>
       <span className="num ml-auto font-mono text-[26px]">{clock(tick - new Date(timer.startedAt).getTime())}</span>
       <button
@@ -234,10 +235,10 @@ const TimerCard = ({ timer, onChange }: { timer: NonNullable<MyWeek["timer"]>; o
           }
         }}
       >
-        STOP
+        Stop
       </button>
       <button type="button" className="btn-outline h-10 px-4 text-[11px] tracking-[0.22em]" onClick={() => setSwitching(true)}>
-        SWITCH TASK
+        Switch task
       </button>
       <StartTimerModal open={switching} onClose={() => setSwitching(false)} onStarted={onChange} />
     </section>
@@ -280,7 +281,7 @@ const MyWeekPage = () => {
 
   const mine = !w || w.userId === user.id;
   usePageChrome({
-    context: w ? `${mine ? "MY TIME" : `TIME · ${w.name.toUpperCase()}`} · ${user.role === "admin" ? "" : `${user.role.toUpperCase()} · `}WEEK ${Number(w.week.slice(6))}`.replace("·  ·", "·") : "Time tracking",
+    context: w ? `${mine ? "My time" : `Time · ${w.name}`} · week ${Number(w.week.slice(6))}` : "Time tracking",
     action: user.role === "admin" || user.role === "implementer" ? { label: "Team reports", to: "/time/reports" } : undefined,
   });
 
@@ -310,7 +311,7 @@ const MyWeekPage = () => {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-col gap-2">
           <span className="label-caps">{w.weekLabel}</span>
-          <h1 className="m-0 text-[34px] font-light tracking-[-0.02em]">{mine ? "My time" : `${w.name}'s time`}</h1>
+          <h1 className="page-title m-0">{mine ? "My time" : `${w.name}'s time`}</h1>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-[13px]">
           {w.people ? (
@@ -338,11 +339,11 @@ const MyWeekPage = () => {
         w.timer ? (
           <TimerCard timer={w.timer} onChange={load} />
         ) : (
-          <section aria-label="Timer" className="flex items-center gap-4 border border-line bg-surface px-[18px] py-3.5">
+          <section aria-label="Timer" className="flex items-center gap-4 border border-line rounded-lg bg-surface px-[18px] py-3.5">
             <span className="h-2.5 w-2.5 bg-line-strong" />
             <span className="text-[14px] text-text-2">No timer running.</span>
             <button type="button" className="btn-outline ml-auto h-10 px-4 text-[11px] tracking-[0.22em]" onClick={() => setStarting(true)}>
-              START TIMER
+              Start timer
             </button>
           </section>
         )
@@ -382,10 +383,10 @@ const MyWeekPage = () => {
       ) : null}
 
       <div className="grid gap-5 xl:grid-cols-[1fr_300px]">
-        <section aria-label="Timesheet" className="overflow-x-auto border border-line bg-surface">
+        <section aria-label="Timesheet" className="overflow-x-auto border border-line rounded-lg bg-surface">
           <div className="min-w-[720px]">
             <div className="grid grid-cols-[1.7fr_repeat(7,50px)_60px] gap-1.5 border-b border-line px-3.5 py-3 text-[10px] tracking-[0.2em] text-label bg-surface-2">
-              <span>TASK OR CLIENT</span>
+              <span>Task or client</span>
               {w.days.map((d) => (
                 <span key={d.date} className="text-center" title={d.date}>
                   {d.label.split(" ")[0]}
@@ -401,7 +402,7 @@ const MyWeekPage = () => {
                     <span className="truncate" title={r.sub}>
                       {r.link?.type === "task" ? <Link to={`/tasks/${r.link.id}`} className="text-text hover:text-cyan">{r.label}</Link> : r.label}
                     </span>
-                    <span className="text-[10px] uppercase tracking-[0.16em]" style={{ color: catColor(r.category) }}>
+                    <span className="text-[12px] font-medium " style={{ color: catColor(r.category) }}>
                       {r.category}
                       {r.link && r.link.type !== "task" ? (r.billable ? " · BILLABLE" : " · NON-BILLABLE") : ""}
                     </span>
@@ -427,7 +428,7 @@ const MyWeekPage = () => {
               <p className="m-0 px-3.5 py-6 text-[13px] text-text-3">No time this week yet. Start a timer or add a manual entry.</p>
             )}
             <div className="grid h-11 grid-cols-[1.7fr_repeat(7,50px)_60px] items-center gap-1.5 px-3.5 text-[13px]">
-              <span className="text-[11px] tracking-[0.2em] text-label">DAY TOTAL</span>
+              <span className="text-[12px] font-medium text-label">Day total</span>
               {w.dayTotals.map((d, i) => (
                 <span key={i} className="text-center font-mono text-[12px] text-text-2">
                   {h1(d)}
@@ -464,7 +465,7 @@ const MyWeekPage = () => {
         </section>
 
         <aside className="flex flex-col gap-3.5">
-          <section aria-label="Week against capacity" className="flex flex-col gap-3 border border-line bg-surface px-[18px] py-4">
+          <section aria-label="Week against capacity" className="flex flex-col gap-3 border border-line rounded-lg bg-surface px-[18px] py-4">
             <div className="flex items-baseline justify-between">
               <span className="label-caps">This week</span>
               <span className="num font-mono text-[24px]">
@@ -508,14 +509,14 @@ const MyWeekPage = () => {
 
           <div className="flex items-center justify-between text-[12px]">
             <span className="label-caps">Timesheet</span>
-            <span className="uppercase tracking-[0.18em]" style={{ color: STATUS_TONE[ts.status] }}>
+            <span className=" " style={{ color: STATUS_TONE[ts.status] }}>
               {ts.status}
             </span>
           </div>
           {ts.comment && ts.status === "draft" ? <p className="m-0 border border-amber-line px-3 py-2 text-[12px] text-amber">Reopened: {ts.comment}</p> : null}
           {ts.status === "draft" && mine ? (
             <button type="button" className="btn-primary h-[46px] justify-between px-4 text-[11px] tracking-[0.22em]" onClick={() => act(() => data.submitWeek(w.week), "Week submitted for approval")}>
-              <span>SUBMIT WEEK</span>
+              <span>Submit week</span>
               <span aria-hidden>→</span>
             </button>
           ) : null}
@@ -575,7 +576,7 @@ const ReportsPage = () => {
   useEffect(() => {
     data.timeReport({ month, group }).then(setR, (e: Error) => setError(e.message));
   }, [month, group]);
-  usePageChrome({ context: `TIME REPORTS · ${monthLabel(month).toUpperCase()} · ${r?.money ? "ADMINS" : "HOURS ONLY"}` });
+  usePageChrome({ context: `Time reports · ${monthLabel(month)} · ${r?.money ? "with money (admins)" : "hours only"}` });
 
   const exportCsv = async () => {
     try {
@@ -594,7 +595,6 @@ const ReportsPage = () => {
   if (!r) return <SkeletonRows rows={8} />;
   const KPI_TONE: Record<string, string> = { hours: "var(--text)", client: "var(--cyan)", billable: "var(--text-3)", estimates: "var(--amber)" };
   const maxWeek = Math.max(r.weekendTarget * 1.25, ...r.weekend.map((x) => x.hours));
-  const cols = r.money && group === "client" ? "grid-cols-[1.6fr_100px_70px_110px_100px_90px]" : group === "person" && r.money ? "grid-cols-[1.6fr_100px_70px_110px]" : "grid-cols-[1.6fr_100px_70px_90px]";
 
   return (
     <div className="flex flex-col gap-[18px]">
@@ -603,7 +603,7 @@ const ReportsPage = () => {
           <Link to="/time" className="label-caps hover:text-text">
             ← My time
           </Link>
-          <h1 className="m-0 text-[36px] font-light tracking-[-0.02em]">Time reports</h1>
+          <h1 className="page-title m-0">Time reports</h1>
         </div>
         <div className="flex flex-wrap gap-2 text-[13px]">
           {(
@@ -632,8 +632,8 @@ const ReportsPage = () => {
 
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {r.kpis.map((k) => (
-          <div key={k.key} className="flex flex-col gap-1.5 border border-line bg-surface p-4">
-            <span className="text-[10px] tracking-[0.2em] text-label">{k.label}</span>
+          <div key={k.key} className="flex flex-col gap-1.5 border border-line rounded-lg bg-surface p-4">
+            <span className="text-[12px] text-text-3">{k.label.charAt(0) + k.label.slice(1).toLowerCase()}</span>
             <span className="num text-[28px] font-light" style={{ color: KPI_TONE[k.key] }}>
               {k.value}
             </span>
@@ -643,56 +643,76 @@ const ReportsPage = () => {
       </div>
 
       <div className="grid gap-[18px] xl:grid-cols-[1fr_340px]">
-        <section aria-label={group === "client" ? "Clients and projects" : group === "person" ? "People" : "Categories"} className="overflow-x-auto border border-line bg-surface">
-          <div className={`grid ${cols} min-w-[600px] gap-2.5 border-b border-line px-4 py-3 text-[10px] tracking-[0.2em] text-label`}>
-            <span>{group === "client" ? "CLIENT OR PROJECT" : group === "person" ? "PERSON" : "CATEGORY"}</span>
-            <span>TYPE</span>
-            <span>HOURS</span>
-            {r.money && group === "client" ? (
-              <>
-                <span>REVENUE</span>
-                <span>PER HOUR</span>
-              </>
-            ) : null}
-            {r.money && group === "person" ? <span>COST</span> : group === "person" ? <span /> : null}
-            {group === "client" ? <span>STATUS</span> : group === "category" ? <span>SHARE</span> : null}
-          </div>
-          {r.rows.map((x) => {
-            const c = x.status ? STATUS_COLOR[x.status] : "var(--text-2)";
-            return (
-              <div key={x.key} className={`grid ${cols} min-h-[50px] min-w-[600px] items-center gap-2.5 border-b border-line-soft px-4 py-1.5 text-[13px] last:border-b-0`}>
-                <div className="flex min-w-0 flex-col gap-0.5">
+        <DataTable<TimeReportRow>
+          id={`time-${group}`}
+          label={group === "client" ? "Clients and projects" : group === "person" ? "People" : "Categories"}
+          minWidth={600}
+          rowHeight={50}
+          rows={r.rows}
+          rowKey={(x) => x.key}
+          defaultSort={{ key: "hours", dir: "desc" }}
+          empty={<p className="m-0 text-[13px] text-text-3">No time logged in {monthLabel(month)}.</p>}
+          columns={[
+            {
+              key: "label",
+              header: group === "client" ? "Client or project" : group === "person" ? "Person" : "Category",
+              width: "minmax(0,1.6fr)",
+              sortValue: (x) => x.label.toLowerCase(),
+              render: (x) => (
+                <span className="flex min-w-0 flex-col gap-0.5">
                   <span className="truncate" style={group === "category" ? { color: catColor(x.label) } : undefined}>
                     {x.label}
                   </span>
                   {x.sub ? <span className="truncate text-[11px] text-text-3">{x.sub}</span> : null}
-                </div>
-                <span className="text-[11px] capitalize text-text-2">{x.type}</span>
-                <span className="font-mono">{x.hours.toFixed(1)}</span>
-                {r.money && group === "client" ? (
-                  <>
-                    <span className="font-mono text-text-2">{money(x.revenueMinor, x.currency)}</span>
-                    <span className="font-mono" style={{ color: c }}>
-                      {money(x.perHourMinor, x.currency)}
-                    </span>
-                  </>
-                ) : null}
-                {group === "person" ? <span className="font-mono text-text-2">{r.money ? money(x.marginMinor === null ? null : -x.marginMinor, x.currency) : ""}</span> : null}
-                {group === "client" ? (
-                  <span className="text-[10px] tracking-[0.16em]" style={{ color: c }}>
-                    {x.status}
-                  </span>
-                ) : group === "category" ? (
-                  <span className="font-mono text-text-2">{r.totalHours ? Math.round((x.hours / r.totalHours) * 100) : 0}%</span>
-                ) : null}
-              </div>
-            );
-          })}
-          {!r.rows.length ? <p className="m-0 px-4 py-6 text-[13px] text-text-3">No time logged in {monthLabel(month)}.</p> : null}
-        </section>
+                </span>
+              ),
+            },
+            { key: "type", header: "Type", width: "100px", hideable: true, sortValue: (x) => x.type, render: (x) => <span className="text-[12px] capitalize text-text-2">{x.type}</span> },
+            { key: "hours", header: "Hours", width: "70px", align: "right", sortValue: (x) => x.hours, render: (x) => <span className="font-mono">{x.hours.toFixed(1)}</span> },
+            ...(r.money && group === "client"
+              ? ([
+                  { key: "revenue", header: "Revenue", width: "110px", align: "right", hideable: true, sortValue: (x) => x.revenueMinor ?? null, render: (x) => <span className="font-mono text-text-2">{money(x.revenueMinor, x.currency)}</span> },
+                  {
+                    key: "perHour",
+                    header: "Per hour",
+                    width: "100px",
+                    align: "right",
+                    hideable: true,
+                    sortValue: (x) => x.perHourMinor ?? null,
+                    render: (x) => (
+                      <span className="font-mono" style={{ color: x.status ? STATUS_COLOR[x.status] : "var(--text-2)" }}>
+                        {money(x.perHourMinor, x.currency)}
+                      </span>
+                    ),
+                  },
+                ] satisfies Column<TimeReportRow>[])
+              : []),
+            ...(group === "person" && r.money
+              ? ([{ key: "cost", header: "Cost", width: "110px", align: "right", hideable: true, render: (x) => <span className="font-mono text-text-2">{money(x.marginMinor === null ? null : -x.marginMinor, x.currency)}</span> }] satisfies Column<TimeReportRow>[])
+              : []),
+            ...(group === "client"
+              ? ([
+                  {
+                    key: "status",
+                    header: "Status",
+                    width: "90px",
+                    hideable: true,
+                    sortValue: (x) => x.status ?? "",
+                    render: (x) => (
+                      <span className="text-[12px] font-medium capitalize" style={{ color: x.status ? STATUS_COLOR[x.status] : "var(--text-2)" }}>
+                        {x.status?.toLowerCase()}
+                      </span>
+                    ),
+                  },
+                ] satisfies Column<TimeReportRow>[])
+              : group === "category"
+                ? ([{ key: "share", header: "Share", width: "90px", align: "right", sortValue: (x) => x.hours, render: (x) => <span className="font-mono text-text-2">{r.totalHours ? Math.round((x.hours / r.totalHours) * 100) : 0}%</span> }] satisfies Column<TimeReportRow>[])
+                : []),
+          ]}
+        />
 
         <div className="flex flex-col gap-3.5">
-          <section aria-label="Hours by week" className="flex flex-col gap-3 border border-line bg-surface px-[18px] py-4">
+          <section aria-label="Hours by week" className="flex flex-col gap-3 border border-line rounded-lg bg-surface px-[18px] py-4">
             <span className="label-caps">Rinor · weekend hours vs {r.weekendTarget} h</span>
             <div className="relative flex h-[120px] items-end gap-3.5 border-b border-line">
               <div className="absolute left-0 right-0 border-t border-dashed" style={{ bottom: `${(r.weekendTarget / maxWeek) * 100}%`, borderColor: "var(--lavender)" }} />

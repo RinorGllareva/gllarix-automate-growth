@@ -8,6 +8,8 @@ import CommandPalette from "@/components/overlays/CommandPalette";
 import NotificationsPanel from "@/components/overlays/NotificationsPanel";
 import { CalendarPrompt } from "@/components/CalendarSettings";
 import { PageChromeContext } from "./PageChrome";
+import PageJob from "./PageJob";
+import { MobileTabBar, MobileTopBar } from "./MobileNav";
 import Sidebar from "./Sidebar";
 import TimerBar from "./TimerBar";
 import TopBar, { type PageChrome } from "./TopBar";
@@ -16,12 +18,8 @@ const NOTIFICATION_POLL_MS = 30_000;
 const G_CHORD_MS = 1200;
 const SENDER_INTERVAL_MS = 60_000;
 
-/** "TUE 1 DEC" in the user's timezone. */
-const todayLabel = (user: User) =>
-  new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: user.timezone })
-    .format(new Date())
-    .replace(",", "")
-    .toUpperCase();
+/** "Tue 1 Dec" in the user's timezone. */
+const todayLabel = (user: User) => new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: user.timezone }).format(new Date()).replace(",", "");
 
 const chromeFor = (page: PageId | undefined, user: User): PageChrome => {
   const can = (p: PageId) => canAccess(user.role, p);
@@ -43,7 +41,7 @@ const SmallScreenNotice = () => (
   <div className="flex min-h-screen flex-col items-start justify-center gap-4 bg-bg px-6 lg:hidden">
     <span className="label-caps">Atlas</span>
     <p className="m-0 max-w-sm text-[15px] leading-relaxed text-text-2">
-      This page needs a larger screen. Today, your scorecard and the AI co-founder work on a phone.
+      This page needs a larger screen. Today, meetings, tasks, inbound, support, docs, your scorecard and the AI co-founder work on a phone.
     </p>
   </div>
 );
@@ -116,6 +114,10 @@ const AppShell = () => {
 
   return (
     <>
+      {/* Keyboard users jump past the sidebar straight to the page. */}
+      <a href="#content" className="sr-only z-50 rounded-lg bg-ice px-3 py-2 text-[13px] font-medium text-ice-ink focus:not-sr-only focus:fixed focus:left-3 focus:top-3">
+        Skip to content
+      </a>
       {mobileOk ? null : <SmallScreenNotice />}
       <div className={`${mobileOk ? "flex" : "hidden lg:flex"} min-h-screen bg-bg`}>
         <div className={mobileOk ? "hidden lg:block" : "contents"}>
@@ -130,15 +132,18 @@ const AppShell = () => {
               onOpenNotifications={() => setNotesOpen(true)}
             />
           </div>
+          {mobileOk ? <MobileTopBar unread={notes.filter((n) => !n.readAt).length} onSearch={() => setPalette({ query: "" })} onNotifications={() => setNotesOpen(true)} /> : null}
           {user.role !== "viewer" ? <TimerBar /> : null}
-          <main id="content" className="flex-1 px-5 py-6 lg:px-10 lg:py-8">
+          <main id="content" tabIndex={-1} className={`flex-1 outline-none px-4 py-5 sm:px-5 sm:py-6 lg:px-10 lg:py-8 ${mobileOk ? "pb-24 lg:pb-8" : ""}`}>
             <PageChromeContext.Provider value={setChromeOverride}>
               <CalendarPrompt />
+              <PageJob />
               <Outlet />
             </PageChromeContext.Provider>
           </main>
         </div>
       </div>
+      {mobileOk ? <MobileTabBar /> : null}
 
       {palette ? <CommandPalette initialQuery={palette.query} onClose={() => setPalette(null)} /> : null}
       <NotificationsPanel

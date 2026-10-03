@@ -1,6 +1,6 @@
 import Papa from "papaparse";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { Link, NavLink, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useUser } from "@/auth/AuthContext";
 import { usePageChrome } from "@/components/shell/PageChrome";
 import { Drawer, Modal, useToast } from "@/components/ui/overlay";
@@ -16,7 +16,7 @@ import TaskDetailView from "./TaskDetailView";
 import TimelineView from "./TimelineView";
 import WorkloadView from "./WorkloadView";
 import PlannerView from "./PlannerView";
-import { AutomationsView, GoalsView } from "./AutomationsView";
+import { GoalsView } from "./AutomationsView";
 
 /** Tab look shared by the spaces row and the view row (compact, icon + label + count). */
 const tabCls = (on: boolean) =>
@@ -55,7 +55,7 @@ const MoreMenu = () => {
           <Link role="menuitem" to="/tasks/goals" className={item}>
             Goals
           </Link>
-          <Link role="menuitem" to="/tasks/automations" className={item}>
+          <Link role="menuitem" to="/automations" className={item}>
             Automations and templates
           </Link>
           {user.role === "admin" ? (
@@ -189,7 +189,7 @@ const ViewRow = ({ onNew, slotRef }: { onNew: () => void; slotRef: (el: HTMLDivE
   );
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-      <nav aria-label="Task views" className="flex shrink-0 items-center gap-0.5 rounded-lg bg-inset p-0.5">
+      <nav aria-label="Task views" className="flex max-w-full shrink-0 items-center gap-0.5 overflow-x-auto rounded-lg bg-inset p-0.5">
         {tab("/tasks", "List", ICONS.list, true)}
         {tab("/tasks/board", "Board", ICONS.board)}
         {tab("/tasks/timeline", "Timeline", ICONS.timeline)}
@@ -281,7 +281,7 @@ const InboxView = () => {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="m-0 text-[34px] font-light tracking-[-0.02em]">Inbox</h1>
+        <h1 className="page-title m-0">Inbox</h1>
         <button
           type="button"
           className="btn-ghost h-9 text-[11px]"
@@ -310,7 +310,7 @@ const InboxView = () => {
             >
               <span className="flex items-center gap-3">
                 {!i.readAt ? <span className="h-1.5 w-1.5 bg-cyan" aria-label="Unread" /> : <span className="w-1.5" />}
-                <span className={`w-20 text-[10px] uppercase tracking-[0.2em] ${i.kind === "mention" ? "text-cyan" : i.kind === "assigned" ? "text-mint" : "text-text-3"}`}>{i.kind}</span>
+                <span className={`w-20 text-[12px] font-medium ${i.kind === "mention" ? "text-cyan" : i.kind === "assigned" ? "text-mint" : "text-text-3"}`}>{i.kind}</span>
                 {i.text}
               </span>
               <span className="num font-mono text-[11px] text-text-3">{new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(i.at))}</span>
@@ -340,7 +340,7 @@ const NotionImport = () => {
   const warnings = rows?.filter((r) => r.warnings.length) ?? [];
   return (
     <div className="flex max-w-4xl flex-col gap-5">
-      <h1 className="m-0 text-[34px] font-light tracking-[-0.02em]">Import from Notion</h1>
+      <h1 className="page-title m-0">Import from Notion</h1>
       <p className="m-0 text-[14px] text-text-2">
         Export the Notion "✅ Tasks" database as CSV and drop it here. Columns: Tasks, Status, Deadline, Priority, Person, Category, Notes. "Hight" becomes High. Each category lands in its space, in a list called "Imported from Notion". Run it once; after that Notion is read-only.
       </p>
@@ -437,22 +437,20 @@ const TasksModule = () => {
 
   const onTaskPage = /^\/tasks\/(?!board$|my-work$|inbox$|import$|timeline$|workload$|planner$|automations$|goals$)[^/]+$/.test(loc.pathname) && !loc.pathname.startsWith("/tasks/planner/");
   const context = onTaskPage
-    ? "TASK"
+    ? "Task"
     : loc.pathname.startsWith("/tasks/planner")
-      ? "AI PLANNER · DRAFT, NOTHING SAVED YET"
+      ? "AI planner · draft, nothing saved yet"
       : loc.pathname.startsWith("/tasks/goals")
-        ? "GOALS"
-        : loc.pathname.startsWith("/tasks/automations")
-          ? "AUTOMATIONS AND TEMPLATES"
-      : loc.pathname.startsWith("/tasks/workload")
-      ? "TEAM WORKLOAD · NEXT 5 WEEKS"
-      : loc.pathname.startsWith("/tasks/my-work")
-    ? "MY WORK"
-    : loc.pathname.startsWith("/tasks/inbox")
-      ? "INBOX"
-      : `${(space?.name ?? "Tasks").toUpperCase()}${list ? ` / ${list.name.toUpperCase()}` : ""}`;
+        ? "Goals"
+        : loc.pathname.startsWith("/tasks/workload")
+          ? "Team workload · next 5 weeks"
+          : loc.pathname.startsWith("/tasks/my-work")
+            ? "My work"
+            : loc.pathname.startsWith("/tasks/inbox")
+              ? "Inbox"
+              : `${space?.name ?? "Tasks"}${list ? ` / ${list.name}` : ""}`;
   usePageChrome({
-    context: loc.pathname.startsWith("/tasks/planner") ? context : `${context} · WEEK ${isoWeekKey(todayKey()).slice(6)}`,
+    context: loc.pathname.startsWith("/tasks/planner") ? context : `${context} · week ${Number(isoWeekKey(todayKey()).slice(6))}`,
     action: loc.pathname.startsWith("/tasks/planner") ? { label: "Back to tasks", to: "/tasks" } : { label: "Plan with AI", to: "/tasks/planner" },
   });
 
@@ -475,7 +473,7 @@ const TasksModule = () => {
 
   return (
     <TasksContext.Provider value={ctx}>
-      <div className="-mx-5 -my-6 flex min-h-[calc(100vh-72px)] min-w-0 flex-col lg:-mx-10 lg:-my-8">
+      <div className="-mx-4 -my-5 sm:-mx-5 sm:-my-6 flex min-h-[calc(100vh-72px)] min-w-0 flex-col lg:-mx-10 lg:-my-8">
         <header className="flex min-w-0 flex-col gap-2 border-b border-line bg-chrome px-6 pb-3 pt-2.5 lg:px-8">
           <SpacesRow activeSpace={scoped ? (space?.id ?? null) : null} />
           {scoped && space ? <ListsRow spaceId={space.id} activeList={list?.id ?? null} /> : null}
@@ -490,7 +488,7 @@ const TasksModule = () => {
               <Route path="workload" element={<WorkloadView />} />
               <Route path="planner" element={<PlannerView />} />
               <Route path="planner/:id" element={<PlannerView />} />
-              <Route path="automations" element={<AutomationsView />} />
+              <Route path="automations" element={<Navigate to="/automations" replace />} />
               <Route path="goals" element={<GoalsView />} />
               <Route path="my-work" element={<ListView myWork title="My work" />} />
               <Route path="inbox" element={<InboxView />} />

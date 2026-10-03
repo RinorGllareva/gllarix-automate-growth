@@ -9,13 +9,13 @@ import { ALERT_TYPES, data, type CalendarConnection, type NotificationPrefs, typ
 const when = (iso: string | null, tz: string) => (iso ? new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: tz }).format(new Date(iso)) : "never");
 
 const GoogleMark = () => (
-  <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center text-[13px] font-semibold" style={{ background: hueTint("blue", 22), color: hueVar("blue") }} aria-hidden="true">
+  <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[13px] font-semibold" style={{ background: hueTint("blue", 22), color: hueVar("blue") }} aria-hidden="true">
     G
   </span>
 );
 
 /** Connect / status card for the signed-in person's Google Calendar. */
-export const GoogleCalendarCard = ({ onChange }: { onChange?: () => void }) => {
+export const GoogleCalendarCard = ({ onChange, onDismiss }: { onChange?: () => void; onDismiss?: () => void }) => {
   const user = useUser();
   const toast = useToast();
   const [conn, setConn] = useState<CalendarConnection | null | undefined>(undefined);
@@ -28,9 +28,9 @@ export const GoogleCalendarCard = ({ onChange }: { onChange?: () => void }) => {
 
   if (conn === undefined) return null;
   return (
-    <section aria-label="Google Calendar" className="flex flex-wrap items-center gap-3 border p-3" style={{ borderColor: conn ? `color-mix(in srgb, var(--mint) 45%, transparent)` : "var(--line)", background: conn ? hueTint("mint", 8) : "var(--surface)" }}>
+    <section aria-label="Google Calendar" className="flex flex-wrap items-center gap-3 rounded-lg border p-3" style={{ borderColor: conn ? `color-mix(in srgb, var(--mint) 45%, transparent)` : "var(--line)", background: conn ? hueTint("mint", 8) : "var(--surface)" }}>
       <GoogleMark />
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <div className="flex min-w-[200px] flex-1 flex-col gap-0.5">
         <span className="text-[13px] font-medium">{conn ? `Google Calendar connected · ${conn.email}` : "Connect your Google Calendar"}</span>
         <span className="text-[12px] text-text-2">
           {conn
@@ -66,9 +66,16 @@ export const GoogleCalendarCard = ({ onChange }: { onChange?: () => void }) => {
           </button>
         </div>
       ) : (
-        <button type="button" className="btn-primary h-9 text-[11px]" onClick={() => setConsent(true)}>
-          Connect Google Calendar
-        </button>
+        <div className="flex items-center gap-3">
+          <button type="button" className="btn-primary h-9 text-[11px]" onClick={() => setConsent(true)}>
+            Connect Google Calendar
+          </button>
+          {onDismiss ? (
+            <button type="button" className="text-[12px] text-text-3 hover:text-text" onClick={onDismiss} title="You can connect later from your menu: Calendar and alerts">
+              Not now
+            </button>
+          ) : null}
+        </div>
       )}
 
       <Modal open={consent} onClose={() => setConsent(false)} title="Google Calendar · test mode">
@@ -190,21 +197,17 @@ export const CalendarPrompt = () => {
       .then(([c, p]) => setShow(!c && !p.calendarPromptDismissedAt))
       .catch(() => undefined);
   }, [user.id, user.role]);
-  // Meetings has its own card next to the calendar.
-  if (!show || pathname.startsWith("/meetings")) return null;
+  // Only on Today (Meetings has its own card next to the calendar); every other page keeps its full height.
+  if (!show || !pathname.startsWith("/today")) return null;
   return (
-    <div className="mb-5 flex flex-col gap-2">
-      <GoogleCalendarCard onChange={() => setShow(false)} />
-      <button
-        type="button"
-        className="btn-ghost self-end text-[11px]"
-        onClick={async () => {
+    <div className="mb-5">
+      <GoogleCalendarCard
+        onChange={() => setShow(false)}
+        onDismiss={async () => {
           await data.setNotificationPrefs({ dismissCalendarPrompt: true });
           setShow(false);
         }}
-      >
-        Later (Calendar and alerts in your menu)
-      </button>
+      />
     </div>
   );
 };

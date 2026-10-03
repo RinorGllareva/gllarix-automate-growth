@@ -1,28 +1,105 @@
-/* Atlas design tokens — matched to gllarix.com (dark only). Source of truth for app/web/static/css. */
-:root {
-  --bg: #050608;          /* ground */
-  --bg-deep: #030406;     /* sign-in, overlays */
-  --surface: #0A0D11;     /* cards, tables */
-  --surface-2: #0E1319;   /* selected row */
-  --line: #1A1F26;        /* 1px hairlines */
-  --line-soft: #12161C;   /* row separators */
-  --line-strong: #2A313A; /* inputs, chips */
-  --line-button: #3A424C; /* outline buttons */
-  --text: #EEF2F4;
-  --text-2: #A4ADB6;
-  --text-3: #7B8590;      /* muted, still >= 4.5:1 on --bg */
-  --label: #8C96A0;       /* tracked caps labels */
-  --ice: #EAF6F8;         /* active nav item, primary button bg */
-  --ice-ink: #0A0D10;     /* text on --ice */
-  --cyan: #8FE3EE;        /* Gllarix, links, tier B, progress */
-  --mint: #9FE3C4;        /* good, tier A, money in */
-  --lavender: #C6C0FF;    /* plan lines, tier C, pending */
-  --amber: #D2AE72;       /* Arcadian, warnings */
-  --coral: #EE9A8C;       /* stop, danger, do-not-contact */
-  --cyan-line: #5E8C92;   /* brand chip border (Gllarix) */
-  --amber-line: #7A6440;  /* brand chip border (Arcadian) */
-  --font: 'Geist', 'Helvetica Neue', Helvetica, sans-serif;
+/*
+ * Atlas design tokens. Raycast-style base (near-black canvas, layered surfaces, hairline translucent edges with an
+ * inset highlight, compact Inter type) with the Arcadian / Gllarix ice blue as the brand accent (--cyan). Red is for
+ * errors and danger only. Dark is the default; light is set with <html data-theme="light"> (soft grey, never white).
+ * Layers, darkest to lightest in dark mode: chrome (sidebar, top bar) → page → card → raised.
+ * Every component reads these names; never hard-code colors. Category colors (stages, statuses, people) live in
+ * src/config/colors.ts and use the hue tokens below. Each app (Sell, Work, Money…) sets --app on the shell.
+ */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  /* Layers */
+  --chrome: #09090B;      /* sidebar and top bar */
+  --bg: #07080A;          /* page ground (canvas) */
+  --bg-deep: #040405;     /* sign-in, overlay scrim */
+  --surface: #111214;     /* cards, tables, panels */
+  --surface-2: #18191C;   /* raised: table headers, hover, selected row */
+  --inset: #0C0D0F;       /* inputs, wells inside cards */
+  /* Lines: translucent white so edges catch light on any layer */
+  --line: rgba(255, 255, 255, 0.07);
+  --line-soft: rgba(255, 255, 255, 0.045);
+  --line-strong: rgba(255, 255, 255, 0.13);
+  --line-button: rgba(255, 255, 255, 0.18);
+  /* Text */
+  --text: #EDEDEF;
+  --text-2: #A1A1A6;
+  --text-3: #85868B;     /* ≥4.5:1 on bg, surface and surface-2 */
+  --label: #8A8B90;
+  /* Primary button: light on dark (Raycast) */
+  --ice: #E6E7E9;
+  --ice-ink: #1B1C1E;
+  /* Hues */
+  --cyan: #9CC7E6;        /* brand ice blue: links, focus, Gllarix, Sell */
+  --mint: #59D499;        /* good, won, money in, Money app */
+  --lavender: #B4A7FF;    /* plan, review, Work app */
+  --amber: #FFBC5C;       /* Arcadian, warnings, pending, People app */
+  --coral: #FF6363;       /* errors, danger, lost, urgent */
+  --blue: #6CA6FF;        /* in progress, booked, video, AI */
+  --teal: #4FD1C5;        /* phone, delivery */
+  --orange: #FF9A4D;      /* high priority, opportunity, Growth app */
+  --pink: #F28CC8;        /* negotiation, in person */
+  --lime: #B8E06A;        /* research, growth */
+  --cyan-line: rgba(156, 199, 230, 0.45);
+  --amber-line: rgba(255, 188, 92, 0.45);
+  --tint-strength: 14%;
+  --card-gradient: linear-gradient(137deg, #121316 5%, #0D0E10 76%);
+  --card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 2px rgba(0, 0, 0, 0.45);
+  --pop-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 40px 4px rgba(0, 0, 0, 0.5);
+  --font: 'Inter', 'Helvetica Neue', Helvetica, sans-serif;
   --mono: 'Geist Mono', ui-monospace, monospace;
-  --radius: 0;            /* square corners everywhere */
-  --label-tracking: 0.22em;
+  --radius: 8px;
+  --label-tracking: 0.02em;
+  --app: var(--cyan);
+  /* Chart series (validated: lightness band, chroma, CVD ΔE ≥ 24 on --surface). 1 = Gllarix, 2 = Arcadian. */
+  --chart-1: #3A8BD6;
+  --chart-2: #C27A12;
+}
+
+/* Light: soft grey. Every layer is a tinted grey (nothing near pure white); text is near-black, not pure black. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --chrome: #E3E4E7;
+  --bg: #ECEDEF;
+  --bg-deep: #D9DADE;
+  --surface: #F4F4F5;
+  --surface-2: #E9EAEC;
+  --inset: #E6E7EA;
+  --line: rgba(15, 17, 21, 0.09);
+  --line-soft: rgba(15, 17, 21, 0.06);
+  --line-strong: rgba(15, 17, 21, 0.16);
+  --line-button: rgba(15, 17, 21, 0.22);
+  --text: #16171A;
+  --text-2: #4A4C52;
+  --text-3: #5F6269;     /* ≥4.5:1 on the light page and cards */
+  --label: #5D6067;
+  --ice: #1B1C1F;
+  --ice-ink: #F1F2F4;
+  --cyan: #1F6E9C;
+  --mint: #12804F;
+  --lavender: #5B45D6;
+  --amber: #8F5A00;
+  --coral: #C8322E;
+  --blue: #2D5FD3;
+  --teal: #0B7A6E;
+  --orange: #B4520A;
+  --pink: #A8327A;
+  --lime: #4F6E0D;
+  --cyan-line: rgba(31, 110, 156, 0.4);
+  --amber-line: rgba(143, 90, 0, 0.4);
+  --tint-strength: 14%;
+  --card-gradient: linear-gradient(137deg, #F6F6F7 5%, #F1F1F3 76%);
+  --card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 1px 2px rgba(15, 17, 21, 0.08);
+  --pop-shadow: 0 12px 40px rgba(15, 17, 21, 0.18);
+  --chart-1: #1F6E9C;
+  --chart-2: #8F5A00;
+}
+
+/* Tints (derived, so they follow the theme). */
+:root {
+  --cyan-tint: color-mix(in srgb, var(--cyan) var(--tint-strength), transparent);
+  --mint-tint: color-mix(in srgb, var(--mint) var(--tint-strength), transparent);
+  --lavender-tint: color-mix(in srgb, var(--lavender) var(--tint-strength), transparent);
+  --amber-tint: color-mix(in srgb, var(--amber) var(--tint-strength), transparent);
+  --coral-tint: color-mix(in srgb, var(--coral) var(--tint-strength), transparent);
 }

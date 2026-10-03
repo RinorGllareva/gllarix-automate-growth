@@ -11,12 +11,13 @@ import { QUEUE_UPDATED, queueUpdated } from "@/lib/events";
 import { isTypingTarget } from "@/lib/hotkeys";
 import { shiftFor } from "@/services/queue";
 import { localDateKey, localHHMM, zonedToUtc, zoneAbbr } from "@/services/time";
+import { DealsToMove, FounderDecisions, InboundWaiting, MyMoney } from "./RoleCards";
 
 const REFRESH_MS = 60_000;
 const UP_NEXT = 8;
 
 const todayLabel = (user: User) =>
-  new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: user.timezone }).format(new Date()).replace(",", "").toUpperCase();
+  new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: user.timezone }).format(new Date()).replace(",", "");
 
 /** "41% done · on pace for 150 by 15:40 VET" */
 const paceText = (user: User, done: number, capacity: number) => {
@@ -59,7 +60,7 @@ const UpNext = ({ rows, onOpen }: { rows: QueueRow[]; onOpen: (row: QueueRow) =>
       </div>
       {open.length ? (
         <>
-          <div className={`hidden sm:grid ${cols} gap-3 border-b border-line px-5 py-2.5 text-[10px] uppercase tracking-[0.2em] text-text-3 bg-surface-2`}>
+          <div className={`hidden sm:grid ${cols} gap-3 border-b border-line px-5 py-2.5 text-[12px] font-medium text-text-3 bg-surface-2`}>
             <span>Tier</span>
             <span>Company</span>
             <span>Location</span>
@@ -83,7 +84,7 @@ const UpNext = ({ rows, onOpen }: { rows: QueueRow[]; onOpen: (row: QueueRow) =>
               </span>
               <span className="col-start-2 font-mono text-[13px] text-text-2 sm:col-start-auto">{r.company.timezone ? localHHMM(Date.now(), r.company.timezone) : "—"}</span>
               <span className="col-start-2 truncate text-[13px] text-text-2 sm:col-start-auto">{r.whyNow}</span>
-              <span className="col-start-2 text-[11px] uppercase tracking-[0.16em] text-label sm:col-start-auto">{stepText(r)}</span>
+              <span className="col-start-2 text-[12px] font-medium text-label sm:col-start-auto">{stepText(r)}</span>
             </button>
           ))}
         </>
@@ -134,7 +135,7 @@ const NeedsAttention = ({ stats, shortfall, isAdmin, tz }: { stats: TodayStats; 
         <span className="truncate">Callback · {c.company}</span>
       </Link>
     ))}
-    {stats.meetingsAwaitingApproval ? (
+    {stats.meetingsAwaitingApproval && !isAdmin ? (
       <Link to="/meetings" className="flex gap-2.5 text-[13px] text-text hover:text-cyan">
         <span className="font-mono text-lavender">{stats.meetingsAwaitingApproval}</span>
         <span>Meeting{stats.meetingsAwaitingApproval === 1 ? "" : "s"} waiting for approval</span>
@@ -146,7 +147,7 @@ const NeedsAttention = ({ stats, shortfall, isAdmin, tz }: { stats: TodayStats; 
         <span>More A/B leads needed to fill today's queue</span>
       </div>
     ) : null}
-    {!stats.callbacksSoon.length && !stats.meetingsAwaitingApproval && !shortfall ? (
+    {!stats.callbacksSoon.length && (isAdmin || !stats.meetingsAwaitingApproval) && !shortfall ? (
       <span className="text-[13px] text-text-2">Nothing waiting. Callbacks due in the next 30 minutes show up here first.</span>
     ) : null}
     {isAdmin && shortfall ? <RunListBuild /> : null}
@@ -192,14 +193,14 @@ const TeamToday = ({ team }: { team: TeamMemberToday[] }) => (
     </div>
     {team.length ? (
       team.map((m) => (
-        <div key={m.userId} className="grid grid-cols-[1fr_auto] items-center gap-3 border-b border-line-soft px-5 py-3.5 text-[14px] last:border-b-0">
+        <div key={m.userId} className="grid grid-cols-1 items-center gap-1.5 border-b border-line-soft px-5 py-3.5 text-[14px] last:border-b-0 sm:grid-cols-[1fr_auto] sm:gap-3">
           <div className="flex min-w-0 flex-col gap-1.5">
             <span>{m.name}</span>
             <div className="h-[3px] max-w-80 bg-line">
               <div className="h-[3px] bg-cyan" style={{ width: `${m.capacity ? (m.done / m.capacity) * 100 : 0}%` }} />
             </div>
           </div>
-          <span className="num text-right text-[13px] text-text-2">
+          <span className="num text-[13px] text-text-2 sm:text-right">
             {m.done} of {m.capacity} · {m.dials} dials · {m.conversations} conv. · {m.meetingsBookedWeek} booked this week
           </span>
         </div>
@@ -258,7 +259,7 @@ const Today = () => {
 
   const [shiftFrom, shiftTo] = shiftFor(user);
   usePageChrome({
-    context: hasQueue ? `${todayLabel(user)} · ${ROLE_LABEL[user.role].toUpperCase()} shift ${shiftFrom}–${shiftTo} ${zoneAbbr(user.timezone)}` : todayLabel(user),
+    context: hasQueue ? `${todayLabel(user)} · ${ROLE_LABEL[user.role]} shift ${shiftFrom}–${shiftTo} ${zoneAbbr(user.timezone)}` : todayLabel(user),
     action: hasQueue ? { label: "Start calling", to: "/call" } : undefined,
   });
 
@@ -292,14 +293,17 @@ const Today = () => {
   const teamDials = team.reduce((n, m) => n + m.dials, 0);
   const teamConv = team.reduce((n, m) => n + m.conversations, 0);
   const convOnTrack = stats.conversations >= 6;
-  const approvedPct = stats.meetingsBookedWeek ? Math.round((stats.approvedWeek / stats.meetingsBookedWeek) * 100) : 0;
+  // Without a queue of your own (admins), every card shows the team so the numbers match the rows below.
+  const booked = hasQueue ? stats.meetingsBookedWeek : team.reduce((n, m) => n + m.meetingsBookedWeek, 0);
+  const approved = hasQueue ? stats.approvedWeek : team.reduce((n, m) => n + m.approvedWeek, 0);
+  const approvedPct = booked ? Math.round((approved / booked) * 100) : 0;
 
   return (
     <div className="flex flex-col gap-7">
       {hasQueue && view ? (
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
           <div className="flex flex-col gap-2.5">
-            <div className="flex items-center gap-3.5 text-[11px] uppercase tracking-label text-label">
+            <div className="flex items-center gap-3.5 text-[12px] font-medium text-label">
               <span className="h-px w-10 bg-cyan-line" />
               <span>{queueLabel(view.queue.date, user.timezone)}</span>
             </div>
@@ -319,7 +323,7 @@ const Today = () => {
         </div>
       ) : (
         <div className="flex flex-col gap-2.5">
-          <div className="flex items-center gap-3.5 text-[11px] uppercase tracking-label text-label">
+          <div className="flex items-center gap-3.5 text-[12px] font-medium text-label">
             <span className="h-px w-10 bg-cyan-line" />
             <span>Team today</span>
           </div>
@@ -336,8 +340,8 @@ const Today = () => {
           caption={hasQueue ? `Target 6–10 · ${convOnTrack ? "on track" : "below"}` : "Team · today"}
           tone={hasQueue && convOnTrack ? "mint" : "text"}
         />
-        <KpiCard index="03" title="Meetings booked" value={count(stats.meetingsBookedWeek)} caption="This week · target 4+" tone="cyan" />
-        <KpiCard index="04" title="Approved" value={count(stats.approvedWeek)} caption={`Of ${stats.meetingsBookedWeek} booked · ${approvedPct}%`} tone="lavender" />
+        <KpiCard index="03" title="Meetings booked" value={count(booked)} caption={hasQueue ? "This week · target 4+" : `Team · this week · target ${4 * Math.max(1, team.length)}+`} tone="cyan" />
+        <KpiCard index="04" title="Approved" value={count(approved)} caption={`Of ${booked} booked · ${approvedPct}%`} tone="lavender" />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -347,8 +351,11 @@ const Today = () => {
           <TeamToday team={team} />
         )}
         <div className="flex flex-col gap-4">
+          {isAdmin ? <FounderDecisions stats={stats} /> : <InboundWaiting />}
+          {!isAdmin ? <DealsToMove /> : null}
+          {!isAdmin || hasQueue ? <NeedsAttention stats={stats} shortfall={view?.queue.summary.shortfall ?? 0} isAdmin={isAdmin} tz={user.timezone} /> : null}
+          {hasQueue && !isAdmin ? <MyMoney stats={stats} /> : null}
           {view ? <QueueMix view={view} tz={user.timezone} /> : null}
-          <NeedsAttention stats={stats} shortfall={view?.queue.summary.shortfall ?? 0} isAdmin={isAdmin} tz={user.timezone} />
           {hasQueue ? (
             <button type="button" className="btn-outline h-10 justify-between text-[11px]" disabled={building} onClick={build}>
               <span>{building ? "Building…" : "Rebuild queue now"}</span>

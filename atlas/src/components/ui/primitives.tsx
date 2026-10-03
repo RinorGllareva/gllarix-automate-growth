@@ -48,17 +48,17 @@ export const ICONS = {
 
 /** Colored pill for a stage, status or category (config/colors.ts). */
 export const Pill = ({ hue, children, dot = false, className = "" }: { hue: Hue; children: ReactNode; dot?: boolean; className?: string }) => (
-  <span className={`inline-flex h-[22px] items-center gap-1.5 whitespace-nowrap border px-2 text-[11px] font-medium leading-none ${className}`} style={pillStyle(hue)}>
-    {dot ? <span className="h-1.5 w-1.5 shrink-0" style={{ background: hueVar(hue) }} /> : null}
+  <span className={`inline-flex h-[22px] items-center gap-1.5 whitespace-nowrap rounded-md border px-2 text-[11px] font-medium leading-none ${className}`} style={pillStyle(hue)}>
+    {dot ? <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: hueVar(hue) }} /> : null}
     {children}
   </span>
 );
 
 /** Small square color marker. */
-export const Dot = ({ hue, size = 8 }: { hue: Hue; size?: number }) => <span className="inline-block shrink-0" style={{ width: size, height: size, background: hueVar(hue) }} />;
+export const Dot = ({ hue, size = 8 }: { hue: Hue; size?: number }) => <span className="inline-block shrink-0 rounded-full" style={{ width: size, height: size, background: hueVar(hue) }} />;
 
 /** Initials avatar in the person's color. */
-export const Avatar = ({ id, name, size = 24, title, round = false }: { id: string | null | undefined; name: string | null | undefined; size?: number; title?: string; round?: boolean }) => {
+export const Avatar = ({ id, name, size = 24, title, round = true }: { id: string | null | undefined; name: string | null | undefined; size?: number; title?: string; round?: boolean }) => {
   const hue = personHue(id);
   const initials = (name ?? "?")
     .split(/\s+/)
@@ -87,7 +87,7 @@ export const ThemeSwitch = ({ value, onChange }: { value: "system" | "light" | "
         role="radio"
         aria-checked={value === v}
         onClick={() => onChange(v)}
-        className={`h-8 text-[11px] uppercase tracking-[0.16em] ${value === v ? "bg-ice text-ice-ink" : "text-text-2 hover:bg-surface-2 hover:text-text"}`}
+        className={`h-8 text-[12px] font-medium ${value === v ? "bg-ice text-ice-ink" : "text-text-2 hover:bg-surface-2 hover:text-text"}`}
       >
         {v}
       </button>
@@ -115,7 +115,7 @@ const TIER_CLASS: Record<Tier, string> = {
 /** Bordered mono label, e.g. "A 80". */
 export const TierBadge = ({ tier, score }: { tier: Tier; score?: number }) => (
   <span
-    className={`inline-flex h-6 min-w-10 items-center justify-center border px-1.5 font-mono text-[11px] ${TIER_CLASS[tier]}`}
+    className={`inline-flex h-6 min-w-10 items-center justify-center rounded-md border px-1.5 font-mono text-[11px] ${TIER_CLASS[tier]}`}
     aria-label={score === undefined ? `Tier ${tier}` : `Tier ${tier}, score ${score}`}
   >
     {tier}
@@ -125,26 +125,26 @@ export const TierBadge = ({ tier, score }: { tier: Tier; score?: number }) => (
 
 export type Brand = "gllarix" | "arcadian";
 
-export const BrandChip = ({ brand }: { brand: Brand }) => (
-  <span className={`chip ${brand === "gllarix" ? "border-cyan-line bg-cyan-tint text-cyan" : "border-amber-line bg-amber-tint text-amber"}`}>
-    {brand === "gllarix" ? "Gllarix" : "Arcadian"}
-  </span>
-);
+export const BrandChip = ({ brand }: { brand: Brand }) => <Pill hue={brand === "gllarix" ? "cyan" : "amber"}>{brand === "gllarix" ? "Gllarix" : "Arcadian"}</Pill>;
 
-export const StageChip = ({ children }: { children: ReactNode }) => (
-  <span className="chip border-line-strong bg-surface-2 text-text-2">{children}</span>
+export const StageChip = ({ children, hue = "text-3" }: { children: ReactNode; hue?: Hue }) => (
+  <Pill hue={hue} dot>
+    {children}
+  </Pill>
 );
 
 export type Status = "on_track" | "watch" | "off_track";
 
-const STATUS: Record<Status, { label: string; cls: string }> = {
-  on_track: { label: "On track", cls: "border-mint bg-mint-tint text-mint" },
-  watch: { label: "Watch", cls: "border-amber bg-amber-tint text-amber" },
-  off_track: { label: "Off track", cls: "border-coral bg-coral-tint text-coral" },
+const STATUS: Record<Status, { label: string; hue: Hue }> = {
+  on_track: { label: "On track", hue: "mint" },
+  watch: { label: "Watch", hue: "amber" },
+  off_track: { label: "Off track", hue: "coral" },
 };
 
 export const StatusChip = ({ status }: { status: Status }) => (
-  <span className={`chip ${STATUS[status].cls}`}>{STATUS[status].label}</span>
+  <Pill hue={STATUS[status].hue} dot>
+    {STATUS[status].label}
+  </Pill>
 );
 
 export const KpiCard = ({
@@ -162,13 +162,13 @@ export const KpiCard = ({
 }) => {
   const toneClass = { text: "text-text", mint: "text-mint", cyan: "text-cyan", lavender: "text-lavender", amber: "text-amber", coral: "text-coral" }[tone];
   return (
-    <div className="card flex flex-col gap-2.5 p-[18px]">
-      <div className="flex items-baseline gap-2.5">
-        {index ? <span className="font-mono text-[12px] text-text-3">{index}</span> : null}
-        <span className="text-[15px]">{title}</span>
+    <div className="card flex flex-col gap-2 p-[18px]">
+      <div className="flex items-baseline gap-2">
+        {index ? <span className="font-mono text-[11px] text-text-3">{index}</span> : null}
+        <span className="text-[13px] font-medium text-text-2">{title}</span>
       </div>
-      <span className={`num text-[32px] font-light leading-none ${toneClass}`}>{value}</span>
-      {caption ? <span className="text-[11px] uppercase tracking-[0.2em] text-label">{caption}</span> : null}
+      <span className={`text-[28px] font-semibold leading-none tracking-[-0.02em] tabular-nums ${toneClass}`}>{value}</span>
+      {caption ? <span className="text-[12px] text-text-3">{caption}</span> : null}
     </div>
   );
 };
@@ -197,21 +197,25 @@ export const Toggle = ({
   checked,
   onChange,
   label,
+  ariaLabel,
 }: {
   checked: boolean;
   onChange: (next: boolean) => void;
   label: string;
+  /** What the switch controls, when the visible label is just "On"/"Off". */
+  ariaLabel?: string;
 }) => (
   <label className="inline-flex cursor-pointer items-center gap-3 text-[13px] text-text-2">
     <button
       type="button"
       role="switch"
       aria-checked={checked}
+      aria-label={ariaLabel}
       onClick={() => onChange(!checked)}
-      className={`relative h-6 w-11 border transition-colors ${checked ? "border-ice bg-ice" : "border-line-strong bg-bg"}`}
+      className={`relative h-[22px] w-10 shrink-0 rounded-full border transition-colors disabled:cursor-not-allowed ${checked ? "border-transparent bg-app" : "border-line-strong bg-inset"}`}
     >
       <span
-        className={`absolute top-[3px] h-4 w-4 transition-[left,background-color] ${checked ? "left-[22px] bg-ice-ink" : "left-[3px] bg-text-3"}`}
+        className={`absolute top-[2px] h-4 w-4 rounded-full shadow-card transition-[left,background-color] ${checked ? "left-[20px] bg-ice-ink" : "left-[2px] bg-text-3"}`}
       />
     </button>
     {label}

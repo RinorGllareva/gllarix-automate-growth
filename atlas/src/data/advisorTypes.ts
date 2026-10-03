@@ -45,7 +45,7 @@ export interface Decision {
   expectedImpact: string;
   reviewDate: string;
   links: string[];
-  source: "context/07" | "advisor";
+  source: "context/07" | "advisor" | "spend";
   createdBy: string | null;
 }
 
@@ -206,6 +206,17 @@ export interface AdvisorJobRun {
   alerts: number;
 }
 
+export interface SpendDecisionInput {
+  title: string;
+  monthlyCostEur: number;
+  oneOffCostEur: number;
+  expectedGain: string;
+  stopRule: string;
+  reviewDate: string;
+  /** One line from the ROI check, e.g. "Pays back in month 2 · ROI 340% over 6 months". */
+  verdict: string;
+}
+
 export interface AdvisorApi {
   advisorHome(): Promise<AdvisorHome>;
   getAdvisorThread(id: string): Promise<AdvisorThreadView>;
@@ -221,6 +232,11 @@ export interface AdvisorApi {
   reviewMemory(id: string, approve: boolean): Promise<void>;
   searchKnowledge(q: string): Promise<{ path: string; heading: string; text: string }[]>;
   listDecisions(status?: string): Promise<Decision[]>;
+  /**
+   * Money â€º ROI: log a spend in the decision log (spec/backbone/09: every spend over €100/month gets a line with
+   * cost, expected gain, stop rule and review date). Admins; status "proposed" until both founders agree.
+   */
+  logSpendDecision(input: SpendDecisionInput): Promise<Decision>;
   runAdvisorJobs(): Promise<AdvisorJobRun>;
   advisorSettings(): Promise<AdvisorSettings>;
   setAdvisorSettings(patch: Partial<AdvisorSettings>): Promise<void>;

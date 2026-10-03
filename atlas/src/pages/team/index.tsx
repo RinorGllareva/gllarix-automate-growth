@@ -61,7 +61,7 @@ const TeamPage = () => {
     load();
   }, [load]);
   const view = o && "week" in o ? o : null;
-  usePageChrome({ context: view ? `${view.weekLabel.toUpperCase()} · VISIBLE TO EACH PERSON` : "Team performance", action: user.role === "admin" ? { label: "Prepare 1:1s", to: "/team?prepare=1" } : undefined });
+  usePageChrome({ context: view ? `${view.weekLabel} · visible to each person` : "Team performance", action: user.role === "admin" ? { label: "Prepare 1:1s", to: "/team?prepare=1" } : undefined });
   useEffect(() => {
     if (!view || user.role !== "admin" || !new URLSearchParams(location.search).has("prepare")) return;
     data.prepareOneOnOnes().then((n) => toast(`${n} weekly 1:1 agendas drafted`, "good"), (e: Error) => toast(e.message, "error"));
@@ -77,7 +77,7 @@ const TeamPage = () => {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-col gap-2">
           <span className="label-caps">Results, quality and reliability against your targets</span>
-          <h1 className="m-0 text-[34px] font-light tracking-[-0.02em]">Team performance</h1>
+          <h1 className="page-title m-0">Team performance</h1>
         </div>
         <span className="text-[12px] text-text-3">No single "employee score" · AI suggests, people decide</span>
       </div>
@@ -220,7 +220,7 @@ const ScorecardPage = () => {
   useEffect(() => {
     load();
   }, [load]);
-  usePageChrome({ context: sc ? `THE ${sc.role.toUpperCase()} SEES THIS PAGE TOO` : "Scorecard", action: user.role === "admin" ? { label: "Back to team", to: "/team" } : undefined });
+  usePageChrome({ context: sc ? `The ${sc.role.toLowerCase()} sees this page too` : "Scorecard", action: user.role === "admin" ? { label: "Back to team", to: "/team" } : undefined });
   if (error) return <EmptyState title={error} />;
   if (!sc) return <SkeletonRows rows={8} />;
   const cur = sc.weeks.length - 1;
@@ -345,7 +345,7 @@ const ScorecardPage = () => {
                         .find((p) => p.kind === "focus")!
                         .reviewIds.map((id, i) => (
                           <Link key={id} to={`/team/calls/${id}`} className="text-cyan">
-                            LISTEN TO EXAMPLE CALL {i + 1} ↗
+                            Listen to example call {i + 1} ↗
                           </Link>
                         ))}
                     </span>
@@ -431,7 +431,7 @@ const CallReviewPage = () => {
     return () => window.clearInterval(t);
   }, [playing, duration]);
   const bars = useMemo(() => Array.from({ length: 60 }, (_, i) => 4 + Math.round(hash01(`${id}:${i}`) * 24)), [id]);
-  usePageChrome({ context: v ? `TEAM / ${v.repName.toUpperCase()} / CALL REVIEW` : "Call review", action: v?.review.userId ? { label: "Back to scorecard", to: `/team/${v.review.userId}` } : undefined });
+  usePageChrome({ context: v ? `Team / ${v.repName} / call review` : "Call review", action: v?.review.userId ? { label: "Back to scorecard", to: `/team/${v.review.userId}` } : undefined });
 
   if (error) return <EmptyState title={error} />;
   if (!v) return <SkeletonRows rows={8} />;
@@ -593,7 +593,7 @@ const CallReviewPage = () => {
               >
                 <input className="input h-9 w-24 font-mono" inputMode="numeric" placeholder="0–100" value={human} onChange={(e) => setHuman(e.target.value)} aria-label="Your score" />
                 <button type="submit" className="btn-outline h-9 flex-1 text-[11px]" disabled={!human}>
-                  CONFIRM REVIEW
+                  Confirm review
                 </button>
               </form>
               <span className="text-[11px] text-text-3">Within 15 points of the AI: accepted. Bigger gaps flag the rubric for review.</span>

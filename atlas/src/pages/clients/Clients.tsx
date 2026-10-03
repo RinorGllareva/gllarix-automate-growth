@@ -5,11 +5,15 @@ import { usePageChrome } from "@/components/shell/PageChrome";
 import { Modal, useToast } from "@/components/ui/overlay";
 import { BrandChip, EmptyState, SkeletonRows } from "@/components/ui/primitives";
 import { ONBOARDING_STEPS, STATUS_REASONS } from "@/config/clients";
-import { data, type ClientCard, type ClientDetail, type ClientsOverview } from "@/data";
+import { data, type ClientCard, type ClientDetail, type ClientsOverview, type TicketRow } from "@/data";
+import RecordFiles from "@/components/RecordFiles";
+import { canAccess } from "@/lib/nav";
+import NewTicket from "@/pages/support/NewTicket";
+import { TicketList } from "@/pages/support/Support";
 import { downloadText, tableDate } from "@/lib/format";
 import { money, monthLabel } from "@/services/billing";
 
-const STATUS_LABEL: Record<ClientCard["status"], string> = { live: "LIVE", onboarding: "ONBOARDING", paused: "PAUSED", churned: "CHURNED", proposal: "PROPOSAL" };
+const STATUS_LABEL: Record<ClientCard["status"], string> = { live: "Live", onboarding: "Onboarding", paused: "Paused", churned: "Churned", proposal: "Proposal" };
 const RISK = { low: { label: "Low", cls: "text-mint" }, medium: { label: "Medium", cls: "text-amber" }, high: { label: "High", cls: "text-coral" } } as const;
 
 const shortDate = (iso: string) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(iso));
@@ -25,7 +29,7 @@ const Card = ({ card, selected }: { card: ClientCard; selected: boolean }) => (
   >
     <span className="flex items-center justify-between gap-3">
       <span className="truncate text-[15px]">{card.companyName}</span>
-      <span className={`shrink-0 text-[10px] tracking-[0.2em] ${selected ? "" : card.status === "churned" ? "text-text-3" : card.status === "paused" ? "text-amber" : "text-text-2"}`}>{STATUS_LABEL[card.status]}</span>
+      <span className={`shrink-0 text-[12px] font-medium ${selected ? "" : card.status === "churned" ? "text-text-3" : card.status === "paused" ? "text-amber" : "text-text-2"}`}>{STATUS_LABEL[card.status]}</span>
     </span>
     <span className="truncate text-[12px] opacity-80">{card.plan}</span>
     <span className={`h-[3px] ${selected ? "bg-ice-ink/20" : "bg-line"}`}>
@@ -48,7 +52,7 @@ const UsageChart = ({ d }: { d: ClientDetail }) => {
   return (
     <section aria-label="Minutes per day" className="card flex flex-col gap-3 px-5 py-[18px]">
       <div className="flex flex-wrap justify-between gap-2 text-[11px] tracking-[0.22em] text-label">
-        <span>MINUTES PER DAY</span>
+        <span>Minutes per day</span>
         <span className="num">
           {d.usage.used.toLocaleString("en-US")} USED · {d.usage.included.toLocaleString("en-US")} INCLUDED
         </span>
@@ -156,7 +160,7 @@ const Onboarding = ({ d, onChange, large = false }: { d: ClientDetail; onChange:
   const user = useUser();
   const nameOf = (id: string | null) => (id === user.id ? "you" : id ? "team" : "automation");
   return (
-    <section aria-label={`Onboarding · ${d.companyName}`} className={`flex flex-col gap-2.5 border border-line ${large ? "p-5" : "p-4"}`}>
+    <section aria-label={`Onboarding · ${d.companyName}`} className={`flex flex-col gap-2.5 rounded-xl border border-line ${large ? "p-5" : "p-4"}`}>
       <span className="label-caps">Onboarding · {d.companyName}</span>
       {ONBOARDING_STEPS.map((st) => {
         const step = d.onboarding.find((x) => x.key === st.key)!;
@@ -193,6 +197,32 @@ const Onboarding = ({ d, onChange, large = false }: { d: ClientDetail; onChange:
   );
 };
 
+/** Support tickets for this client: the open ones lower its health score. */
+const ClientTickets = ({ clientId }: { clientId: string }) => {
+  const [rows, setRows] = useState<TicketRow[] | null>(null);
+  const [creating, setCreating] = useState(false);
+  const load = useCallback(() => data.listTickets(clientId).then((r) => setRows(r.tickets), () => setRows([])), [clientId]);
+  useEffect(() => {
+    load();
+  }, [load]);
+  if (!rows) return null;
+  const open = rows.filter((r) => r.status !== "resolved");
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="flex items-center justify-between">
+        <span className="text-[15px] font-semibold">
+          Support · {open.length} open{rows.length > open.length ? ` · ${rows.length - open.length} resolved` : ""}
+        </span>
+        <button type="button" className="btn-outline h-8 text-[12px]" onClick={() => setCreating(true)}>
+          + New ticket
+        </button>
+      </span>
+      {rows.length ? <TicketList rows={rows.slice(0, 6)} showClient={false} /> : <span className="text-[13px] text-text-3">No tickets. A quiet client is a happy client, or one who isn't using it: check usage.</span>}
+      <NewTicket open={creating} clientId={clientId} onClose={() => setCreating(false)} onCreated={load} />
+    </div>
+  );
+};
+
 const ClientMain = ({ d, onChange, setPeriod }: { d: ClientDetail; onChange: () => void; setPeriod: (p: string) => void }) => {
   const toast = useToast();
   const user = useUser();
@@ -225,17 +255,17 @@ const ClientMain = ({ d, onChange, setPeriod }: { d: ClientDetail; onChange: () 
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex min-w-0 flex-col gap-1.5">
           <span className="label-caps flex flex-wrap items-center gap-2">
-            {d.companyName.toUpperCase()} ·
+            {d.companyName} ·
             {d.periods.length > 1 ? (
-              <select aria-label="Month" className="border-0 bg-transparent p-0 text-[11px] uppercase tracking-[0.22em] text-label" value={d.period} onChange={(e) => setPeriod(e.target.value)}>
+              <select aria-label="Month" className="border-0 bg-transparent p-0 text-[12px] font-medium text-label" value={d.period} onChange={(e) => setPeriod(e.target.value)}>
                 {d.periods.map((p) => (
                   <option key={p} value={p}>
-                    {monthLabel(p, "long").toUpperCase()}
+                    {monthLabel(p, "long")}
                   </option>
                 ))}
               </select>
             ) : (
-              <span>{monthLabel(d.period).toUpperCase()}</span>
+              <span>{monthLabel(d.period)}</span>
             )}
           </span>
           <span className="text-[26px] font-light">{headline}</span>
@@ -283,13 +313,13 @@ const ClientMain = ({ d, onChange, setPeriod }: { d: ClientDetail; onChange: () 
             <>
               <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                 {[
-                  { label: "CALLS ANSWERED", v: d.kpis.callsAnswered, cls: "text-text" },
-                  { label: "AFTER-HOURS CAPTURED", v: d.kpis.afterHours, cls: "text-cyan" },
-                  { label: "JOBS BOOKED", v: d.kpis.jobsBooked, cls: "text-mint" },
-                  { label: "MISSED", v: d.kpis.missed, cls: "text-lavender" },
+                  { label: "Calls answered", v: d.kpis.callsAnswered, cls: "text-text" },
+                  { label: "After-hours captured", v: d.kpis.afterHours, cls: "text-cyan" },
+                  { label: "Jobs booked", v: d.kpis.jobsBooked, cls: "text-mint" },
+                  { label: "Missed", v: d.kpis.missed, cls: "text-lavender" },
                 ].map((k) => (
                   <div key={k.label} className="card flex flex-col gap-2 p-4">
-                    <span className="text-[10px] tracking-[0.2em] text-label">{k.label}</span>
+                    <span className="text-[12px] text-text-3">{k.label}</span>
                     <span className={`num text-[30px] font-light ${k.cls}`}>{k.v.toLocaleString("en-US")}</span>
                   </div>
                 ))}
@@ -297,15 +327,15 @@ const ClientMain = ({ d, onChange, setPeriod }: { d: ClientDetail; onChange: () 
               <UsageChart d={d} />
             </>
           ) : (
-            <p className="m-0 border border-line p-4 text-[13px] text-text-2">No usage metering for this plan (no AI receptionist minutes). Invoices cover the monthly fee only.</p>
+            <p className="m-0 rounded-xl border border-line p-4 text-[13px] text-text-2">No usage metering for this plan (no AI receptionist minutes). Invoices cover the monthly fee only.</p>
           )}
 
           <div className="grid gap-3 lg:grid-cols-2">
             {f ? (
-              <div className="flex flex-col gap-2 border border-line px-[18px] py-4 text-[13px]">
+              <div className="flex flex-col gap-2 rounded-xl border border-line px-[18px] py-4 text-[13px]">
                 {f.next ? (
                   <>
-                    <span className="label-caps">Next invoice · {shortDate(f.next.date).toUpperCase()}</span>
+                    <span className="label-caps">Next invoice · {shortDate(f.next.date)}</span>
                     {f.next.lines.length ? f.next.lines.map((l) => <Row key={l.description} label={l.description.replace(/ · [A-Z][a-z]+ \d{4}$/, "")} value={fmt(l.amountMinor)} />) : <span className="text-text-3">Nothing to bill yet.</span>}
                     <div className="flex justify-between border-t border-line pt-2">
                       <span>Total</span>
@@ -315,7 +345,7 @@ const ClientMain = ({ d, onChange, setPeriod }: { d: ClientDetail; onChange: () 
                   </>
                 ) : (
                   <>
-                    <span className="label-caps">Invoice · {monthLabel(d.period, "short").toUpperCase()}</span>
+                    <span className="label-caps">Invoice · {monthLabel(d.period, "short")}</span>
                     {(() => {
                       const inv = f.invoices.find((i) => i.period === d.period);
                       return inv ? (
@@ -336,7 +366,7 @@ const ClientMain = ({ d, onChange, setPeriod }: { d: ClientDetail; onChange: () 
                 )}
               </div>
             ) : null}
-            <div className="flex flex-col gap-2 border border-line px-[18px] py-4 text-[13px]">
+            <div className="flex flex-col gap-2 rounded-xl border border-line px-[18px] py-4 text-[13px]">
               <span className="label-caps">Health</span>
               {d.costs ? (
                 <>
@@ -368,8 +398,15 @@ const ClientMain = ({ d, onChange, setPeriod }: { d: ClientDetail; onChange: () 
         </>
       )}
 
+      {canAccess(user.role, "support") && d.client.status !== "onboarding" ? <ClientTickets clientId={d.client.id} /> : null}
+
+      <div className="flex flex-col gap-2">
+        <span className="text-[15px] font-semibold">Files</span>
+        <RecordFiles entity="client" id={d.client.id} hint="Signed contracts, onboarding notes, call flows, logos" />
+      </div>
+
       {d.tasks.length ? (
-        <section aria-label="Client tasks" className="flex flex-col border border-line">
+        <section aria-label="Client tasks" className="flex flex-col overflow-hidden rounded-xl border border-line">
           <span className="label-caps border-b border-line px-[18px] py-3">Tasks</span>
           {d.tasks.map((t) => (
             <div key={t.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-line-soft px-[18px] py-2.5 text-[13px] last:border-b-0">
@@ -408,7 +445,7 @@ const ClientMain = ({ d, onChange, setPeriod }: { d: ClientDetail; onChange: () 
       {f?.invoices.length || d.reports.length ? (
         <div className="grid gap-3 lg:grid-cols-2">
           {f?.invoices.length ? (
-            <section aria-label="Invoices" className="flex flex-col border border-line">
+            <section aria-label="Invoices" className="flex flex-col overflow-hidden rounded-xl border border-line">
               <span className="label-caps border-b border-line px-[18px] py-3">Invoices · Stripe test mode</span>
               {f.invoices.slice(0, 8).map((i) => (
                 <div key={i.id} className="flex justify-between gap-3 border-b border-line-soft px-[18px] py-2 text-[13px] last:border-b-0">
@@ -424,7 +461,7 @@ const ClientMain = ({ d, onChange, setPeriod }: { d: ClientDetail; onChange: () 
             </section>
           ) : null}
           {d.reports.length ? (
-            <section aria-label="Monthly reports" className="flex flex-col border border-line">
+            <section aria-label="Monthly reports" className="flex flex-col overflow-hidden rounded-xl border border-line">
               <span className="label-caps border-b border-line px-[18px] py-3">Reports sent</span>
               {d.reports.slice(0, 8).map((r) => (
                 <div key={r.id} className="flex justify-between gap-3 border-b border-line-soft px-[18px] py-2 text-[13px] last:border-b-0">
@@ -518,7 +555,7 @@ const ClientsPage = () => {
   return (
     <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
       <section aria-label="Clients" className="flex min-w-0 flex-col gap-3">
-        <h1 className="m-0 mb-1.5 text-[40px] font-light tracking-[-0.02em]">Clients</h1>
+        <h1 className="page-title m-0 mb-1.5">Clients</h1>
         {onlyOnboarding ? (
           <button type="button" className="btn-ghost self-start text-[11px]" onClick={() => setParams({})}>
             Onboarding only · show all

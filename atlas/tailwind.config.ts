@@ -5,14 +5,14 @@ import type { Config } from "tailwindcss";
 const token = (name: string) => `color-mix(in srgb, var(--${name}) calc(<alpha-value> * 100%), transparent)`;
 const names = [
   "chrome", "bg", "bg-deep", "surface", "surface-2", "inset", "line", "line-soft", "line-strong", "line-button", "text", "text-2", "text-3", "label",
-  "ice", "ice-ink", "cyan", "mint", "lavender", "amber", "coral", "blue", "teal", "orange", "pink", "lime", "cyan-line", "amber-line",
+  "ice", "ice-ink", "cyan", "mint", "lavender", "amber", "coral", "blue", "teal", "orange", "pink", "lime", "cyan-line", "amber-line", "app",
 ];
 
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
-    // Sharp by default (Atlas look); the rounded steps are opt-in for the Notion-style Tasks surfaces.
-    borderRadius: { none: "0", DEFAULT: "0", sm: "4px", md: "6px", lg: "8px", xl: "12px", full: "9999px" },
+    // Raycast rhythm: 6px small controls, 8px buttons and inputs, 12px cards, 16px floating panels.
+    borderRadius: { none: "0", DEFAULT: "6px", sm: "4px", md: "6px", lg: "8px", xl: "12px", "2xl": "16px", full: "9999px" },
     extend: {
       colors: {
         ...Object.fromEntries(names.map((n) => [n, token(n)])),
@@ -23,7 +23,7 @@ export default {
         "amber-tint": "var(--amber-tint)",
         "coral-tint": "var(--coral-tint)",
       },
-      boxShadow: { card: "var(--card-shadow)" },
+      boxShadow: { card: "var(--card-shadow)", pop: "var(--pop-shadow)" },
       fontFamily: { sans: ["var(--font)"], mono: ["var(--mono)"] },
       letterSpacing: { label: "var(--label-tracking)" },
       transitionDuration: { DEFAULT: "150ms" },

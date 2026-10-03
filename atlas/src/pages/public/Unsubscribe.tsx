@@ -19,7 +19,7 @@ const Unsubscribe = () => {
         {result ? (
           result.ok ? (
             <section aria-label="Unsubscribed" className="flex flex-col gap-3">
-              <h1 className="m-0 text-[36px] font-light tracking-[-0.02em]">You're unsubscribed.</h1>
+              <h1 className="page-title m-0">You're unsubscribed.</h1>
               <p className="m-0 text-[15px] text-text-2">
                 {result.email} won't get any more emails from Gllarix or Arcadian{result.alreadyUnsubscribed ? " (it was already on our opt-out list)" : ""}.
               </p>
@@ -29,7 +29,7 @@ const Unsubscribe = () => {
           )
         ) : (
           <section aria-label="Unsubscribe" className="flex flex-col gap-5">
-            <h1 className="m-0 text-[36px] font-light tracking-[-0.02em]">Stop these emails?</h1>
+            <h1 className="page-title m-0">Stop these emails?</h1>
             <p className="m-0 text-[15px] text-text-2">One click removes you from every Gllarix and Arcadian email list.</p>
             <button
               type="button"

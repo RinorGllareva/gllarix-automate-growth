@@ -94,6 +94,23 @@ import { createDemoCoaching, emptyCoachingState } from "./demoCoaching";
 import { createDemoTime, emptyTimeState } from "./demoTime";
 import { createDemoAdvisor, emptyAdvisorState, type AdvisorReadApi } from "./demoAdvisor";
 import { createDemoCalendar, emptyCalendarState } from "./demoCalendar";
+import { createDemoPeople } from "./demoPeople";
+import { createDemoGrowth } from "./demoGrowth";
+import { createDemoOps } from "./demoOps";
+import { INBOUND_RESPONSE_TARGET_MIN } from "@/config/operations";
+import type { InboundApi, InboundChannel, InboundRequest, OpsApi, Sop } from "../opsTypes";
+import type { GrowthApi } from "../growthTypes";
+import type { RecordFile, RecordsApi } from "../recordTypes";
+import { createDemoRecords } from "./demoRecords";
+import type { SupportApi, Ticket } from "../supportTypes";
+import { createDemoSupport } from "./demoSupport";
+import type { Contract, ContractsApi } from "../contractTypes";
+import { createDemoContracts } from "./demoContracts";
+import type { Doc, DocsApi } from "../docTypes";
+import { createDemoDocs } from "./demoDocs";
+import type { AgentApi, AgentRun, AgentSettings } from "../aiTypes";
+import { createDemoAgent } from "./demoAgent";
+import type { PeopleApi } from "../peopleTypes";
 import type { TeamApi } from "../coachTypes";
 import type { TimeApi } from "../timeTypes";
 import type { AdvisorApi } from "../advisorTypes";
@@ -139,6 +156,17 @@ interface LeadStore extends LeadSeed, ClientsExtra {
   scoreHistory: ScoreHistoryEntry[];
   nightlyRuns: NightlyRun[];
   complianceSettings: { retentionMonths: number };
+  /** Created on first use (Sell › Inbound, Work › Operations plan). */
+  inboundRequests?: InboundRequest[];
+  sops?: Sop[];
+  files?: RecordFile[];
+  tickets?: Ticket[];
+  contracts?: Contract[];
+  docs?: Doc[];
+  agent?: AgentSettings;
+  agentRuns?: AgentRun[];
+  notionReadOnly?: { at: string; by: string } | null;
+  opsChecks?: Record<string, { at: string; by: string }>;
 }
 
 interface Deps {
@@ -160,7 +188,7 @@ const csvEscape = (v: unknown) => {
 };
 
 
-type DemoLeadsApi = LeadsApi & QueueApi & SalesApi & EmailApi & DealsApi & ClientsApi & LeadSourcesApi & TasksApi & CapacityApi & PlannerApi & AutomationsApi & TeamApi & TimeApi & AdvisorApi & CalendarApi;
+type DemoLeadsApi = LeadsApi & QueueApi & SalesApi & EmailApi & DealsApi & ClientsApi & LeadSourcesApi & TasksApi & CapacityApi & PlannerApi & AutomationsApi & TeamApi & TimeApi & AdvisorApi & CalendarApi & PeopleApi & GrowthApi & InboundApi & OpsApi & RecordsApi & SupportApi & ContractsApi & DocsApi & AgentApi;
 
 export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.now, persist = true, aiProvider }: Deps): DemoLeadsApi => {
   let store: LeadStore | null = null;
@@ -608,7 +636,16 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
   const dealRowFor = (s: LeadStore, d: Deal): DealRow => {
     const lead = s.leads.find((l) => l.id === d.leadId)!;
     const next = s.meetings.filter((m) => m.leadId === d.leadId && new Date(m.scheduledAt).getTime() > now()).sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))[0];
-    return { deal: d, lead, company: s.companies.find((c) => c.id === lead.companyId)!, ownerName: ownerName(d.ownerId), nextMeetingAt: next?.scheduledAt ?? null };
+    const q = s.quotes.filter((x) => x.dealId === d.id && x.status !== "superseded").sort((a, b) => b.version - a.version)[0];
+    return {
+      deal: d,
+      lead,
+      company: s.companies.find((c) => c.id === lead.companyId)!,
+      ownerName: ownerName(d.ownerId),
+      nextMeetingAt: next?.scheduledAt ?? null,
+      contactName: ((c) => (c ? `${c.firstName} ${c.lastName}`.trim() : null))(s.contacts.find((c) => c.id === lead.primaryContactId)),
+      latestQuote: q ? { version: q.version, status: q.status, sentAt: q.sentAt, openedAt: q.openedAt, paidAt: q.paidAt } : null,
+    };
   };
 
   const canSeeDeal = (user: User, d: Deal) => user.role === "admin" || user.role === "viewer" || d.ownerId === user.id;
@@ -630,6 +667,10 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
       editable: !quotes.some((q) => q.status === "accepted" || q.status === "paid") && d.stage !== "won" && d.stage !== "lost",
       payments: s.payments.filter((p) => p.dealId === d.id),
       maxDiscount: Math.max(maxDiscountFor(user), user.role === "bdr" ? 0 : approvedDiscount(s, d.id)),
+      contactEmail: (() => {
+        const lead = s.leads.find((l) => l.id === d.leadId);
+        return (lead?.primaryContactId && s.contacts.find((c) => c.id === lead.primaryContactId)?.email) || null;
+      })(),
     };
   };
 
@@ -785,6 +826,213 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
 
   // ---- Calendar, Google Calendar per person, staff email alerts (demoCalendar.ts).
   const calendarMod = createDemoCalendar<LeadStore>({ load, save, viewer, now, users, uid, audit, notify });
+  const peopleMod = createDemoPeople<LeadStore>({ load, save, viewer, now, users, uid, audit, notify });
+  const growthMod = createDemoGrowth<LeadStore>({ load, save, viewer, now, uid, audit });
+  const supportMod = createDemoSupport<LeadStore>({ load, save, viewer, now, users, uid, audit, notify });
+  const docsMod = createDemoDocs<LeadStore>({ load, save, viewer, now, users, uid, audit });
+  const recordsMod = createDemoRecords<LeadStore>({
+    load, save, viewer, now, users, uid, audit,
+    activity: (s, a) => activity(s, a),
+    canSee: (s, user, entity, id) => {
+      if (entity === "lead") {
+        const lead = s.leads.find((l) => l.id === id);
+        return !!lead && canSeeLead(user, lead);
+      }
+      if (entity === "deal") {
+        const d = s.deals.find((x) => x.id === id);
+        return !!d && canSeeDeal(user, d);
+      }
+      const c = s.clients.find((x) => x.id === id);
+      if (!c) return false;
+      if (user.role === "admin" || user.role === "implementer" || user.role === "viewer") return true;
+      return (user.role === "bdr" || user.role === "closer") && s.deals.find((d) => d.id === c.dealId)?.ownerId === user.id;
+    },
+  });
+  const contractsMod = createDemoContracts<LeadStore>({
+    load, save, viewer, now, users, uid, audit, notify,
+    canSeeDeal: (user, d) => canSeeDeal(user, d),
+    activity: (s, a) => activity(s, a),
+    attachSystemFile: (s, entity, id, f, by) => recordsMod.attachSystemFile(s, entity, id, f, by),
+  });
+
+  // ---- Inbound (Sell › Inbound): website forms, the demo line, referrals, booking-page bookings.
+  /** Match a person to an existing lead by email, then domain, then phone; otherwise create company + lead. */
+  const upsertInboundLead = (
+    s: LeadStore,
+    input: { name: string; email: string | null; phone: string | null; company: string; country: string | null; ownerId: string; listType: "trades" | "developers"; sourceName: string; sourceKind: Source["kind"]; lawfulBasis: string; createdTitle: string; fallbackTz: string },
+  ) => {
+    const at = iso();
+    const email = input.email ? normalizeEmail(input.email) : null;
+    const domain = email ? normalizeDomain(email) : null;
+    const phone = input.phone ? normalizePhone(input.phone, input.country || "US") : null;
+    let contact = email ? s.contacts.find((c) => c.email === email) : undefined;
+    let company = contact ? s.companies.find((c) => c.id === contact!.companyId) : undefined;
+    company ??= (domain ? s.companies.find((c) => c.domain === domain) : undefined) ?? (phone ? s.companies.find((c) => c.phone === phone) : undefined);
+    let lead = company ? s.leads.find((l) => l.companyId === company!.id) : undefined;
+    const [firstName, ...rest] = input.name.trim().split(/\s+/);
+    if (!company || !lead) {
+      let source = s.sources.find((x) => x.name === input.sourceName);
+      if (!source) {
+        source = { id: uid("src"), name: input.sourceName, kind: input.sourceKind, country: null, createdAt: at };
+        s.sources.push(source);
+      }
+      const country = input.country?.trim().toUpperCase() || null;
+      company ??= {
+        id: uid("co"), name: input.company.trim(), domain, phone, country, region: null, city: null,
+        timezone: inferTimezone(country, null) ?? input.fallbackTz, industry: null, listType: input.listType,
+        brandInterest: [input.listType === "trades" ? "gllarix" : "arcadian"], employeesEst: null, reviewsCount: null, rating: null,
+        sourceId: source.id, createdAt: at, updatedAt: at,
+      };
+      if (!s.companies.includes(company)) s.companies.push(company);
+      lead = {
+        id: uid("ld"), companyId: company.id, primaryContactId: null, ownerId: input.ownerId, listType: input.listType, stage: "new", score: 0, tier: "D",
+        scoreBreakdown: [], scoreModelVersion: "", scoredAt: at, excluded: false, suppressed: false, nextActionAt: null, nextActionType: null,
+        attemptsCount: 0, lastTouchAt: null, lawfulBasis: input.lawfulBasis, importJobId: null, cadenceId: null, cadenceStartedAt: null,
+        cadenceStepsDone: [], statusReason: null, createdAt: at, updatedAt: at,
+      };
+      s.leads.push(lead);
+      activity(s, { leadId: lead.id, userId: null, type: "created", title: input.createdTitle, detail: [input.name, email].filter(Boolean).join(" · "), disposition: null, durationS: null });
+    }
+    if (!contact) {
+      contact = {
+        id: uid("ct"), companyId: company.id, firstName, lastName: rest.join(" "), title: null, email, emailStatus: "unknown",
+        phone, phoneType: "unknown", phoneVerified: false, phoneInvalid: false, linkedinUrl: null, isDecisionMaker: false,
+      };
+      s.contacts.push(contact);
+    }
+    lead.primaryContactId ??= contact.id;
+    return { lead, company, contact };
+  };
+
+  const INBOUND_SOURCE: Record<InboundChannel, { name: string; kind: Source["kind"] }> = {
+    website_form: { name: "Website form", kind: "inbound" },
+    demo_line: { name: "Demo line", kind: "inbound" },
+    booking_link: { name: "Booking page", kind: "inbound" },
+    referral: { name: "Referral", kind: "referral" },
+    google_profile: { name: "Google Business Profile", kind: "inbound" },
+    chat: { name: "Website chat", kind: "inbound" },
+  };
+  const inboundReaders: User["role"][] = ["admin", "bdr", "closer"];
+  /** Inbound requests (created and seeded on first use). */
+  const inboundOf = (s: LeadStore) => {
+    if (!s.inboundRequests) {
+      const t = now();
+      const ago = (min: number) => new Date(t - min * 60_000).toISOString();
+      const bdr = users.find((u) => u.role === "bdr" && u.active)?.id ?? null;
+      const co = users.find((u) => u.id === "u-cofounder")?.id ?? null;
+      s.inboundRequests = [
+        { id: uid("ib"), receivedAt: ago(12), channel: "demo_line", brand: "gllarix", name: "Mike Alvarez", company: "Alvarez Plumbing LLC", email: null, phone: "+1 813 555 0142", country: "US", message: "Called the demo line after hours. Wants pricing for 2 trucks and after-hours booking.", status: "new", assignedTo: null, firstResponseAt: null, leadId: null },
+        { id: uid("ib"), receivedAt: ago(190), channel: "website_form", brand: "gllarix", name: "Sarah Chen", company: "Chen Roofing Co.", email: "sarah@chenroofing.example", phone: null, country: "US", message: "We miss calls when crews are on roofs. Can it book estimates into our calendar?", status: "new", assignedTo: bdr, firstResponseAt: null, leadId: null },
+        { id: uid("ib"), receivedAt: ago(1500), channel: "website_form", brand: "arcadian", name: "Arben Krasniqi", company: "Krasniqi Residence", email: "arben@krasniqi-residence.example", phone: null, country: "XK", message: "Off-plan project with 42 units in Prishtina. Interested in the 3D unit picker.", status: "contacted", assignedTo: co, firstResponseAt: ago(1460), leadId: null },
+        { id: uid("ib"), receivedAt: ago(2900), channel: "referral", brand: "gllarix", name: "Tom Becker", company: "Becker HVAC", email: "tom@beckerhvac.example", phone: null, country: "US", message: "Referred by First Choice Comfort Systems.", status: "contacted", assignedTo: bdr, firstResponseAt: ago(2885), leadId: null, referredBy: "First Choice Comfort Systems" },
+        { id: uid("ib"), receivedAt: ago(4300), channel: "google_profile", brand: "gllarix", name: "Rank Boosters", company: "Rank Boosters", email: "sales@rankboosters.example", phone: null, country: null, message: "We can get you to #1 on Google in 7 days!!!", status: "spam", assignedTo: null, firstResponseAt: null, leadId: null },
+      ];
+    }
+    return s.inboundRequests;
+  };
+  const inboundTarget = (s: LeadStore, id: string, user: User) => {
+    if (!inboundReaders.includes(user.role)) throw new AccessError(403);
+    const r = inboundOf(s).find((x) => x.id === id);
+    if (!r) throw new AccessError(404);
+    return r;
+  };
+  const agentMod = createDemoAgent<LeadStore>({ load, save, viewer, now, users, uid, audit, inbound: (s) => inboundOf(s) });
+  const inboundApi: InboundApi = {
+    async inboundHome() {
+      const user = await viewer();
+      if (!inboundReaders.includes(user.role)) throw new AccessError(403);
+      const s = await load();
+      const fresh = !s.inboundRequests;
+      const all = inboundOf(s);
+      if (fresh) await save();
+      const t = now();
+      const recent = all.filter((r) => t - new Date(r.receivedAt).getTime() <= 30 * 86_400_000 && r.status !== "spam");
+      const answered = recent.filter((r) => r.firstResponseAt).map((r) => (new Date(r.firstResponseAt!).getTime() - new Date(r.receivedAt).getTime()) / 60_000);
+      const sorted = [...answered].sort((a, b) => a - b);
+      return {
+        requests: [...all].sort((a, b) => b.receivedAt.localeCompare(a.receivedAt)).map((r) => ({ ...r, assigneeName: r.assignedTo ? (users.find((u) => u.id === r.assignedTo)?.name ?? null) : null })),
+        kpis: {
+          open: all.filter((r) => r.status === "new").length,
+          withinTarget: answered.length ? answered.filter((m) => m <= INBOUND_RESPONSE_TARGET_MIN).length / answered.length : null,
+          medianResponseMin: sorted.length ? (sorted[Math.floor((sorted.length - 1) / 2)] + sorted[Math.ceil((sorted.length - 1) / 2)]) / 2 : null,
+          converted30d: recent.filter((r) => r.status === "converted").length,
+          received30d: recent.length,
+        },
+        targetMinutes: INBOUND_RESPONSE_TARGET_MIN,
+        canAct: true,
+      };
+    },
+
+    async receiveInbound(input) {
+      const user = await viewer();
+      if (user.role !== "admin") throw new AccessError(403, "Inbound arrives from the website and the demo line.");
+      if (!input.name.trim() || (!input.email && !input.phone)) throw new Error("A name and an email or phone are needed.");
+      const s = await load();
+      const r: InboundRequest = { ...input, id: uid("ib"), receivedAt: iso(), status: "new", assignedTo: null, firstResponseAt: null, leadId: null };
+      inboundOf(s).push(r);
+      // Speed-to-lead: everyone who can answer hears about it now.
+      users.filter((u) => u.active && (u.role === "admin" || (u.role === "bdr" && input.brand === "gllarix"))).forEach((u) => notify({ userId: u.id, type: "inbound", text: `New inbound (${INBOUND_SOURCE[input.channel].name}): ${input.company || input.name}`, href: "/inbound" }));
+      audit(user.id, "inbound.receive", "inbound", r.id, null, { channel: r.channel });
+      await save();
+      return r;
+    },
+
+    async claimInbound(id) {
+      const user = await viewer();
+      const s = await load();
+      const r = inboundTarget(s, id, user);
+      r.assignedTo = user.id;
+      audit(user.id, "inbound.claim", "inbound", id);
+      await save();
+    },
+
+    async respondInbound(id, note) {
+      const user = await viewer();
+      const s = await load();
+      const r = inboundTarget(s, id, user);
+      if (r.status === "spam" || r.status === "not_fit") throw new Error("This request was dismissed.");
+      r.firstResponseAt ??= iso();
+      r.assignedTo ??= user.id;
+      if (r.status === "new") r.status = "contacted";
+      if (r.leadId) activity(s, { leadId: r.leadId, userId: user.id, type: "note", title: "Replied to the inbound request", detail: note?.trim() || null, disposition: null, durationS: null });
+      audit(user.id, "inbound.respond", "inbound", id);
+      await save();
+    },
+
+    async convertInbound(id) {
+      const user = await viewer();
+      const s = await load();
+      const r = inboundTarget(s, id, user);
+      if (r.leadId) return r.leadId;
+      if (r.status === "spam" || r.status === "not_fit") throw new Error("This request was dismissed.");
+      const owner = users.find((u) => u.id === (r.assignedTo ?? user.id)) ?? user;
+      const src = INBOUND_SOURCE[r.channel];
+      const { lead } = upsertInboundLead(s, {
+        name: r.name, email: r.email, phone: r.phone, company: r.company || r.name, country: r.country, ownerId: owner.id,
+        listType: r.brand === "gllarix" ? "trades" : "developers", sourceName: src.name, sourceKind: src.kind,
+        lawfulBasis: `Consent · ${src.name.toLowerCase()}`, createdTitle: `Created from ${src.name.toLowerCase()}`, fallbackTz: owner.timezone,
+      });
+      if (r.message) activity(s, { leadId: lead.id, userId: user.id, type: "note", title: `Inbound message (${src.name})`, detail: r.message, disposition: null, durationS: null });
+      Object.assign(lead, { nextActionType: "call", nextActionAt: iso(), updatedAt: iso() });
+      rescoreLead(s, lead);
+      Object.assign(r, { leadId: lead.id, status: "converted", assignedTo: owner.id, firstResponseAt: r.firstResponseAt ?? iso() });
+      audit(user.id, "inbound.convert", "inbound", id, null, { leadId: lead.id });
+      await save();
+      return lead.id;
+    },
+
+    async dismissInbound(id, reason) {
+      const user = await viewer();
+      const s = await load();
+      const r = inboundTarget(s, id, user);
+      if (r.status === "converted") throw new Error("It's already a lead; close it from the lead.");
+      r.status = reason;
+      audit(user.id, "inbound.dismiss", "inbound", id, null, { reason });
+      await save();
+    },
+  };
+  const opsMod = createDemoOps<LeadStore>({ load, save, viewer, now, uid, audit });
+
 
   // ---- M8: lead sources, list build, enrichment (demoSources.ts).
   const sourcesMod = createDemoSources<LeadStore>({
@@ -803,6 +1051,31 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
     ...timeMod.api,
     ...advisorMod.api,
     ...calendarMod.api,
+    ...peopleMod.api,
+    ...growthMod.api,
+    ...recordsMod.api,
+    ...supportMod.api,
+    ...contractsMod.api,
+    ...docsMod.api,
+    ...agentMod.api,
+    ...inboundApi,
+    ...opsMod.api,
+    async automationLedger(days = 30) {
+      requireAdmin(await viewer());
+      const s = await load();
+      const since = new Date(now() - days * 86_400_000).toISOString();
+      const sent = s.outbox.filter((m) => m.status === "sent" && (m.sentAt ?? m.queuedAt) >= since);
+      return {
+        queue: s.queues.filter((q) => q.builtAt >= since).length,
+        cadence: sent.filter((m) => m.kind === "cadence").length,
+        meeting_emails: sent.filter((m) => m.kind === "booking_confirmation" || m.kind === "reminder_24h" || m.kind === "reminder_1h").length,
+        send_info: sent.filter((m) => m.kind === "send_info").length,
+        rescore: s.nightlyRuns.filter((r) => r.at >= since).length,
+        inbound: inboundOf(s).filter((r) => r.receivedAt >= since && r.status !== "spam").length,
+        daily_report: s.dailyReports.filter((r) => r.generatedAt >= since).length,
+        task_rules: s.automationRuns.filter((r) => r.at >= since && r.ok).length,
+      };
+    },
     async listLeads(q) {
       const user = await viewer();
       requireLeadsAccess(user);
@@ -1412,6 +1685,7 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
             dials: st.dials,
             conversations: st.conversations,
             meetingsBookedWeek: st.meetingsBookedWeek,
+            approvedWeek: st.approvedWeek,
           };
         });
     },
@@ -1635,6 +1909,37 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
         },
         closedMonths: s.closedMonths,
       };
+    },
+
+    async searchMeetings(q) {
+      const user = await viewer();
+      if (user.role === "implementer" || user.role === "viewer") return [];
+      const s = await load();
+      const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+      const t = now();
+      return s.meetings
+        .filter((m) => canSeeMeeting(user, m))
+        .map((m) => meetingRow(s, m))
+        .filter((r) => {
+          const hay = `${r.company.name} ${r.meeting.withWhom} ${r.company.city ?? ""}`.toLowerCase();
+          return words.every((w) => hay.includes(w));
+        })
+        // Upcoming first (soonest), then past (most recent).
+        .sort((a, b) => {
+          const ta = new Date(a.meeting.scheduledAt).getTime();
+          const tb = new Date(b.meeting.scheduledAt).getTime();
+          return ta >= t && tb >= t ? ta - tb : ta >= t ? -1 : tb >= t ? 1 : tb - ta;
+        });
+    },
+
+    async saveMeetingNotes(id, notes) {
+      const user = await viewer();
+      const s = await load();
+      const m = s.meetings.find((x) => x.id === id);
+      if (!m) throw new AccessError(404);
+      if (!canSeeMeeting(user, m) || user.role === "viewer") throw new AccessError(403);
+      m.notes = notes.trim() || null;
+      await save();
     },
 
     async getMeeting(id) {
@@ -1876,7 +2181,8 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
     async listCommissions() {
       const user = await viewer();
       const s = await load();
-      return user.role === "admin" ? s.commissions : s.commissions.filter((c) => c.userId === user.id);
+      // Founders approve and the accountant pays the statements: both see everyone's lines.
+      return user.role === "admin" || user.role === "viewer" ? s.commissions : s.commissions.filter((c) => c.userId === user.id);
     },
 
     // ---------------------------------------------------------------- M5: email and booking
@@ -2092,45 +2398,17 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
       const at = iso();
 
       // Match an existing lead by email, then domain, then phone; otherwise create one.
-      const domain = normalizeDomain(email);
-      const phone = input.phone ? normalizePhone(input.phone, input.country || "US") : null;
-      let contact = s.contacts.find((c) => c.email === email);
-      let company = contact ? s.companies.find((c) => c.id === contact!.companyId) : undefined;
-      company ??= (domain ? s.companies.find((c) => c.domain === domain) : undefined) ?? (phone ? s.companies.find((c) => c.phone === phone) : undefined);
-      let lead = company ? s.leads.find((l) => l.companyId === company!.id) : undefined;
-      const [firstName, ...rest] = input.name.trim().split(/\s+/);
-      if (!company || !lead) {
-        let source = s.sources.find((x) => x.name === "Booking page");
-        if (!source) {
-          source = { id: uid("src"), name: "Booking page", kind: "inbound", country: null, createdAt: at };
-          s.sources.push(source);
-        }
-        const country = input.country?.trim().toUpperCase() || (owner.role === "bdr" ? "US" : null);
-        const listType = owner.role === "bdr" ? "trades" : "developers";
-        company = {
-          id: uid("co"), name: input.company.trim(), domain, phone, country, region: null, city: null,
-          timezone: inferTimezone(country, null) ?? owner.timezone, industry: null, listType,
-          brandInterest: [listType === "trades" ? "gllarix" : "arcadian"], employeesEst: null, reviewsCount: null, rating: null,
-          sourceId: source.id, createdAt: at, updatedAt: at,
-        };
-        s.companies.push(company);
-        lead = {
-          id: uid("ld"), companyId: company.id, primaryContactId: null, ownerId: owner.id, listType, stage: "new", score: 0, tier: "D",
-          scoreBreakdown: [], scoreModelVersion: "", scoredAt: at, excluded: false, suppressed: false, nextActionAt: null, nextActionType: null,
-          attemptsCount: 0, lastTouchAt: null, lawfulBasis: "Consent · booking page", importJobId: null, cadenceId: null, cadenceStartedAt: null,
-          cadenceStepsDone: [], statusReason: null, createdAt: at, updatedAt: at,
-        };
-        s.leads.push(lead);
-        activity(s, { leadId: lead.id, userId: null, type: "created", title: "Created from the booking page", detail: `${input.name} · ${email}`, disposition: null, durationS: null });
-      }
-      if (!contact) {
-        contact = {
-          id: uid("ct"), companyId: company.id, firstName, lastName: rest.join(" "), title: null, email, emailStatus: "unknown",
-          phone, phoneType: "unknown", phoneVerified: false, phoneInvalid: false, linkedinUrl: null, isDecisionMaker: false,
-        };
-        s.contacts.push(contact);
-      }
-      lead.primaryContactId ??= contact.id;
+      const listType = owner.role === "bdr" ? "trades" : "developers";
+      const country = input.country?.trim().toUpperCase() || (owner.role === "bdr" ? "US" : null);
+      const { lead, company } = upsertInboundLead(s, {
+        name: input.name, email, phone: input.phone ?? null, company: input.company, country, ownerId: owner.id, listType,
+        sourceName: "Booking page", sourceKind: "inbound", lawfulBasis: "Consent · booking page", createdTitle: "Created from the booking page", fallbackTz: owner.timezone,
+      });
+      // The booking shows in Sell › Inbound too, already answered (the meeting is the answer).
+      inboundOf(s).push({
+        id: uid("ib"), receivedAt: at, channel: "booking_link", brand: listType === "trades" ? "gllarix" : "arcadian", name: input.name.trim(), company: input.company.trim(),
+        email, phone: input.phone ?? null, country, message: input.notes?.trim() || "Booked a meeting from the booking page.", status: "converted", assignedTo: owner.id, firstResponseAt: at, leadId: lead.id,
+      });
 
       const meeting: Meeting = {
         id: uid("mt"), leadId: lead.id, bookedBy: owner.id, ownerId: lead.ownerId ?? owner.id, scheduledAt: input.start,
@@ -2435,7 +2713,7 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
 
     async listPayments() {
       const user = await viewer();
-      requireAdmin(user);
+      if (user.role !== "viewer") requireAdmin(user); // the accountant matches payments to invoices
       return (await load()).payments;
     },
 

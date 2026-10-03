@@ -25,7 +25,7 @@ const ThemeToggle = () => {
       onClick={() => setPref(next)}
       aria-label={`Switch to ${next} mode`}
       title={`Switch to ${next} mode`}
-      className="flex h-10 w-10 items-center justify-center border border-line bg-surface text-text hover:border-line-button"
+      className="flex h-10 w-10 items-center justify-center border border-line rounded-lg bg-surface text-text hover:border-line-button"
     >
       <Icon d={resolved === "dark" ? ICONS.sun : ICONS.moon} size={17} />
     </button>
@@ -34,7 +34,7 @@ const ThemeToggle = () => {
 
 const TopBar = ({ context, action, unread, onOpenPalette, onOpenNotifications }: TopBarProps) => (
   <header className="sticky top-0 z-20 flex h-[72px] shrink-0 items-center gap-6 border-b border-line bg-chrome px-10">
-    <label className="flex h-10 w-[380px] items-center gap-2.5 border border-line-strong bg-inset px-3 text-label focus-within:border-cyan">
+    <label className="flex h-10 w-[380px] items-center gap-2.5 border border-line-strong rounded-lg bg-inset px-3 text-label focus-within:border-cyan">
       <Icon d={ICONS.search} size={16} />
       <input
         type="search"
@@ -45,7 +45,7 @@ const TopBar = ({ context, action, unread, onOpenPalette, onOpenNotifications }:
         onFocus={() => onOpenPalette()}
         onChange={(e) => onOpenPalette(e.target.value)}
       />
-      <span className="border border-line-strong bg-surface px-1.5 py-0.5 font-mono text-[11px]">{isMac() ? "⌘K" : "Ctrl K"}</span>
+      <span className="border border-line-strong rounded-lg bg-surface px-1.5 py-0.5 font-mono text-[11px]">{isMac() ? "⌘K" : "Ctrl K"}</span>
     </label>
 
     <div className="ml-auto flex items-center gap-5">
@@ -55,7 +55,7 @@ const TopBar = ({ context, action, unread, onOpenPalette, onOpenNotifications }:
         type="button"
         onClick={onOpenNotifications}
         aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"}
-        className="relative flex h-10 w-10 items-center justify-center border border-line bg-surface text-text hover:border-line-button"
+        className="relative flex h-10 w-10 items-center justify-center border border-line rounded-lg bg-surface text-text hover:border-line-button"
       >
         <Icon d={ICONS.bell} />
         {unread ? <span className="absolute right-2 top-2 h-1.5 w-1.5 bg-cyan" aria-hidden="true" /> : null}

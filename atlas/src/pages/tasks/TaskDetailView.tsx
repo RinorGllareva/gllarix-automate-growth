@@ -600,10 +600,10 @@ const TaskDetailView = ({ id, panel = false, onChanged }: { id: string; panel?: 
           <section aria-label="Subtasks" className="overflow-hidden rounded-xl bg-surface">
             <div className="flex justify-between border-b border-line px-4 py-3 text-[11px] tracking-[0.22em] text-label">
               <span>
-                SUBTASKS · {d.subtasks.filter((s) => s.task.status === "done").length} OF {d.subtasks.length}
+                Subtasks · {d.subtasks.filter((s) => s.task.status === "done").length} of {d.subtasks.length}
               </span>
               <button type="button" className="text-cyan hover:text-text" onClick={startSplit} disabled={splitting === "loading"}>
-                {splitting === "loading" ? "SPLITTING…" : "SPLIT WITH AI ↗"}
+                {splitting === "loading" ? "Splitting…" : "Split with AI ↗"}
               </button>
             </div>
             {d.subtasks.map((s) => (
@@ -699,7 +699,7 @@ const TaskDetailView = ({ id, panel = false, onChanged }: { id: string; panel?: 
             className={`flex h-10 items-center justify-between border px-3.5 text-[11px] tracking-[0.22em] ${runningHere ? "border-cyan text-cyan" : "border-line-button text-text"}`}
             onClick={() => run(() => (runningHere ? data.stopTimer() : data.startTimer(t.id)), runningHere ? "Time logged" : undefined)}
           >
-            <span>{runningHere ? "STOP TIMER" : myTimer ? "SWITCH TIMER HERE" : "START TIMER"}</span>
+            <span>{runningHere ? "Stop timer" : myTimer ? "Switch timer here" : "Start timer"}</span>
             <span className="font-mono tracking-normal">{runningHere ? elapsed(myTimer!.startedAt) : "00:00:00"}</span>
           </button>
           {timeForm ? (

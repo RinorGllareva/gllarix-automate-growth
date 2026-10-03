@@ -41,6 +41,8 @@ import type { Client, InvoicePaidEvent, Payment, Quote } from "../quoteTypes";
 import type { Commission, Deal } from "../salesTypes";
 import type { Task } from "../taskTypes";
 import type { TimeInvoiceItem } from "../timeTypes";
+import type { Ticket } from "../supportTypes";
+import { openTicketCount } from "@/services/support";
 import type { SystemTaskInput } from "./demoTasks";
 import { AccessError, type Notification, type User } from "../types";
 
@@ -48,6 +50,8 @@ const DAY = 86_400_000;
 
 /** The parts of the demo store the clients module reads and writes. */
 export interface ClientsStore {
+  /** Support tickets (demoSupport); open ones lower the health score. */
+  tickets?: Pick<Ticket, "clientId" | "status">[];
   companies: Company[];
   contacts: Contact[];
   leads: Lead[];
@@ -302,7 +306,7 @@ export const createDemoClients = <S extends ClientsStore>(ctx: Ctx<S>) => {
       days: s.usageDays.filter((d) => d.clientId === client.id),
       now: now(),
       invoices: s.invoices.filter((i) => i.clientId === client.id),
-      openTickets: 0,
+      openTickets: openTicketCount(s.tickets ?? [], client.id),
       metered: !!sub && sub.includedMinutes > 0,
     });
 
@@ -401,6 +405,18 @@ export const createDemoClients = <S extends ClientsStore>(ctx: Ctx<S>) => {
       const run = runJobs(s);
       if (run.usageDays || run.invoices || run.reports || run.tasks || run.autoSteps) await save();
       return run;
+    },
+
+    async listInvoices() {
+      const user = await viewer();
+      if (user.role !== "admin" && user.role !== "viewer") throw new AccessError(403, "Invoices are for the founders and the accountant.");
+      const s = await load();
+      return s.invoices
+        .map((i) => {
+          const c = s.clients.find((x) => x.id === i.clientId);
+          return { ...i, companyName: (c && companyOf(s, c)?.name) ?? "—" };
+        })
+        .sort((a, b) => b.issuedAt.localeCompare(a.issuedAt));
     },
 
     async clientsOverview() {

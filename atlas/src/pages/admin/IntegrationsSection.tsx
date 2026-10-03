@@ -45,7 +45,7 @@ const IntegrationsSection = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="m-0 text-[34px] font-light tracking-[-0.02em]">Integrations</h1>
+      <h1 className="page-title m-0">Integrations</h1>
 
       <section aria-label="Email sending" className="card flex flex-col gap-4 p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -88,7 +88,7 @@ const IntegrationsSection = () => {
       </section>
 
       <section aria-label="Outbox" className="card min-w-0 overflow-x-auto">
-        <div className={`grid ${cols} min-w-[900px] gap-3 border-b border-line px-4 py-3 text-[10px] uppercase tracking-[0.2em] text-text-3 bg-surface-2`}>
+        <div className={`grid ${cols} min-w-[900px] gap-3 border-b border-line px-4 py-3 text-[12px] font-medium text-text-3 bg-surface-2`}>
           <span>Status</span>
           <span>To</span>
           <span>Subject</span>
@@ -98,7 +98,7 @@ const IntegrationsSection = () => {
         </div>
         {outbox.slice(0, 60).map((m) => (
           <div key={m.id} className={`grid ${cols} min-w-[900px] items-center gap-3 border-b border-line-soft px-4 py-2.5 text-[13px] last:border-b-0`}>
-            <span className={`text-[10px] uppercase tracking-[0.18em] ${STATUS_TONE[m.status]}`}>{m.repliedAt ? "Replied" : m.unsubscribedAt ? "Unsubscribed" : m.status}</span>
+            <span className={`text-[12px] font-medium ${STATUS_TONE[m.status]}`}>{m.repliedAt ? "Replied" : m.unsubscribedAt ? "Unsubscribed" : m.status}</span>
             <Link to={`/leads/${m.leadId}`} className="truncate hover:text-cyan">
               {m.to ?? "—"}
             </Link>

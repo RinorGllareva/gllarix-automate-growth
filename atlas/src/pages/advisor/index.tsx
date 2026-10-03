@@ -114,7 +114,7 @@ const AnswerCard = ({ m, selected, onSelect, fresh, onRemember }: { m: AdvisorMe
               {h}
             </span>
           ))}
-          <span className="ml-auto text-[10px] tracking-[0.18em] text-amber">CONFIDENCE · {a.confidence.toUpperCase()}</span>
+          <span className="ml-auto text-[12px] font-medium text-amber">Confidence · {a.confidence}</span>
         </div>
       ) : (
         <div className="flex flex-wrap items-center gap-2 text-[10px] tracking-[0.18em] text-text-3">
@@ -129,8 +129,8 @@ const AnswerCard = ({ m, selected, onSelect, fresh, onRemember }: { m: AdvisorMe
         <div className="overflow-x-auto border border-line">
           <div className="grid min-w-[560px] grid-cols-[1.6fr_1fr_0.8fr_1.4fr_70px] gap-3 border-b border-line px-3 py-2 text-[10px] tracking-[0.2em] text-label bg-surface-2">
             <span>OPTION</span>
-            <span>COST / MO</span>
-            <span>EFFECT IN</span>
+            <span>Cost / mo</span>
+            <span>Effect in</span>
             <span>RISK</span>
             <span>PICK</span>
           </div>
@@ -214,7 +214,7 @@ const ActionCard = ({ a, canDecide, onDone }: { a: ProposedAction; canDecide: bo
       setBusy(false);
     }
   };
-  const status = a.status !== "draft" ? <span className={`text-[11px] tracking-[0.18em] ${a.status === "accepted" ? "text-mint" : "text-text-3"}`}>{a.status.toUpperCase()}</span> : null;
+  const status = a.status !== "draft" ? <span className={`text-[12px] font-medium capitalize ${a.status === "accepted" ? "text-mint" : "text-text-3"}`}>{a.status}</span> : null;
   if (a.kind === "tasks")
     return (
       <div className="flex flex-col gap-2">
@@ -229,7 +229,7 @@ const ActionCard = ({ a, canDecide, onDone }: { a: ProposedAction; canDecide: bo
         {status ?? (
           <div className="flex gap-2">
             <button type="button" className="btn-primary h-10 flex-1 text-[11px] tracking-[0.2em]" disabled={busy} onClick={accept}>
-              ACCEPT {a.tasks!.length} TASKS
+              Accept {a.tasks!.length} tasks
             </button>
             <button type="button" className="btn-ghost h-10 text-[12px]" onClick={() => data.dismissAdvisorAction(a.id).then(onDone)}>
               Dismiss
@@ -244,7 +244,7 @@ const ActionCard = ({ a, canDecide, onDone }: { a: ProposedAction; canDecide: bo
       {a.document ? <pre className="m-0 max-h-48 overflow-y-auto whitespace-pre-wrap font-sans text-[12px] text-text-2">{a.document.content}</pre> : null}
       {status ?? (
         <button type="button" className="btn-outline h-9 text-[11px] tracking-[0.18em]" disabled={busy || (a.kind === "decision" && !canDecide)} onClick={accept}>
-          {a.kind === "decision" ? "LOG AS PROPOSED DECISION" : "SAVE DRAFT"}
+          {a.kind === "decision" ? "Log as proposed decision" : "Save draft"}
         </button>
       )}
     </div>
@@ -262,7 +262,7 @@ const SidePanel = ({ m, actions, admin, onChange, reveal }: { m: AdvisorMessage 
   const memo = m.answer?.kind === "memo";
   return (
     <div className="flex flex-col gap-4">
-      <section aria-label="Data used" className="flex flex-col gap-2.5 border border-line bg-surface p-4">
+      <section aria-label="Data used" className="flex flex-col gap-2.5 border border-line rounded-lg bg-surface p-4">
         <span className="label-caps">Data it used</span>
         {m.toolCalls.slice(0, shown).map((c, i) => (
           <div key={i} className="flex gap-2.5 text-[12px]">
@@ -399,7 +399,7 @@ const AdvisorPage = () => {
   if (!home) return <SkeletonRows rows={8} />;
 
   return (
-    <div className="-mx-5 -my-6 grid min-h-[calc(100vh-72px)] grid-cols-1 lg:-mx-10 lg:-my-8 lg:grid-cols-[220px_minmax(0,1fr)] 2xl:grid-cols-[220px_minmax(0,1fr)_290px]">
+    <div className="-mx-4 -my-5 sm:-mx-5 sm:-my-6 grid min-h-[calc(100vh-72px)] grid-cols-1 lg:-mx-10 lg:-my-8 lg:grid-cols-[220px_minmax(0,1fr)] 2xl:grid-cols-[220px_minmax(0,1fr)_290px]">
       <aside className="hidden flex-col gap-4 border-r border-line px-4 py-6 lg:flex">
         <Threads home={home} activeId={threadId} onPick={() => undefined} />
         <MemoryReview home={home} onChange={loadHome} />
@@ -424,7 +424,7 @@ const AdvisorPage = () => {
           {!view && !pending ? (
             <div className="flex flex-col gap-4">
               <span className="label-caps">Ask anything about the business</span>
-              <h1 className="m-0 text-[30px] font-light tracking-[-0.02em]">What should we decide?</h1>
+              <h1 className="page-title m-0">What should we decide?</h1>
               <p className="m-0 max-w-xl text-[14px] text-text-2">
                 Answers use the company files and live Atlas data you're allowed to see. Every number shows its source; nothing is sent, paid, priced or signed without a person.
               </p>
@@ -440,7 +440,7 @@ const AdvisorPage = () => {
           {view?.messages.map((m) =>
             m.role === "user" ? (
               <div key={m.id} className="ml-auto max-w-[80%] border border-line-strong px-4 py-3 text-[14px]">
-                {m.roleHint ? <span className="mr-2 text-[10px] tracking-[0.18em] text-text-3">AS {m.roleHint.toUpperCase()}</span> : null}
+                {m.roleHint ? <span className="mr-2 text-[12px] font-medium text-text-3">As {m.roleHint}</span> : null}
                 {m.content}
               </div>
             ) : (
@@ -458,7 +458,7 @@ const AdvisorPage = () => {
           {pending ? (
             <>
               <div className="ml-auto max-w-[80%] border border-line-strong px-4 py-3 text-[14px]">{pending}</div>
-              <div className="border border-line bg-surface p-5 text-[13px] text-text-3">Reading the files and running tools as you…</div>
+              <div className="border border-line rounded-lg bg-surface p-5 text-[13px] text-text-3">Reading the files and running tools as you…</div>
             </>
           ) : null}
           <div ref={endRef} />
@@ -481,11 +481,11 @@ const AdvisorPage = () => {
             onChange={(e) => setText(e.target.value)}
             onKeyDown={onKey}
           />
-          <select className="input h-[44px] w-auto text-[11px] tracking-[0.18em]" value={role} onChange={(e) => setRole(e.target.value as AdvisorRole | "")} aria-label="Role">
-            <option value="">ALL ROLES</option>
+          <select className="input w-auto text-[13px]" value={role} onChange={(e) => setRole(e.target.value as AdvisorRole | "")} aria-label="Role">
+            <option value="">All roles</option>
             {home.can.roles.map((r) => (
               <option key={r} value={r}>
-                {r.toUpperCase()}
+                {r}
               </option>
             ))}
           </select>

@@ -60,7 +60,7 @@ const Stepper = ({ step, marks }: { step: Step; marks: string[] }) => (
 
 const Stat = ({ label, value, tone }: { label: string; value: number; tone: string }) => (
   <div className="card flex flex-col gap-2.5 p-4">
-    <span className="text-[10px] uppercase tracking-[0.2em] text-label">{label}</span>
+    <span className="text-[12px] font-medium text-label">{label}</span>
     <span className={`num text-[30px] font-light ${tone}`}>{count(value)}</span>
   </div>
 );
@@ -192,7 +192,7 @@ const Import = () => {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2.5">
-        <div className="flex items-center gap-3.5 text-[11px] uppercase tracking-label text-label">
+        <div className="flex items-center gap-3.5 text-[12px] font-medium text-label">
           <span className="h-px w-10 bg-cyan-line" />
           <span>
             {parsed
@@ -278,7 +278,7 @@ const Import = () => {
             >
               <span className="text-[24px] font-light">Drop a CSV here, or choose a file</span>
               <span className="text-[13px] text-text-2">One company per row, with a header row. Needs a company name and a phone or website.</span>
-              <input type="file" accept=".csv,text/csv" className="text-[13px] text-text-2 file:mr-4 file:h-10 file:border file:border-line-button file:bg-transparent file:px-4 file:text-[11px] file:uppercase file:tracking-label file:text-text" onChange={(e) => onFile(e.target.files?.[0])} />
+              <input type="file" accept=".csv,text/csv" className="text-[13px] text-text-2 file:mr-4 file:h-10 file:border file:border-line-button file:bg-transparent file:px-4 file:text-[12px] font-medium file: file: file:text-text" onChange={(e) => onFile(e.target.files?.[0])} />
             </label>
             {parseError ? (
               <p role="alert" className="m-0 text-[13px] text-coral">
@@ -311,7 +311,7 @@ const Import = () => {
                   <div key={j.id} className="flex items-start justify-between gap-3 border-b border-line-soft pb-3 text-[13px] last:border-b-0">
                     <div className="flex min-w-0 flex-col gap-0.5">
                       <span className="truncate">{j.sourceName}</span>
-                      <span className="text-[11px] text-text-3">
+                      <span className="text-[12px] font-medium text-text-3">
                         {tableDate(j.createdAt)} · {count(j.created)} new · {count(j.merged)} merged{j.undoneAt ? " · undone" : ""}
                       </span>
                     </div>
@@ -331,7 +331,7 @@ const Import = () => {
       ) : step === 2 && parsed ? (
         <div className="flex flex-col gap-5">
           <section aria-label="Column mapping" className="card">
-            <div className="grid grid-cols-[1fr_1.4fr_220px] gap-3 border-b border-line px-[18px] py-3 text-[10px] uppercase tracking-[0.2em] text-text-3 bg-surface-2">
+            <div className="grid grid-cols-[1fr_1.4fr_220px] gap-3 border-b border-line px-[18px] py-3 text-[12px] font-medium text-text-3 bg-surface-2">
               <span>CSV column</span>
               <span>First value</span>
               <span>Atlas field</span>
@@ -360,7 +360,7 @@ const Import = () => {
           <section aria-label="Preview" className="flex flex-col gap-3">
             <span className="label-caps">Preview · first 10 rows after cleaning</span>
             <div className="card overflow-x-auto">
-              <div className="grid min-w-[900px] grid-cols-[40px_1.6fr_150px_1.2fr_1fr_60px_1.4fr] gap-3 border-b border-line px-4 py-3 text-[10px] uppercase tracking-[0.2em] text-text-3 bg-surface-2">
+              <div className="grid min-w-[900px] grid-cols-[40px_1.6fr_150px_1.2fr_1fr_60px_1.4fr] gap-3 border-b border-line px-4 py-3 text-[12px] font-medium text-text-3 bg-surface-2">
                 <span>Row</span>
                 <span>Company</span>
                 <span>Phone</span>
@@ -414,7 +414,7 @@ const Import = () => {
           {plan.possible.length ? (
             <section aria-label="Possible duplicates" className="card">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-[18px] py-3">
-                <span className="text-[10px] uppercase tracking-[0.2em] text-text-3">Possible duplicates · fuzzy name + city ≥ 90</span>
+                <span className="text-[12px] font-medium text-text-3">Possible duplicates · fuzzy name + city ≥ 90</span>
                 <span className="flex gap-4">
                   <button type="button" className="btn-ghost" onClick={() => setDecisions(Object.fromEntries(plan.possible.filter((p) => p.score >= 95).map((p) => [p.row.row, "merge" as const])))}>
                     Merge all ≥ 95
@@ -424,7 +424,7 @@ const Import = () => {
                   </button>
                 </span>
               </div>
-              <div className="grid grid-cols-[1.4fr_1.4fr_70px_170px] gap-3 border-b border-line px-[18px] py-3 text-[10px] uppercase tracking-[0.2em] text-text-3 bg-surface-2">
+              <div className="grid grid-cols-[1.4fr_1.4fr_70px_170px] gap-3 border-b border-line px-[18px] py-3 text-[12px] font-medium text-text-3 bg-surface-2">
                 <span>In this file</span>
                 <span>Already in Atlas</span>
                 <span>Match</span>
@@ -438,11 +438,11 @@ const Import = () => {
                   <div key={p.row.row} className="grid min-h-14 grid-cols-[1.4fr_1.4fr_70px_170px] items-center gap-3 border-b border-line-soft px-[18px] py-2 text-[13px] last:border-b-0">
                     <div className="flex min-w-0 flex-col gap-0.5">
                       <span className="truncate">{p.row.companyName}</span>
-                      <span className="truncate text-[11px] text-text-3">{[p.row.city, p.row.phone ?? p.row.domain].filter(Boolean).join(" · ")}</span>
+                      <span className="truncate text-[12px] font-medium text-text-3">{[p.row.city, p.row.phone ?? p.row.domain].filter(Boolean).join(" · ")}</span>
                     </div>
                     <div className="flex min-w-0 flex-col gap-0.5">
                       <span className="truncate text-text-2">{other?.name ?? otherRow?.companyName}</span>
-                      <span className="truncate text-[11px] text-text-3">
+                      <span className="truncate text-[12px] font-medium text-text-3">
                         {other ? [other.city, other.phone ?? other.domain].filter(Boolean).join(" · ") : `Row ${otherRow?.row} of this file`}
                       </span>
                     </div>

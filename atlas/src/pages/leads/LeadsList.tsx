@@ -15,26 +15,14 @@ const nextHue = (at: string | null) => {
   return t < Date.now() - 3_600_000 ? hueVar("coral") : t <= endOfDay ? hueVar("blue") : "var(--text)";
 };
 import { countryLabel, industryLabel, LIST_LABEL, OPEN_STAGES, STAGE_CHIP, STAGE_LABEL, STAGES, type ListType } from "@/config/leads";
-import { data, PAGE_SIZE, type LeadPage, type LeadQuery, type SortKey, type Source, type User } from "@/data";
+import { data, PAGE_SIZE, type LeadPage, type LeadQuery, type LeadRow, type SortKey, type Source, type User } from "@/data";
+import { DataTable } from "@/components/DataTable";
 import { count, downloadText, localTime, nextActionText, since } from "@/lib/format";
 import { CLEARED_QUERY, parseLeadQuery, serializeLeadQuery } from "@/lib/leadQuery";
 import { QUEUE } from "@/config/queue";
 
-const COLS = "grid-cols-[28px_64px_minmax(160px,1.8fr)_minmax(80px,1fr)_minmax(120px,1.4fr)_56px_minmax(96px,1fr)_minmax(80px,0.9fr)_minmax(110px,1.3fr)_48px]";
-
 const summarize = (selected: string[], labels: Record<string, string>, all: string) =>
   !selected.length ? all : selected.length <= 2 ? selected.map((v) => labels[v] ?? v).join(", ") : `${selected.length} selected`;
-
-const SortHeader = ({ label, sortKey, query, onSort }: { label: string; sortKey?: SortKey; query: LeadQuery; onSort: (k: SortKey) => void }) =>
-  sortKey ? (
-    <button type="button" onClick={() => onSort(sortKey)} className="flex items-center gap-1 text-left uppercase tracking-[0.2em] hover:text-text">
-      {label}
-      {query.sort === sortKey ? <span aria-hidden="true">{query.dir === "desc" ? "↓" : "↑"}</span> : null}
-      {query.sort === sortKey ? <span className="sr-only">sorted {query.dir === "desc" ? "descending" : "ascending"}</span> : null}
-    </button>
-  ) : (
-    <span>{label}</span>
-  );
 
 const LeadsList = () => {
   const user = useUser();
@@ -172,7 +160,7 @@ const LeadsList = () => {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <label className="flex h-9 w-60 items-center border border-line-strong px-3 focus-within:border-line-button">
+        <label className="flex h-9 w-60 items-center rounded-lg border border-line-strong bg-inset px-3 focus-within:border-cyan">
           <span className="sr-only">Quick search</span>
           <input
             type="search"
@@ -266,143 +254,155 @@ const LeadsList = () => {
         </div>
       ) : null}
 
-      <section aria-label="Leads table" className="card overflow-x-auto">
-        <div className={`grid ${COLS} min-w-[1060px] items-center gap-3 border-b border-line px-[18px] py-3 text-[10px] uppercase tracking-[0.2em] text-text-3 bg-surface-2`}>
-          <input
-            type="checkbox"
-            aria-label="Select all on this page"
-            checked={allOnPage}
-            onChange={() => {
-              const next = new Set(selected);
-              pageIds.forEach((id) => (allOnPage ? next.delete(id) : next.add(id)));
-              setSelected(next);
-            }}
-            className="h-4 w-4 accent-[var(--cyan)]"
-          />
-          <SortHeader label="Score" sortKey="score" query={query} onSort={onSort} />
-          <SortHeader label="Company" sortKey="company" query={query} onSort={onSort} />
-          <span>Industry</span>
-          <span>Location</span>
-          <span>Local</span>
-          <SortHeader label="Stage" sortKey="stage" query={query} onSort={onSort} />
-          <SortHeader label="Owner" sortKey="owner" query={query} onSort={onSort} />
-          <SortHeader label="Next action" sortKey="next" query={query} onSort={onSort} />
-          <SortHeader label="Last" sortKey="last" query={query} onSort={onSort} />
-        </div>
-
-        {error ? (
-          <div className="flex items-center gap-4 px-[18px] py-6 text-[14px] text-coral">
-            {error}
-            <button type="button" className="btn-outline h-9" onClick={load}>
-              Retry
-            </button>
-          </div>
-        ) : !page ? (
-          <SkeletonRows rows={8} />
-        ) : !rows.length ? (
-          <div className="p-6">
-            {page.visibleTotal === 0 ? (
-              <EmptyState
-                title={isAdmin ? "No leads yet. Import a CSV or run a list build." : "No leads are assigned to you yet. An admin assigns leads from the Leads list."}
-                action={
-                  isAdmin ? (
-                    <Link to="/leads/import" className="btn-outline">
-                      Import CSV →
-                    </Link>
-                  ) : undefined
-                }
-              />
-            ) : (
-              <EmptyState
-                title="No leads match these filters."
-                action={
-                  <button
-                    type="button"
-                    className="btn-outline"
-                    onClick={() => {
-                      setSearch("");
-                      setQuery({ ...CLEARED_QUERY });
-                    }}
-                  >
-                    Clear filters
-                  </button>
-                }
-              />
-            )}
-          </div>
-        ) : (
-          rows.map((r, i) => (
-            <div
-              key={r.lead.id}
-              className={`grid ${COLS} h-10 min-w-[1060px] items-center gap-3 border-b border-line-soft px-[18px] text-[13px] hover:bg-surface-2 ${selected.has(r.lead.id) ? "bg-surface-2" : i % 2 ? "bg-[color-mix(in_srgb,var(--surface-2)_45%,transparent)]" : ""}`}
-              style={selected.has(r.lead.id) ? { boxShadow: `inset 3px 0 0 ${hueVar("cyan")}` } : undefined}
-            >
-              <input
-                type="checkbox"
-                aria-label={`Select ${r.company.name}`}
-                checked={selected.has(r.lead.id)}
-                onChange={() => undefined}
-                onClick={(e) => toggleRow(i, e.shiftKey)}
-                className="h-4 w-4 accent-[var(--cyan)]"
-              />
-              <span>
-                <TierBadge tier={r.lead.tier} score={r.lead.score} />
-              </span>
-              <Link to={`/leads/${r.lead.id}`} className="truncate text-[13px] font-medium text-text hover:text-cyan">
+      <DataTable<LeadRow>
+        id="leads"
+        label="Leads table"
+        minWidth={1060}
+        rowHeight={40}
+        rows={rows}
+        rowKey={(r) => r.lead.id}
+        rowHref={(r) => `/leads/${r.lead.id}`}
+        sort={{ key: query.sort, dir: query.dir }}
+        onSort={(k) => onSort(k as SortKey)}
+        selection={{
+          isSelected: (id) => selected.has(id),
+          toggle: (_id, i, shift) => toggleRow(i, shift),
+          allSelected: allOnPage,
+          label: (r) => `Select ${r.company.name}`,
+          toggleAll: () => {
+            const next = new Set(selected);
+            pageIds.forEach((id) => (allOnPage ? next.delete(id) : next.add(id)));
+            setSelected(next);
+          },
+        }}
+        rowStyle={(r) => (selected.has(r.lead.id) ? { boxShadow: `inset 3px 0 0 ${hueVar("cyan")}` } : undefined)}
+        columns={[
+          { key: "score", header: "Score", width: "64px", sortable: true, render: (r) => <TierBadge tier={r.lead.tier} score={r.lead.score} /> },
+          {
+            key: "company",
+            header: "Company",
+            width: "minmax(160px,1.8fr)",
+            sortable: true,
+            render: (r) => (
+              <Link to={`/leads/${r.lead.id}`} className="block truncate text-[13px] font-medium text-text hover:text-cyan">
                 {r.company.name}
-                {r.lead.suppressed ? <span className="ml-2 text-[10px] uppercase tracking-[0.18em] text-coral">Opt-out</span> : null}
+                {r.lead.suppressed ? <span className="ml-2 text-[12px] font-medium text-coral">Opt-out</span> : null}
+                {r.lead.tags?.length ? <span className="ml-2 text-[12px] font-normal text-text-3">{r.lead.tags.map((t) => `#${t}`).join(" ")}</span> : null}
               </Link>
-              <span className="truncate text-text-2">{industryLabel(r.company.industry)}</span>
-              <span className="truncate text-text-2">
+            ),
+          },
+          { key: "industry", header: "Industry", width: "minmax(80px,1fr)", hideable: true, render: (r) => <span className="block truncate text-text-2">{industryLabel(r.company.industry)}</span> },
+          {
+            key: "location",
+            header: "Location",
+            width: "minmax(120px,1.4fr)",
+            hideable: true,
+            render: (r) => (
+              <span className="block truncate text-text-2">
                 {[r.company.city, r.company.region && r.company.country === "US" ? r.company.region : null].filter(Boolean).join(", ")} · {countryLabel(r.company.country)}
               </span>
-              <span className="num text-text-2">{localTime(r.company.timezone)}</span>
-              <span className="justify-self-start">
-                <Pill hue={LEAD_STAGE_HUE[r.lead.stage]} dot>
-                  {STAGE_CHIP[r.lead.stage]}
-                </Pill>
-              </span>
+            ),
+          },
+          { key: "local", header: "Local", width: "56px", hideable: true, render: (r) => <span className="num text-text-2">{localTime(r.company.timezone)}</span> },
+          {
+            key: "stage",
+            header: "Stage",
+            width: "minmax(96px,1fr)",
+            sortable: true,
+            hideable: true,
+            render: (r) => (
+              <Pill hue={LEAD_STAGE_HUE[r.lead.stage]} dot>
+                {STAGE_CHIP[r.lead.stage]}
+              </Pill>
+            ),
+          },
+          {
+            key: "owner",
+            header: "Owner",
+            width: "minmax(80px,0.9fr)",
+            sortable: true,
+            hideable: true,
+            render: (r) => (
               <span className="flex min-w-0 items-center gap-1.5 text-text-2">
                 <Avatar id={r.lead.ownerId} name={r.ownerName ?? "Unassigned"} size={20} />
-                <span className="truncate">{r.ownerName ?? "Unassigned"}</span>
+                <span className="truncate" title={r.ownerName ?? undefined}>
+                  {r.ownerName?.split(" ")[0] ?? "Unassigned"}
+                </span>
               </span>
-              <span className="truncate" style={{ color: nextHue(r.lead.nextActionAt) }}>
+            ),
+          },
+          {
+            key: "next",
+            header: "Next action",
+            width: "minmax(110px,1.3fr)",
+            sortable: true,
+            hideable: true,
+            render: (r) => (
+              <span className="block truncate" style={{ color: nextHue(r.lead.nextActionAt) }}>
                 {nextActionText(r.lead.nextActionType, r.lead.nextActionAt, user.timezone)}
               </span>
-              <span className="num text-text-3">{since(r.lead.lastTouchAt)}</span>
+            ),
+          },
+          { key: "last", header: "Last", width: "48px", sortable: true, hideable: true, render: (r) => <span className="num text-text-3">{since(r.lead.lastTouchAt)}</span> },
+        ]}
+        empty={
+          error ? (
+            <div className="flex items-center gap-4 text-[14px] text-coral">
+              {error}
+              <button type="button" className="btn-outline h-9" onClick={load}>
+                Retry
+              </button>
             </div>
-          ))
-        )}
-
-        {page && rows.length ? (
-          <div className="flex min-w-[1060px] items-center justify-between px-[18px] py-3.5 text-[12px] text-text-3">
-            <span>
-              Showing {count(rows.length)} of {count(page.total)} · sorted by {query.sort === "score" ? "score, then local time" : query.sort === "last" ? "last touch" : query.sort === "next" ? "next action" : query.sort}
-            </span>
-            <span className="flex items-center gap-3 font-mono">
-              {query.page} / {pages}
-              <button
-                type="button"
-                aria-label="Previous page"
-                disabled={query.page <= 1}
-                onClick={() => setQuery({ page: query.page - 1 })}
-                className="px-1 hover:text-text disabled:opacity-40"
-              >
-                ‹
-              </button>
-              <button
-                type="button"
-                aria-label="Next page"
-                disabled={query.page >= pages}
-                onClick={() => setQuery({ page: query.page + 1 })}
-                className="px-1 hover:text-text disabled:opacity-40"
-              >
-                ›
-              </button>
-            </span>
-          </div>
-        ) : null}
-      </section>
+          ) : !page ? (
+            <SkeletonRows rows={8} />
+          ) : page.visibleTotal === 0 ? (
+            <EmptyState
+              title={isAdmin ? "No leads yet. Import a CSV or run a list build." : "No leads are assigned to you yet. An admin assigns leads from the Leads list."}
+              action={
+                isAdmin ? (
+                  <Link to="/leads/import" className="btn-outline">
+                    Import CSV →
+                  </Link>
+                ) : undefined
+              }
+            />
+          ) : (
+            <EmptyState
+              title="No leads match these filters."
+              action={
+                <button
+                  type="button"
+                  className="btn-outline"
+                  onClick={() => {
+                    setSearch("");
+                    setQuery({ ...CLEARED_QUERY });
+                  }}
+                >
+                  Clear filters
+                </button>
+              }
+            />
+          )
+        }
+        footer={
+          page && rows.length ? (
+            <div className="flex items-center justify-between">
+              <span>
+                Showing {count(rows.length)} of {count(page.total)} · sorted by {query.sort === "score" ? "score, then local time" : query.sort === "last" ? "last touch" : query.sort === "next" ? "next action" : query.sort}
+              </span>
+              <span className="flex items-center gap-3 font-mono">
+                {query.page} / {pages}
+                <button type="button" aria-label="Previous page" disabled={query.page <= 1} onClick={() => setQuery({ page: query.page - 1 })} className="px-1 hover:text-text disabled:opacity-40">
+                  ‹
+                </button>
+                <button type="button" aria-label="Next page" disabled={query.page >= pages} onClick={() => setQuery({ page: query.page + 1 })} className="px-1 hover:text-text disabled:opacity-40">
+                  ›
+                </button>
+              </span>
+            </div>
+          ) : null
+        }
+      />
 
       <CadenceModal
         open={cadenceOpen}

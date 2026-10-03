@@ -68,7 +68,7 @@ const OptOutSection = () => {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="m-0 text-[34px] font-light tracking-[-0.02em]">Opt-out list</h1>
+        <h1 className="page-title m-0">Opt-out list</h1>
         <span className="text-[13px] text-text-2">
           <span className="num">{count(entries?.length ?? 0)}</span> entries · checked before every queue, call and send
         </span>
@@ -108,7 +108,7 @@ const OptOutSection = () => {
         <EmptyState title="Nobody has opted out yet. Do-not-contact outcomes, unsubscribes and manual entries land here." />
       ) : (
         <div className="card overflow-x-auto">
-          <div className={`grid ${cols} min-w-[760px] gap-3 border-b border-line px-4 py-3 text-[10px] uppercase tracking-[0.2em] text-text-3 bg-surface-2`}>
+          <div className={`grid ${cols} min-w-[760px] gap-3 border-b border-line px-4 py-3 text-[12px] font-medium text-text-3 bg-surface-2`}>
             <span>Value</span>
             <span>Type</span>
             <span>Reason</span>

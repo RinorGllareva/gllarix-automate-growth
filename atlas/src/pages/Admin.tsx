@@ -22,7 +22,7 @@ const SECTIONS = [
   { id: "price-book", label: "Price book", milestone: "M6" },
   { id: "opt-out", label: "Opt-out list", milestone: "M1" },
   { id: "jobs", label: "Background jobs", milestone: "M1" },
-  { id: "advisor", label: "AI co-founder and finance", milestone: "M14" },
+  { id: "advisor", label: "AI co-founder", milestone: "M14" },
   { id: "integrations", label: "Integrations", milestone: "M3" },
   { id: "audit", label: "Audit log", milestone: "M0" },
 ] as const;
@@ -43,13 +43,13 @@ const UsersSection = () => {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-end justify-between gap-4">
-        <h1 className="m-0 text-[34px] font-light tracking-[-0.02em]">Users and roles</h1>
+        <h1 className="page-title m-0">Users and roles</h1>
         <button type="button" className="btn-outline" disabled title="Invites need the Supabase backend">
           Invite user →
         </button>
       </div>
       <div className="card">
-        <div className={`grid ${cols} gap-2.5 border-b border-line px-4 py-3 text-[10px] uppercase tracking-[0.2em] text-text-3 bg-surface-2`}>
+        <div className={`grid ${cols} gap-2.5 border-b border-line px-4 py-3 text-[12px] font-medium text-text-3 bg-surface-2`}>
           <span>Name</span>
           <span>Email</span>
           <span>Role</span>
@@ -65,7 +65,7 @@ const UsersSection = () => {
               <span>{ROLE_LABEL[u.role]}</span>
               <span className="truncate font-mono text-[12px] text-text-2">{u.timezone}</span>
               <span className="num">{u.dailyCapacity ?? "—"}</span>
-              <span className={`text-[10px] uppercase tracking-[0.18em] ${u.active ? "text-mint" : "text-amber"}`}>
+              <span className={`text-[12px] font-medium ${u.active ? "text-mint" : "text-amber"}`}>
                 {u.active ? "Active" : "Paused"}
               </span>
             </div>
@@ -91,12 +91,12 @@ const AuditSection = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="m-0 text-[34px] font-light tracking-[-0.02em]">Audit log</h1>
+      <h1 className="page-title m-0">Audit log</h1>
       {entries && !entries.length ? (
         <EmptyState title="Nothing logged yet. Sign-ins, sign-outs and every change to a record will appear here." />
       ) : (
         <div className="card">
-          <div className={`grid ${cols} gap-2.5 border-b border-line px-4 py-3 text-[10px] uppercase tracking-[0.2em] text-text-3 bg-surface-2`}>
+          <div className={`grid ${cols} gap-2.5 border-b border-line px-4 py-3 text-[12px] font-medium text-text-3 bg-surface-2`}>
             <span>Time</span>
             <span>User</span>
             <span>Action</span>
@@ -196,7 +196,7 @@ const Admin = () => {
           <IntegrationsSection />
         ) : current ? (
           <div className="flex flex-col gap-4">
-            <h1 className="m-0 text-[34px] font-light tracking-[-0.02em]">{current.label}</h1>
+            <h1 className="page-title m-0">{current.label}</h1>
             <EmptyState title={`This section is built in milestone ${current.milestone}.`} />
           </div>
         ) : (
