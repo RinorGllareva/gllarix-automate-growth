@@ -518,6 +518,31 @@ export const createDemoAdvisor = <S extends AdvisorStore>(ctx: Ctx<S>) => {
       return { thread, messages, actions: s.advisorActions.filter((a) => messages.some((m) => m.id === a.messageId)) };
     },
 
+    async renameAdvisorThread(id, title) {
+      const user = await viewer();
+      const s = await load();
+      const thread = s.advisorThreads.find((t) => t.id === id);
+      if (!thread || !visibleThread(user, thread)) throw new AccessError(404);
+      const t = title.replace(/\s+/g, " ").trim();
+      if (!t) throw new Error("Give the thread a title.");
+      thread.title = t.length > 70 ? `${t.slice(0, 67)}…` : t;
+      await save();
+    },
+
+    async deleteAdvisorThread(id) {
+      const user = await viewer();
+      const s = await load();
+      const thread = s.advisorThreads.find((t) => t.id === id);
+      if (!thread || !visibleThread(user, thread)) throw new AccessError(404);
+      const ids = new Set(s.advisorMessages.filter((m) => m.threadId === id).map((m) => m.id));
+      s.advisorThreads = s.advisorThreads.filter((t) => t.id !== id);
+      s.advisorMessages = s.advisorMessages.filter((m) => m.threadId !== id);
+      // Pending proposals go with the thread; accepted ones already created their tasks or decisions.
+      s.advisorActions = s.advisorActions.filter((a) => !ids.has(a.messageId) || a.status === "accepted");
+      audit(user.id, "advisor.thread_delete", "advisor_thread", id, { title: thread.title }, null);
+      await save();
+    },
+
     async askAdvisor({ threadId, text, roleHint = null }) {
       const user = await viewer();
       const s = await load();

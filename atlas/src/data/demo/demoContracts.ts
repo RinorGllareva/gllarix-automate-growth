@@ -1,4 +1,5 @@
 import { CONTRACT_TEMPLATES, templateFor } from "@/config/contracts";
+import type { CompanyProfile } from "../settingsTypes";
 import { fillContract, signedPdfBlocks } from "@/services/contracts";
 import { sha256Hex, textPdf } from "@/services/pdf";
 import { formatMoney } from "@/services/pricing";
@@ -17,6 +18,7 @@ export interface ContractsStore {
   contacts: Contact[];
   files?: RecordFile[];
   contracts?: Contract[];
+  companyProfile?: CompanyProfile;
 }
 
 interface Ctx<S extends ContractsStore> {
@@ -105,6 +107,7 @@ export const createDemoContracts = <S extends ContractsStore>(ctx: Ctx<S>) => {
         monthly: formatMoney(quote.monthlyMinor / 100, m),
         items: quote.lines.map((l) => `${l.q > 1 ? `${l.q} × ` : ""}${l.name}`),
         pilot: quote.selection.pilot,
+        profile: s.companyProfile ?? null,
       });
       const all = contractsOf(s);
       // Only one live contract per deal: unsigned earlier versions are voided.

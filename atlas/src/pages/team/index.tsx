@@ -7,6 +7,7 @@ import { EmptyState, SkeletonRows } from "@/components/ui/primitives";
 import { CALL_RUBRIC } from "@/config/callRubric";
 import { data, type AgendaPoint, type CallReviewView, type Scorecard, type TeamOverview } from "@/data";
 import { timestamp } from "@/services/coach";
+import { shiftWeek } from "@/services/time";
 import { hash01 } from "@/services/usagePortal";
 
 const TONE = { met: "var(--mint)", watch: "var(--amber)", neutral: "var(--text)" } as const;
@@ -49,14 +50,15 @@ const TeamPage = () => {
   const toast = useToast();
   const [o, setO] = useState<TeamOverview | { redirectTo: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [week, setWeek] = useState<string | undefined>(undefined);
   const load = useCallback(async () => {
     try {
       await data.runCoachingJobs();
-      setO(await data.teamOverview());
+      setO(await data.teamOverview(week));
     } catch (e) {
       setError((e as Error).message);
     }
-  }, []);
+  }, [week]);
   useEffect(() => {
     load();
   }, [load]);
@@ -79,7 +81,23 @@ const TeamPage = () => {
           <span className="label-caps">Results, quality and reliability against your targets</span>
           <h1 className="page-title m-0">Team performance</h1>
         </div>
-        <span className="text-[12px] text-text-3">No single "employee score" · AI suggests, people decide</span>
+        <div className="flex flex-col items-end gap-2">
+          <div role="group" aria-label="Week" className="flex items-center gap-1.5">
+            <button type="button" className="btn-outline h-8 px-2.5" aria-label="Previous week" onClick={() => setWeek(shiftWeek(o.week, -1))}>
+              ←
+            </button>
+            <span className="min-w-[120px] text-center text-[13px]">{o.weekLabel}</span>
+            <button type="button" className="btn-outline h-8 px-2.5" aria-label="Next week" onClick={() => setWeek(shiftWeek(o.week, 1))}>
+              →
+            </button>
+            {week ? (
+              <button type="button" className="btn-ghost h-8 text-[12px]" onClick={() => setWeek(undefined)}>
+                This week
+              </button>
+            ) : null}
+          </div>
+          <span className="text-[12px] text-text-3">No single "employee score" · AI suggests, people decide</span>
+        </div>
       </div>
       <LegalFlag aiOn={o.aiOn} onChange={load} />
 
@@ -215,6 +233,7 @@ const ScorecardPage = () => {
   const [sc, setSc] = useState<Scorecard | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [comment, setComment] = useState("");
+  const [editingComment, setEditingComment] = useState<{ id: string; body: string } | null>(null);
   const [editAgenda, setEditAgenda] = useState(false);
   const load = useCallback(() => data.scorecard(userId).then(setSc, (e: Error) => setError(e.message)), [userId]);
   useEffect(() => {
@@ -378,8 +397,58 @@ const ScorecardPage = () => {
                 <span className="text-[11px] text-text-3">
                   {c.authorName} · {c.at.slice(0, 16).replace("T", " ")}
                   {c.kind === "dispute" ? <span className="text-amber"> · disputes a call score</span> : null}
+                  {c.kind === "comment" && (c.authorId === user.id || user.role === "admin") ? (
+                    <span className="ml-2 inline-flex gap-2">
+                      {c.authorId === user.id ? (
+                        <button type="button" className="hover:text-text" onClick={() => setEditingComment({ id: c.id, body: c.body })}>
+                          Edit
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        className="hover:text-coral"
+                        onClick={async () => {
+                          if (!window.confirm("Delete this comment?")) return;
+                          try {
+                            await data.deleteScorecardComment(c.id);
+                            load();
+                          } catch (err) {
+                            toast((err as Error).message, "error");
+                          }
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </span>
+                  ) : null}
                 </span>
-                <span>{c.body}</span>
+                {editingComment?.id === c.id ? (
+                  <form
+                    className="flex flex-col gap-1.5"
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      try {
+                        await data.editScorecardComment(c.id, editingComment.body);
+                        setEditingComment(null);
+                        load();
+                      } catch (err) {
+                        toast((err as Error).message, "error");
+                      }
+                    }}
+                  >
+                    <textarea autoFocus aria-label="Edit comment" className="input h-14 resize-none" value={editingComment.body} onChange={(e) => setEditingComment({ ...editingComment, body: e.target.value })} />
+                    <span className="flex gap-2">
+                      <button type="submit" className="btn-outline h-8 text-[12px]" disabled={!editingComment.body.trim()}>
+                        Save
+                      </button>
+                      <button type="button" className="btn-ghost h-8 text-[12px]" onClick={() => setEditingComment(null)}>
+                        Cancel
+                      </button>
+                    </span>
+                  </form>
+                ) : (
+                  <span>{c.body}</span>
+                )}
               </div>
             ))}
             <form
@@ -419,6 +488,7 @@ const CallReviewPage = () => {
   const [playing, setPlaying] = useState(false);
   const [human, setHuman] = useState("");
   const [dispute, setDispute] = useState("");
+  const [resolveNote, setResolveNote] = useState("");
   const lineRefs = useRef<(HTMLDivElement | null)[]>([]);
   const load = useCallback(() => data.getCallReview(id).then(setV, (e: Error) => setError(e.message)), [id]);
   useEffect(() => {
@@ -597,6 +667,30 @@ const CallReviewPage = () => {
                 </button>
               </form>
               <span className="text-[11px] text-text-3">Within 15 points of the AI: accepted. Bigger gaps flag the rubric for review.</span>
+              {r.disputed && !r.disputed.resolvedAt ? (
+                <div className="flex flex-col gap-2 border-t border-line-soft pt-2.5">
+                  <span className="text-amber">Disputed: "{r.disputed.note}"</span>
+                  <span className="text-[12px] text-text-2">Score it yourself above, or keep the AI score and tell them why.</span>
+                  <textarea className="input h-14 resize-none" aria-label="Why the score stands" placeholder="Why the score stands" value={resolveNote} onChange={(e) => setResolveNote(e.target.value)} />
+                  <button
+                    type="button"
+                    className="btn-outline h-8 self-start text-[12px]"
+                    disabled={!resolveNote.trim()}
+                    onClick={async () => {
+                      try {
+                        await data.resolveDispute(r.id, resolveNote);
+                        toast("Dispute resolved · they've been told", "good");
+                        setResolveNote("");
+                        load();
+                      } catch (e) {
+                        toast((e as Error).message, "error");
+                      }
+                    }}
+                  >
+                    Keep the score and resolve
+                  </button>
+                </div>
+              ) : null}
             </section>
           ) : null}
 

@@ -1,11 +1,18 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useUser } from "@/auth/AuthContext";
+import { DataTable } from "@/components/DataTable";
+import { Field, RowMenu, useRun } from "@/components/ui/actions";
+import { Modal } from "@/components/ui/overlay";
 import { usePageChrome } from "@/components/shell/PageChrome";
+import { canAccess } from "@/lib/nav";
 import { BarChart } from "@/components/charts";
 import { EmptyState, KpiCard, Pill, SkeletonRows } from "@/components/ui/primitives";
 import type { Hue } from "@/config/colors";
 import { USD_PER_EUR } from "@/config/targets";
-import { data, type ClientsOverview, type DealRow, type InvoiceRow, type Payment } from "@/data";
+import { ViewBar } from "@/components/ViewBar";
+import { data, type ClientsOverview, type DealRow, type InvoiceRow, type Payment, type ViewState } from "@/data";
+import { applyView, EMPTY_VIEW, type ViewField } from "@/services/views";
 import { tableDate } from "@/lib/format";
 import { collectedByMonth, dunningStep, eur, lastMonths, monthLabel, PAYMENT_TYPE_LABEL, toEurMinor } from "@/services/money";
 
@@ -20,10 +27,13 @@ const Payments = () => {
   const [deals, setDeals] = useState<DealRow[]>([]);
   const [overview, setOverview] = useState<ClientsOverview | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [type, setType] = useState<Payment["type"] | "all">("all");
+  const [view, setView] = useState<ViewState>(EMPTY_VIEW);
+  const [paying, setPaying] = useState<InvoiceRow | null>(null);
+  const me = useUser();
+  const run = useRun();
   usePageChrome({ context: "Money · payments" });
 
-  useEffect(() => {
+  const load = useCallback(() => {
     Promise.all([data.listPayments(), data.listInvoices(), data.listDeals(), data.clientsOverview()])
       .then(([p, i, d, o]) => {
         setPayments(p);
@@ -33,6 +43,7 @@ const Payments = () => {
       })
       .catch((e: Error) => setError(e.message));
   }, []);
+  useEffect(load, [load]);
 
   const now = Date.now();
   const months = useMemo(() => lastMonths(new Date(), 6), []);
@@ -48,7 +59,28 @@ const Payments = () => {
   const late = open.filter((i) => (dunningStep(i, now)?.days ?? -1) >= 0);
   const openEur = open.reduce((n, i) => n + toEurMinor(i.totalMinor, i.currency), 0);
   const mrrEur = overview?.mrr ? toEurMinor(overview.mrr.USD ?? 0, "USD") + (overview.mrr.EUR ?? 0) : 0;
-  const shown = payments.filter((p) => type === "all" || p.type === type).sort((a, b) => b.paidAt.localeCompare(a.paidAt));
+  const fields: ViewField<Payment>[] = [
+    { key: "type", label: "Type", type: "select", options: (Object.keys(PAYMENT_TYPE_LABEL) as Payment["type"][]).map((t) => ({ value: t, label: PAYMENT_TYPE_LABEL[t] })), get: (p) => p.type },
+    {
+      key: "status",
+      label: "Status",
+      type: "select",
+      options: [
+        { value: "paid", label: "Paid" },
+        { value: "failed", label: "Failed" },
+        { value: "refunded", label: "Refunded" },
+      ],
+      get: (p) => p.status,
+    },
+    { key: "client", label: "Client", type: "select", get: (p) => companyOf(p.dealId) },
+    { key: "date", label: "Date", type: "date", get: (p) => p.paidAt.slice(0, 10) },
+    { key: "currency", label: "Currency", type: "select", get: (p) => p.currency },
+    { key: "amount", label: "Amount in EUR", type: "number", get: (p) => toEurMinor(p.amountMinor, p.currency) / 100 },
+  ];
+  const shown = applyView(payments, view, fields, (p) => companyOf(p.dealId));
+  // The accountant can't open Clients or Deals: their rows don't link anywhere they'd be refused.
+  const clientLinks = canAccess(me.role, "clients");
+  const dealLinks = canAccess(me.role, "deals");
 
   return (
     <div className="flex flex-col gap-6">
@@ -106,10 +138,25 @@ const Payments = () => {
                 .map((i) => {
                   const st = dunningStep(i, now)!;
                   return (
-                    <Link key={i.id} to={`/clients/${i.clientId}`} className="flex flex-col gap-1 border-b border-line-soft px-5 py-3 text-[13px] last:border-b-0 hover:bg-surface-2/50">
+                    <div key={i.id} className="flex flex-col gap-1 border-b border-line-soft px-5 py-3 text-[13px] last:border-b-0">
                       <span className="flex items-center justify-between gap-3">
-                        <span className="truncate font-medium">{i.companyName}</span>
-                        <span className="num">{money(i.totalMinor, i.currency)}</span>
+                        {clientLinks ? (
+                          <Link to={`/clients/${i.clientId}`} className="truncate font-medium hover:text-cyan">
+                            {i.companyName}
+                          </Link>
+                        ) : (
+                          <span className="truncate font-medium">{i.companyName}</span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <span className="num">{money(i.totalMinor, i.currency)}</span>
+                          <RowMenu
+                            label={`Actions for ${i.companyName}'s invoice`}
+                            items={[
+                              { label: "Send a reminder", hidden: me.role !== "admin", onSelect: async () => (await run(() => data.sendInvoiceReminder(i.id), `Reminder queued to ${i.companyName}`)) && load() },
+                              { label: "Mark paid (bank transfer)", onSelect: () => setPaying(i) },
+                            ]}
+                          />
+                        </span>
                       </span>
                       <span className="flex items-center justify-between gap-3 text-[12px]">
                         <Pill hue={st.tone} dot>
@@ -117,7 +164,7 @@ const Payments = () => {
                         </Pill>
                         <span className="truncate text-text-2">{st.action ?? `Due ${tableDate(i.dueAt)}`}</span>
                       </span>
-                    </Link>
+                    </div>
                   );
                 })
             ) : (
@@ -127,44 +174,85 @@ const Payments = () => {
         </section>
       </div>
 
-      <section aria-label="All payments" className="card flex min-w-0 flex-col overflow-x-auto">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-3.5">
+      <section aria-label="All payments" className="flex min-w-0 flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="text-[15px] font-semibold">All payments · {shown.length}</span>
-          <div className="flex flex-wrap gap-1">
-            {(["all", ...(Object.keys(PAYMENT_TYPE_LABEL) as Payment["type"][])] as const).map((t) => (
-              <button key={t} type="button" onClick={() => setType(t)} className={`h-7 rounded-md px-2.5 text-[12px] ${type === t ? "bg-surface-2 text-text shadow-card" : "text-text-3 hover:text-text"}`}>
-                {t === "all" ? "All" : PAYMENT_TYPE_LABEL[t]}
-              </button>
-            ))}
-          </div>
+          <ViewBar page="payments" fields={fields} rows={payments} value={view} onChange={setView} placeholder="Client" />
         </div>
-        <div className="grid min-w-[760px] grid-cols-[100px_minmax(0,1.4fr)_150px_100px_110px_110px] gap-3 border-b border-line-soft px-5 py-2 text-[12px] text-text-3">
-          <span>Date</span>
-          <span>Client</span>
-          <span>Type</span>
-          <span>Status</span>
-          <span className="text-right">Amount</span>
-          <span className="text-right">In EUR</span>
-        </div>
-        {shown.map((p) => (
-          <Link key={p.id} to={`/deals/${p.dealId}`} className="grid min-w-[760px] grid-cols-[100px_minmax(0,1.4fr)_150px_100px_110px_110px] items-center gap-3 border-b border-line-soft px-5 py-2.5 text-[13px] last:border-b-0 hover:bg-surface-2/50">
-            <span className="num text-text-2">{tableDate(p.paidAt)}</span>
-            <span className="truncate">{companyOf(p.dealId)}</span>
-            <span>
-              <Pill hue={TYPE_HUE[p.type]}>{PAYMENT_TYPE_LABEL[p.type]}</Pill>
-            </span>
-            <span>
-              <Pill hue={STATUS_HUE[p.status]} dot className="capitalize">
-                {p.status}
-              </Pill>
-            </span>
-            <span className="num text-right">{money(p.amountMinor, p.currency)}</span>
-            <span className="num text-right text-text-2">{eur(toEurMinor(p.amountMinor, p.currency))}</span>
-          </Link>
-        ))}
-        {!shown.length ? <p className="m-0 px-5 py-6 text-[13px] text-text-3">No payments yet. Deposits arrive when a client pays from the quote page.</p> : null}
+        <DataTable<Payment>
+          id="payments"
+          label="All payments"
+          minWidth={760}
+          rows={shown}
+          rowKey={(p) => p.id}
+          rowHref={dealLinks ? (p) => `/deals/${p.dealId}` : undefined}
+          defaultSort={{ key: "date", dir: "desc" }}
+          empty={<EmptyState title={payments.length ? "No payment matches these filters." : "No payments yet. Deposits arrive when a client pays from the quote page."} />}
+          footer={shown.length ? <span>{eur(shown.filter((p) => p.status === "paid").reduce((n, p) => n + toEurMinor(p.amountMinor, p.currency), 0))} collected in this view</span> : null}
+          columns={[
+            { key: "date", header: "Date", width: "100px", sortValue: (p) => p.paidAt, render: (p) => <span className="num text-text-2">{tableDate(p.paidAt)}</span> },
+            { key: "client", header: "Client", width: "minmax(0,1.4fr)", sortValue: (p) => companyOf(p.dealId), render: (p) => <span className="block truncate">{companyOf(p.dealId)}</span> },
+            { key: "type", header: "Type", width: "150px", hideable: true, sortValue: (p) => p.type, render: (p) => <Pill hue={TYPE_HUE[p.type]}>{PAYMENT_TYPE_LABEL[p.type]}</Pill> },
+            {
+              key: "status",
+              header: "Status",
+              width: "100px",
+              hideable: true,
+              sortValue: (p) => p.status,
+              render: (p) => (
+                <Pill hue={STATUS_HUE[p.status]} dot className="capitalize">
+                  {p.status}
+                </Pill>
+              ),
+            },
+            { key: "amount", header: "Amount", width: "110px", align: "right", sortValue: (p) => toEurMinor(p.amountMinor, p.currency), render: (p) => <span className="num">{money(p.amountMinor, p.currency)}</span> },
+            { key: "eur", header: "In EUR", width: "110px", align: "right", hideable: true, render: (p) => <span className="num text-text-2">{eur(toEurMinor(p.amountMinor, p.currency))}</span> },
+            {
+              key: "ref",
+              header: "Reference",
+              width: "minmax(0,1fr)",
+              hideable: true,
+              defaultHidden: true,
+              render: (p) => <span className="block truncate font-mono text-[11px] text-text-3">{p.stripeEventId.startsWith("manual:") ? p.stripeEventId.split(":")[1] : p.stripeEventId}</span>,
+            },
+          ]}
+        />
       </section>
+      {paying ? <MarkPaid invoice={paying} onClose={() => setPaying(null)} onDone={load} /> : null}
     </div>
+  );
+};
+
+/** A bank transfer arrived: record it with the reference so the books match. */
+const MarkPaid = ({ invoice, onClose, onDone }: { invoice: InvoiceRow; onClose: () => void; onDone: () => void }) => {
+  const run = useRun();
+  const [f, setF] = useState({ paidAt: new Date().toISOString().slice(0, 10), reference: "" });
+  return (
+    <Modal open onClose={onClose} title={`Mark paid · ${invoice.companyName}`}>
+      <form
+        className="flex flex-col gap-4"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (await run(() => data.markInvoicePaid(invoice.id, f), `${invoice.companyName} marked paid`)) {
+            onClose();
+            onDone();
+          }
+        }}
+      >
+        <span className="text-[13px] text-text-2">
+          {money(invoice.totalMinor, invoice.currency)} · {invoice.period === "go-live" ? "go-live" : invoice.period}. Commission on it starts its 30-day window from this date.
+        </span>
+        <Field label="Day the money arrived">
+          <input className="input" type="date" required value={f.paidAt} onChange={(e) => setF({ ...f, paidAt: e.target.value })} />
+        </Field>
+        <Field label="Bank reference">
+          <input className="input" required value={f.reference} onChange={(e) => setF({ ...f, reference: e.target.value })} placeholder="e.g. Wise 81723 or the bank's transaction id" />
+        </Field>
+        <button type="submit" className="btn-primary" disabled={!f.reference.trim()}>
+          Mark paid
+        </button>
+      </form>
+    </Modal>
   );
 };
 

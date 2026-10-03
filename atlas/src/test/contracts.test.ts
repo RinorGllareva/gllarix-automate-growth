@@ -43,6 +43,19 @@ describe("contract text and PDF", () => {
     expect(contractSections(body)[0]).toMatchObject({ heading: "1. Parties" });
   });
 
+  it("uses the company profile for our legal name and the governing law once it's filled in", () => {
+    const vars = { brand: "gllarix" as const, client: "Acme Plumbing", clientPlace: "Tampa, US", country: "US", signer: "", setup: "$1,500", deposit: "$750", monthly: "$699", items: [], pilot: false };
+    expect(fillContract(CONTRACT_TEMPLATES[0], vars)).toMatch(/to confirm/);
+    const profile = {
+      entities: { gllarix: { legalName: "Gllarix LLC", address: "1 Main St\nWilmington, DE", registration: "7001", vatId: "" }, arcadian: { legalName: "", address: "", registration: "", vatId: "" } },
+      governingLaw: "Governed by the law of Delaware.",
+      signatory: "Rinor, CEO",
+    };
+    const body = fillContract(CONTRACT_TEMPLATES[0], { ...vars, profile });
+    expect(body).toContain("Gllarix LLC, 1 Main St, Wilmington, DE, reg. 7001");
+    expect(body).toContain("Governed by the law of Delaware.");
+  });
+
   it("writes a valid PDF with an xref that points at its objects", () => {
     const b64 = textPdf("Test (1)", [{ text: "Hello € world", heading: true }, { text: "x ".repeat(2000) }]);
     const pdf = atob(b64);

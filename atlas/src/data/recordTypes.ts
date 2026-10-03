@@ -2,7 +2,7 @@
  * Records on leads and clients: files (proposals, floor plans, signed contracts, reports), editable contacts and
  * lead tags. Demo mode keeps files in the browser (up to 2 MB each); Supabase Storage replaces that later.
  */
-export type FileEntity = "lead" | "client" | "deal";
+export type FileEntity = "lead" | "client" | "deal" | "ticket";
 
 export interface RecordFile {
   id: string;

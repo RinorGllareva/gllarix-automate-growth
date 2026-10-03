@@ -153,23 +153,35 @@ export const KpiCard = ({
   value,
   caption,
   tone = "text",
+  onClick,
+  active = false,
 }: {
   index?: string;
   title: string;
   value: ReactNode;
   caption?: string;
   tone?: "text" | "mint" | "cyan" | "lavender" | "amber" | "coral";
+  /** Metric tiles filter the view below when clicked (page standard §1). */
+  onClick?: () => void;
+  active?: boolean;
 }) => {
   const toneClass = { text: "text-text", mint: "text-mint", cyan: "text-cyan", lavender: "text-lavender", amber: "text-amber", coral: "text-coral" }[tone];
-  return (
-    <div className="card flex flex-col gap-2 p-[18px]">
+  const body = (
+    <>
       <div className="flex items-baseline gap-2">
         {index ? <span className="font-mono text-[11px] text-text-3">{index}</span> : null}
         <span className="text-[13px] font-medium text-text-2">{title}</span>
       </div>
       <span className={`text-[28px] font-semibold leading-none tracking-[-0.02em] tabular-nums ${toneClass}`}>{value}</span>
       {caption ? <span className="text-[12px] text-text-3">{caption}</span> : null}
-    </div>
+    </>
+  );
+  return onClick ? (
+    <button type="button" aria-pressed={active} onClick={onClick} className={`card flex flex-col gap-2 p-[18px] text-left transition-colors hover:border-line-strong ${active ? "border-app" : ""}`}>
+      {body}
+    </button>
+  ) : (
+    <div className="card flex flex-col gap-2 p-[18px]">{body}</div>
   );
 };
 

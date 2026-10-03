@@ -220,6 +220,10 @@ export interface SpendDecisionInput {
 export interface AdvisorApi {
   advisorHome(): Promise<AdvisorHome>;
   getAdvisorThread(id: string): Promise<AdvisorThreadView>;
+  /** Your own threads; admins also team threads (briefings, month-end, alerts). */
+  renameAdvisorThread(id: string, title: string): Promise<void>;
+  /** Deletes the thread with its messages; actions already accepted keep what they created. */
+  deleteAdvisorThread(id: string): Promise<void>;
   /** Ask in a thread (or start one). Tools run as the asking user. */
   askAdvisor(input: { threadId?: string; text: string; roleHint?: AdvisorRole | null }): Promise<{ threadId: string; message: AdvisorMessage }>;
   /** Accept a proposed action: the only path that creates tasks, decisions or documents. */

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useDeleteWithUndo } from "@/components/ui/actions";
 import { usePageChrome } from "@/components/shell/PageChrome";
 import { Modal, useToast } from "@/components/ui/overlay";
 import { EmptyState, Icon, ICONS, Pill, SkeletonRows } from "@/components/ui/primitives";
@@ -28,6 +29,7 @@ const Markets = () => {
   const [brand, setBrand] = useState<Competitor["brand"]>("gllarix");
   const [edit, setEdit] = useState<Partial<Competitor> | null>(null);
   usePageChrome({ context: "Growth · market and competitors" });
+  const remove = useDeleteWithUndo();
 
   const load = useCallback(() => data.marketsHome().then(setHome, (e: Error) => setError(e.message)), []);
   useEffect(() => {
@@ -162,6 +164,9 @@ const Markets = () => {
                     </button>
                     <button type="button" className="text-text-3 hover:text-text" onClick={() => setEdit(c)}>
                       Edit
+                    </button>
+                    <button type="button" className="text-text-3 hover:text-coral" onClick={() => remove(c.name, () => data.deleteCompetitor(c.id), load)}>
+                      Delete
                     </button>
                   </span>
                 ) : null}

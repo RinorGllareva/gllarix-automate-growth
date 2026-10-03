@@ -1,4 +1,5 @@
 import { GOVERNING_LAW, PROVIDER, type ContractTemplate } from "@/config/contracts";
+import type { CompanyProfile } from "@/data/settingsTypes";
 import type { Contract, ContractSignature } from "@/data/contractTypes";
 import type { Brand } from "@/data/leadTypes";
 import type { PdfBlock } from "./pdf";
@@ -15,12 +16,17 @@ export interface ContractVars {
   monthly: string;
   items: string[];
   pilot: boolean;
+  /** Settings › Company profile (legal names, addresses, governing law). */
+  profile?: CompanyProfile | null;
 }
 
 /** Template + deal facts → the contract text ("## Heading" blocks). Unknown placeholders stay visible. */
 export const fillContract = (t: ContractTemplate, v: ContractVars) => {
+  // Settings › Company profile replaces the placeholders once the legal details are filled in.
+  const e = v.profile?.entities[v.brand];
+  const provider = e?.legalName ? [e.legalName, e.address.replace(/\n+/g, ", "), e.registration && `reg. ${e.registration}`, e.vatId && `VAT ${e.vatId}`].filter(Boolean).join(", ") : PROVIDER[v.brand];
   const vars: Record<string, string> = {
-    provider: PROVIDER[v.brand],
+    provider,
     client: v.client,
     clientPlace: v.clientPlace || "[address to confirm]",
     signer: v.signer || "[the person signing]",
@@ -29,7 +35,7 @@ export const fillContract = (t: ContractTemplate, v: ContractVars) => {
     monthly: v.monthly,
     items: v.items.length ? v.items.map((i) => `- ${i}`).join("\n") : "- [package to confirm]",
     pilotTerms: v.pilot ? "\nPilot: setup at the pilot rate, monthly at the pilot discount for 12 months, first month free, in exchange for a case study and feedback." : "",
-    law: GOVERNING_LAW(v.country),
+    law: v.profile?.governingLaw || GOVERNING_LAW(v.country),
   };
   const fill = (s: string) => s.replace(/{{(\w+)}}/g, (m, k: string) => vars[k] ?? m);
   return t.sections.map((s) => `## ${s.heading}\n${fill(s.body)}`).join("\n\n");

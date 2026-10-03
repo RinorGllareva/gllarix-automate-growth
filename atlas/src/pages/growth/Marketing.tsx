@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { usePageChrome } from "@/components/shell/PageChrome";
+import { Field, RowMenu, useDeleteWithUndo } from "@/components/ui/actions";
 import { Modal, useToast } from "@/components/ui/overlay";
 import { EmptyState, Icon, ICONS, KpiCard, Pill, SkeletonRows } from "@/components/ui/primitives";
 import type { Hue } from "@/config/colors";
@@ -46,6 +47,8 @@ const Marketing = () => {
   usePageChrome({ context: "Growth · marketing" });
 
   const load = useCallback(() => data.marketingHome().then(setHome, (e: Error) => setError(e.message)), []);
+  const [channel, setChannel] = useState<{ id: string; name: string; build: string; owner: string; due: string; kpi: string; note: string } | null>(null);
+  const remove = useDeleteWithUndo();
   useEffect(() => {
     load();
   }, [load]);
@@ -59,8 +62,10 @@ const Marketing = () => {
       await fn();
       if (ok) toast(ok, "good");
       await load();
+      return true;
     } catch (e) {
       toast((e as Error).message, "error");
+      return false;
     }
   };
   const moving = home.channels.filter((c) => c.status === "live" || c.status === "in_progress").length;
@@ -139,18 +144,29 @@ const Marketing = () => {
         </Card>
       </div>
 
-      <Card title="Inbound channels" help={`${moving} of ${home.channels.length} in progress or live.`}>
+      <Card
+        title="Inbound channels"
+        help={`${moving} of ${home.channels.length} in progress or live.`}
+        action={
+          canEdit ? (
+            <button type="button" className="btn-outline" onClick={() => setChannel({ id: "", name: "", build: "", owner: "", due: "", kpi: "", note: "" })}>
+              <Icon d={ICONS.plus} size={15} /> Channel
+            </button>
+          ) : null
+        }
+      >
         <div className="overflow-x-auto">
-          <div className="grid min-w-[900px] grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)_110px_96px_minmax(0,0.9fr)_140px] gap-3 border-b border-line px-1 pb-2 text-[12px] text-text-3">
+          <div className="grid min-w-[900px] grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)_110px_96px_minmax(0,0.9fr)_140px_32px] gap-3 border-b border-line px-1 pb-2 text-[12px] text-text-3">
             <span>Channel</span>
             <span>What to build</span>
             <span>Owner</span>
             <span>Due</span>
             <span>KPI</span>
             <span>Status</span>
+            <span />
           </div>
           {home.channels.map((c) => (
-            <div key={c.id} className="grid min-w-[900px] grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)_110px_96px_minmax(0,0.9fr)_140px] items-center gap-3 border-b border-line-soft px-1 py-2.5 text-[13px] last:border-b-0">
+            <div key={c.id} className="grid min-w-[900px] grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)_110px_96px_minmax(0,0.9fr)_140px_32px] items-center gap-3 border-b border-line-soft px-1 py-2.5 text-[13px] last:border-b-0">
               <span className="font-medium">{c.name}</span>
               <span className="text-text-2">{c.build}</span>
               <span className="text-text-2">{c.owner}</span>
@@ -173,6 +189,17 @@ const Marketing = () => {
                 <Pill hue={CHANNEL_STATUS[c.status].hue} dot>
                   {CHANNEL_STATUS[c.status].label}
                 </Pill>
+              )}
+              {canEdit ? (
+                <RowMenu
+                  label={`Actions for ${c.name}`}
+                  items={[
+                    { label: "Edit owner, due date, note", onSelect: () => setChannel({ id: c.id, name: c.name, build: c.build, owner: c.owner, due: c.due, kpi: c.kpi, note: c.note }) },
+                    { label: "Delete", danger: true, onSelect: () => remove(c.name, () => data.deleteChannel(c.id), load) },
+                  ]}
+                />
+              ) : (
+                <span />
               )}
             </div>
           ))}
@@ -222,9 +249,14 @@ const Marketing = () => {
               </div>
               {x.note ? <span className="text-[12px] text-text-3">{x.note}</span> : null}
               {canEdit ? (
-                <button type="button" className="btn-ghost self-start" onClick={() => setTest(x)}>
-                  Update
-                </button>
+                <span className="flex gap-2">
+                  <button type="button" className="btn-ghost" onClick={() => setTest(x)}>
+                    Update
+                  </button>
+                  <button type="button" className="btn-ghost text-coral" onClick={() => remove(`Test "${x.name}"`, () => data.deleteExperiment(x.id), load)}>
+                    Delete
+                  </button>
+                </span>
               ) : null}
             </div>
           ))}
@@ -295,6 +327,52 @@ const Marketing = () => {
           </div>
         </Card>
       </div>
+
+      <Modal open={!!channel} onClose={() => setChannel(null)} title={channel?.id ? `Edit · ${channel.name}` : "New channel"}>
+        {channel ? (
+          <form
+            className="grid gap-4 sm:grid-cols-2"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const ok = channel.id
+                ? await run(() => data.updateChannel(channel.id, { owner: channel.owner, due: channel.due, note: channel.note }), "Channel saved")
+                : await run(() => data.addChannel({ name: channel.name, build: channel.build, owner: channel.owner, kpi: channel.kpi }), `${channel.name} added`);
+              if (ok) {
+                setChannel(null);
+                load();
+              }
+            }}
+          >
+            {!channel.id ? (
+              <>
+                <Field label="Channel" wide>
+                  <input className="input" required value={channel.name} onChange={(e) => setChannel({ ...channel, name: e.target.value })} placeholder="e.g. Partner referrals" />
+                </Field>
+                <Field label="What to build" wide>
+                  <input className="input" value={channel.build} onChange={(e) => setChannel({ ...channel, build: e.target.value })} />
+                </Field>
+                <Field label="KPI" wide>
+                  <input className="input" value={channel.kpi} onChange={(e) => setChannel({ ...channel, kpi: e.target.value })} placeholder="e.g. 3 qualified leads a month" />
+                </Field>
+              </>
+            ) : null}
+            <Field label="Owner">
+              <input className="input" value={channel.owner} onChange={(e) => setChannel({ ...channel, owner: e.target.value })} />
+            </Field>
+            <Field label="Due">
+              <input className="input" value={channel.due} onChange={(e) => setChannel({ ...channel, due: e.target.value })} placeholder="2026-11-15" />
+            </Field>
+            {channel.id ? (
+              <Field label="Note" wide>
+                <input className="input" value={channel.note} onChange={(e) => setChannel({ ...channel, note: e.target.value })} />
+              </Field>
+            ) : null}
+            <button type="submit" className="btn-primary sm:col-span-2" disabled={!channel.name.trim()}>
+              {channel.id ? "Save" : "Add channel"}
+            </button>
+          </form>
+        ) : null}
+      </Modal>
 
       <Modal open={!!test} onClose={() => setTest(null)} title={test?.id ? "Update test" : "New test"} width={620}>
         {test ? (

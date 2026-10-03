@@ -22,7 +22,7 @@ export const meetingStatus = (m: Meeting, now: number): MeetingStatus => {
 export interface ReportInput {
   now: number;
   tz: string;
-  period: { kind: "week" | "month"; key: string };
+  period: { kind: "week" | "month" | "range"; key: string };
   /** A user id, or "team" for everyone with a queue. */
   personId: string | "team";
   users: User[];
@@ -34,8 +34,16 @@ export interface ReportInput {
   clients?: { dealId: string; churnedAt: string | null }[];
 }
 
-export const periodBounds = (kind: "week" | "month", key: string, tz: string) => {
-  const { start, end } = kind === "week" ? isoWeekRange(key) : monthRange(key);
+/** A custom range key: "2026-09-01..2026-09-30". */
+export const rangeKey = (from: string, to: string) => `${from}..${to}`;
+const parseRange = (key: string) => {
+  const [a, b] = key.split("..");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(a ?? "") || !/^\d{4}-\d{2}-\d{2}$/.test(b ?? "")) throw new Error("Pick a start and an end date.");
+  return a <= b ? { start: a, end: b } : { start: b, end: a };
+};
+
+export const periodBounds = (kind: "week" | "month" | "range", key: string, tz: string) => {
+  const { start, end } = kind === "week" ? isoWeekRange(key) : kind === "range" ? parseRange(key) : monthRange(key);
   return { start, end, from: zonedToUtc(start, "00:00", tz), to: zonedToUtc(shiftDateKey(end, 1), "00:00", tz) };
 };
 
@@ -140,14 +148,24 @@ export const computeReport = (input: ReportInput): WeeklyReport => {
     const key = new Date(Date.UTC(y, m - 1 + n, 1)).toISOString().slice(0, 7);
     return mrrEurAt(input.deals, periodBounds("month", key, tz).to, input.clients);
   });
+  // Gate 3: €5,000 MRR at the last two month-ends and now, with monthly churn under 5% over the last 90 days.
+  const wonAtOf = new Map(input.deals.map((d) => [d.id, d.wonAt]));
+  const windowStart = now - 90 * DAY;
+  const clientsAtStart = (input.clients ?? []).filter((c) => {
+    const won = wonAtOf.get(c.dealId);
+    return won && new Date(won).getTime() <= windowStart && (!c.churnedAt || new Date(c.churnedAt).getTime() > windowStart);
+  });
+  const churned90 = (input.clients ?? []).filter((c) => c.churnedAt && new Date(c.churnedAt).getTime() > windowStart && new Date(c.churnedAt).getTime() <= now).length;
+  const churnPct = clientsAtStart.length ? churned90 / clientsAtStart.length / 3 : null;
+  const gate3Met = [...monthEnds, actualNow].every((v) => v >= 5000) && churnPct !== null && churnPct < 0.05;
   const gates: GateProgress[] = [
     { ...GATES[0], value: `${payingClients} / 3`, progress: Math.min(1, payingClients / 3), met: payingClients >= 3 },
     { ...GATES[1], value: `€${actualNow.toLocaleString("en-US")}`, progress: Math.min(1, actualNow / 2000), met: monthEnds.every((v) => v >= 2000) },
-    { ...GATES[2], value: `€${actualNow.toLocaleString("en-US")}`, progress: Math.min(1, actualNow / 5000), met: false },
+    { ...GATES[2], value: `€${actualNow.toLocaleString("en-US")} · churn ${churnPct === null ? "—" : `${(churnPct * 100).toFixed(1)}%/mo`}`, progress: Math.min(1, actualNow / 5000), met: gate3Met },
   ].map((g) => ({ key: g.key, label: g.label, note: g.note, value: g.value, progress: g.progress, met: g.met }));
 
   return {
-    period: { kind: period.kind, key: period.key, start: b.start, end: b.end, label: `${period.kind === "week" ? `Week ${Number(period.key.split("W")[1])}` : period.key} · ${rangeLabel(b.start, b.end)}` },
+    period: { kind: period.kind, key: period.key, start: b.start, end: b.end, label: period.kind === "range" ? rangeLabel(b.start, b.end) : `${period.kind === "week" ? `Week ${Number(period.key.split("W")[1])}` : period.key} · ${rangeLabel(b.start, b.end)}` },
     personId,
     funnel,
     kpis,

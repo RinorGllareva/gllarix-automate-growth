@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useUser } from "@/auth/AuthContext";
 import { usePageChrome } from "@/components/shell/PageChrome";
+import { Field, RowMenu } from "@/components/ui/actions";
 import { Modal, useToast } from "@/components/ui/overlay";
 import { Avatar, EmptyState, Icon, ICONS, Pill, SkeletonRows } from "@/components/ui/primitives";
 import { data, TRAINING_ASSETS, TRAINING_BLOCKS, type TrainingView, type User } from "@/data";
@@ -27,6 +28,9 @@ const Training = () => {
   const [scoreInput, setScoreInput] = useState<Record<string, string>>({});
   const [starting, setStarting] = useState<{ userId: string; name: string; role: string; date: string } | null>(null);
   const [people, setPeople] = useState<User[]>([]);
+  const [noteInput, setNoteInput] = useState<Record<string, string>>({});
+  const [editing, setEditing] = useState<{ id: string; name: string; role: string; startDate: string } | null>(null);
+  const [cancelling, setCancelling] = useState<{ id: string; name: string; reason: string } | null>(null);
   usePageChrome({ context: view?.canEdit ? "People · training" : "People · your training" });
 
   const load = useCallback(() => data.trainingView().then(setView, (e: Error) => setError(e.message)), []);
@@ -101,15 +105,26 @@ const Training = () => {
                     {t.role} · started {tableDate(`${t.startDate}T12:00:00Z`)}
                   </span>
                 </div>
-                {t.certifiedAt ? (
-                  <Pill hue="mint" dot>
-                    Certified {tableDate(t.certifiedAt)}
-                  </Pill>
-                ) : (
-                  <Pill hue="cyan" dot>
-                    {t.day ? `Day ${t.day} of 10` : "Not started"}
-                  </Pill>
-                )}
+                <span className="flex items-center gap-2">
+                  {t.certifiedAt ? (
+                    <Pill hue="mint" dot>
+                      Certified {tableDate(t.certifiedAt)}
+                    </Pill>
+                  ) : (
+                    <Pill hue="cyan" dot>
+                      {t.day ? `Day ${t.day} of 10` : "Not started"}
+                    </Pill>
+                  )}
+                  {view.canEdit ? (
+                    <RowMenu
+                      label={`Actions for ${t.name}'s program`}
+                      items={[
+                        { label: "Edit name, role, start date", onSelect: () => setEditing({ id: t.id, name: t.name, role: t.role, startDate: t.startDate }) },
+                        { label: "Cancel the program", danger: true, onSelect: () => setCancelling({ id: t.id, name: t.name, reason: "" }) },
+                      ]}
+                    />
+                  ) : null}
+                </span>
               </div>
               <ol className="m-0 flex list-none flex-col gap-3 p-0">
                 {TRAINING_BLOCKS.map((b, i) => {
@@ -153,8 +168,13 @@ const Training = () => {
                               <span className="text-text-3">{b.kind === "quiz" ? "Quiz" : "Roleplays"}:</span>
                               {p.scores.length ? (
                                 p.scores.map((sc, k) => (
-                                  <span key={k} className={`num rounded-md px-2 py-0.5 text-[12px] ${sc >= pass ? "bg-mint-tint text-mint" : "bg-surface-2 text-text-2"}`}>
+                                  <span key={k} className={`num flex items-center gap-1 rounded-md px-2 py-0.5 text-[12px] ${sc >= pass ? "bg-mint-tint text-mint" : "bg-surface-2 text-text-2"}`}>
                                     {sc}/10
+                                    {view.canEdit && !passed ? (
+                                      <button type="button" aria-label={`Remove score ${k + 1} (${sc}/10)`} title="Remove this score (entered by mistake)" className="text-text-3 hover:text-coral" onClick={() => run(() => data.removeBlockScore(t.id, b.key, k), "Score removed")}>
+                                        ×
+                                      </button>
+                                    ) : null}
                                   </span>
                                 ))
                               ) : (
@@ -186,12 +206,19 @@ const Training = () => {
                           {p.note ? <span className="text-[12px] text-text-3">Note: {p.note}</span> : null}
                           {view.canEdit ? (
                             <div className="flex flex-wrap gap-2">
+                              <input
+                                className="input h-8 min-w-0 flex-1 text-[12px]"
+                                aria-label={`Note for the ${b.title} gate`}
+                                placeholder={passed ? "Why reopen (optional)" : "Gate note: what you saw (optional)"}
+                                value={noteInput[`${t.id}:${b.key}`] ?? ""}
+                                onChange={(e) => setNoteInput({ ...noteInput, [`${t.id}:${b.key}`]: e.target.value })}
+                              />
                               {!passed ? (
-                                <button type="button" className="btn-primary h-8" disabled={!ev.met || !isCurrent} title={!ev.met ? `Not yet: ${ev.text}` : undefined} onClick={() => run(() => data.setBlockPassed(t.id, b.key, true), `${b.title}: gate passed`)}>
+                                <button type="button" className="btn-primary h-8" disabled={!ev.met || !isCurrent} title={!ev.met ? `Not yet: ${ev.text}` : undefined} onClick={() => run(() => data.setBlockPassed(t.id, b.key, true, noteInput[`${t.id}:${b.key}`]?.trim() || undefined), `${b.title}: gate passed`)}>
                                   {b.key === "certify" ? "Certify to close alone" : "Pass the gate"}
                                 </button>
                               ) : (
-                                <button type="button" className="btn-outline h-8" onClick={() => run(() => data.setBlockPassed(t.id, b.key, false), `${b.title} reopened`)}>
+                                <button type="button" className="btn-outline h-8" onClick={() => run(() => data.setBlockPassed(t.id, b.key, false, noteInput[`${t.id}:${b.key}`]?.trim() || undefined), `${b.title} reopened`)}>
                                   Reopen
                                 </button>
                               )}
@@ -299,6 +326,54 @@ const Training = () => {
             </div>
             <button type="submit" className="btn-primary" disabled={!starting.userId && !starting.name.trim()}>
               Start the program
+            </button>
+          </form>
+        ) : null}
+      </Modal>
+      <Modal open={!!editing} onClose={() => setEditing(null)} title="Edit program">
+        {editing ? (
+          <form
+            className="grid gap-4 sm:grid-cols-2"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const x = editing;
+              setEditing(null);
+              await run(() => data.updateProgram(x.id, { name: x.name.trim(), role: x.role.trim(), startDate: x.startDate }), "Program saved");
+            }}
+          >
+            <Field label="Name">
+              <input className="input" required value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
+            </Field>
+            <Field label="Role">
+              <input className="input" value={editing.role} onChange={(e) => setEditing({ ...editing, role: e.target.value })} />
+            </Field>
+            <Field label="Start date" wide>
+              <input className="input" type="date" required value={editing.startDate} onChange={(e) => setEditing({ ...editing, startDate: e.target.value })} />
+            </Field>
+            <button type="submit" className="btn-primary sm:col-span-2" disabled={!editing.name.trim()}>
+              Save
+            </button>
+          </form>
+        ) : null}
+      </Modal>
+      <Modal open={!!cancelling} onClose={() => setCancelling(null)} title={cancelling ? `Cancel ${cancelling.name}'s program` : ""}>
+        {cancelling ? (
+          <form
+            className="flex flex-col gap-4 text-[13px]"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const x = cancelling;
+              setCancelling(null);
+              setSelected(null);
+              await run(() => data.cancelProgram(x.id, x.reason), "Program cancelled. An admin can restore it from Settings › Trash for 30 days.");
+            }}
+          >
+            <span className="text-text-2">Scores and gate notes are kept in the trash for 30 days.</span>
+            <Field label="Why it stops">
+              <input autoFocus className="input" value={cancelling.reason} onChange={(e) => setCancelling({ ...cancelling, reason: e.target.value })} placeholder="e.g. Left after day 3" />
+            </Field>
+            <button type="submit" className="btn-danger" disabled={!cancelling.reason.trim()}>
+              Cancel the program
             </button>
           </form>
         ) : null}

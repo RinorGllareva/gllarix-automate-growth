@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useUser } from "@/auth/AuthContext";
 import { usePageChrome } from "@/components/shell/PageChrome";
-import { useToast } from "@/components/ui/overlay";
+import { Modal, useToast } from "@/components/ui/overlay";
+import { DataTable } from "@/components/DataTable";
+import { Field, RowMenu, useDeleteWithUndo, useRun } from "@/components/ui/actions";
 import { EmptyState, KpiCard, Pill, SkeletonRows } from "@/components/ui/primitives";
 import type { Hue } from "@/config/colors";
 import { USD_PER_EUR } from "@/config/targets";
-import { data, type CashSnapshot, type Expense } from "@/data";
+import { ViewBar } from "@/components/ViewBar";
+import { data, type CashSnapshot, type Expense, type ViewState } from "@/data";
+import { applyView, EMPTY_VIEW, type ViewField } from "@/services/views";
 import MonthClose from "./MonthClose";
 
 const CATEGORIES: Expense["category"][] = ["people", "tools", "data", "usage", "freelance", "marketing", "admin", "fees"];
@@ -19,9 +23,12 @@ const Finance = () => {
   const canEdit = useUser().role === "admin";
   const [fin, setFin] = useState<{ expenses: Expense[]; cash: CashSnapshot[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [exp, setExp] = useState({ date: new Date().toISOString().slice(0, 10), vendor: "", category: "tools" as Expense["category"], amount: "", currency: "EUR" as "EUR" | "USD", recurring: true });
+  const [exp, setExp] = useState({ date: new Date().toISOString().slice(0, 10), vendor: "", category: "tools" as Expense["category"], amount: "", currency: "EUR" as "EUR" | "USD", recurring: true, note: "" });
+  const [view, setView] = useState<ViewState>(EMPTY_VIEW);
+  const [editing, setEditing] = useState<Expense | null>(null);
+  const [editingCash, setEditingCash] = useState<CashSnapshot | null>(null);
+  const remove = useDeleteWithUndo();
   const [cash, setCash] = useState({ date: new Date().toISOString().slice(0, 10), amount: "" });
-  const [cat, setCat] = useState<Expense["category"] | "all">("all");
   usePageChrome({ context: "Money · finance" });
 
   const load = useCallback(() => data.listFinanceData().then(setFin, (e: Error) => setError(e.message)), []);
@@ -43,7 +50,35 @@ const Finance = () => {
 
   if (error) return <EmptyState title={error} />;
   if (!fin || !sums) return <SkeletonRows rows={6} />;
-  const rows = fin.expenses.filter((x) => cat === "all" || x.category === cat).sort((a, b) => b.date.localeCompare(a.date));
+  const fields: ViewField<Expense>[] = [
+    { key: "category", label: "Category", type: "select", options: CATEGORIES.map((c) => ({ value: c, label: c.charAt(0).toUpperCase() + c.slice(1) })), get: (x) => x.category },
+    {
+      key: "billing",
+      label: "Billing",
+      type: "select",
+      options: [
+        { value: "monthly", label: "Monthly" },
+        { value: "oneoff", label: "One-off" },
+      ],
+      get: (x) => (x.recurring ? "monthly" : "oneoff"),
+    },
+    { key: "date", label: "Date", type: "date", get: (x) => x.date },
+    { key: "vendor", label: "Vendor", type: "select", get: (x) => x.vendor },
+    { key: "currency", label: "Currency", type: "select", get: (x) => x.currency },
+    { key: "amount", label: "Amount", type: "number", get: (x) => x.amountMinor / 100 },
+    {
+      key: "source",
+      label: "Source",
+      type: "select",
+      options: [
+        { value: "manual", label: "Added by hand" },
+        { value: "bank_export", label: "Imported" },
+        { value: "stripe", label: "Stripe" },
+      ],
+      get: (x) => x.source,
+    },
+  ];
+  const rows = applyView(fin.expenses, view, fields, (x) => `${x.vendor} ${x.note ?? ""}`);
   const maxCat = Math.max(1, ...sums.byCat.map((x) => x.n));
 
   return (
@@ -63,47 +98,76 @@ const Finance = () => {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <section aria-label="Expenses" className="card flex min-w-0 flex-col">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-3.5">
-            <span className="text-[14px] font-semibold">Expenses</span>
-            <div className="flex flex-wrap gap-1">
-              {(["all", ...CATEGORIES] as const).map((c) => (
-                <button key={c} type="button" onClick={() => setCat(c)} className={`h-7 rounded-md px-2.5 text-[12px] capitalize ${cat === c ? "bg-surface-2 text-text shadow-card" : "text-text-3 hover:text-text"}`}>
-                  {c}
-                </button>
-              ))}
-            </div>
+        <section aria-label="Expenses" className="flex min-w-0 flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[15px] font-semibold">Expenses</span>
+            <ViewBar page="expenses" fields={fields} rows={fin.expenses} value={view} onChange={setView} placeholder="Vendor or note" />
           </div>
-          <div className="grid grid-cols-[96px_minmax(0,1fr)_110px_84px_100px] gap-3 border-b border-line-soft px-5 py-2 text-[12px] text-text-3">
-            <span>Date</span>
-            <span>Vendor</span>
-            <span>Category</span>
-            <span>Billing</span>
-            <span className="text-right">Amount</span>
-          </div>
-          <div className="max-h-[420px] overflow-y-auto">
-            {rows.map((x) => (
-              <div key={x.id} className="grid grid-cols-[96px_minmax(0,1fr)_110px_84px_100px] items-center gap-3 border-b border-line-soft px-5 py-2.5 text-[13px] last:border-b-0 hover:bg-surface-2/50">
-                <span className="num text-text-2">{x.date}</span>
-                <span className="truncate">{x.vendor}</span>
-                <span>
+          <DataTable<Expense>
+            id="expenses"
+            label="Expenses"
+            minWidth={640}
+            rows={rows}
+            rowKey={(x) => x.id}
+            defaultSort={{ key: "date", dir: "desc" }}
+            empty={<EmptyState title={fin.expenses.length ? "No expense matches these filters." : "No expenses yet. Add the first one below."} />}
+            footer={rows.length ? <span>{rows.length} expenses · {fmt(Math.round(rows.reduce((n, x) => n + (x.currency === "USD" ? x.amountMinor / USD_PER_EUR : x.amountMinor), 0)), "EUR")} in EUR at the planning rate</span> : null}
+            columns={[
+              { key: "date", header: "Date", width: "96px", sortValue: (x) => x.date, render: (x) => <span className="num text-text-2">{x.date}</span> },
+              {
+                key: "vendor",
+                header: "Vendor",
+                width: "minmax(0,1.4fr)",
+                sortValue: (x) => x.vendor.toLowerCase(),
+                render: (x) => (
+                  <span className="flex min-w-0 flex-col">
+                    <span className="truncate">{x.vendor}</span>
+                    {x.note ? <span className="truncate text-[12px] text-text-3">{x.note}</span> : null}
+                  </span>
+                ),
+              },
+              {
+                key: "category",
+                header: "Category",
+                width: "110px",
+                hideable: true,
+                sortValue: (x) => x.category,
+                render: (x) => (
                   <Pill hue={CATEGORY_HUE[x.category]} className="capitalize">
                     {x.category}
                   </Pill>
-                </span>
-                <span className="text-[12px] text-text-3">{x.recurring ? "Monthly" : "One-off"}</span>
-                <span className="num text-right">{fmt(x.amountMinor, x.currency)}</span>
-              </div>
-            ))}
-            {!rows.length ? <p className="m-0 px-5 py-6 text-[13px] text-text-3">No expenses in this category.</p> : null}
-          </div>
+                ),
+              },
+              { key: "billing", header: "Billing", width: "84px", hideable: true, sortValue: (x) => (x.recurring ? 0 : 1), render: (x) => <span className="text-[12px] text-text-3">{x.recurring ? "Monthly" : "One-off"}</span> },
+              { key: "amount", header: "Amount", width: "100px", align: "right", sortValue: (x) => (x.currency === "USD" ? x.amountMinor / USD_PER_EUR : x.amountMinor), render: (x) => <span className="num">{fmt(x.amountMinor, x.currency)}</span> },
+              ...(canEdit
+                ? [
+                    {
+                      key: "actions",
+                      header: "",
+                      width: "40px",
+                      render: (x: Expense) => (
+                        <RowMenu
+                          label={`Actions for ${x.vendor}`}
+                          items={[
+                            { label: "Edit", onSelect: () => setEditing(x) },
+                            { label: "Delete", danger: true, onSelect: () => remove(`${x.vendor} expense`, () => data.deleteExpense(x.id), load) },
+                          ]}
+                        />
+                      ),
+                    },
+                  ]
+                : []),
+            ]}
+          />
           <form
-            className={`${canEdit ? "flex" : "hidden"} flex-wrap items-end gap-2 border-t border-line px-5 py-4`}
+            className={`${canEdit ? "flex" : "hidden"} card flex-wrap items-end gap-2 px-4 py-3`}
+            aria-label="Add an expense"
             onSubmit={async (e) => {
               e.preventDefault();
               try {
-                await data.addExpense({ date: exp.date, vendor: exp.vendor, category: exp.category, amountMinor: Math.round(Number(exp.amount) * 100), currency: exp.currency, recurring: exp.recurring, note: null });
-                setExp({ ...exp, vendor: "", amount: "" });
+                await data.addExpense({ date: exp.date, vendor: exp.vendor, category: exp.category, amountMinor: Math.round(Number(exp.amount) * 100), currency: exp.currency, recurring: exp.recurring, note: exp.note.trim() || null });
+                setExp({ ...exp, vendor: "", amount: "", note: "" });
                 toast("Expense added", "good");
                 load();
               } catch (err) {
@@ -123,6 +187,7 @@ const Finance = () => {
               <option>EUR</option>
               <option>USD</option>
             </select>
+            <input className="input w-44" placeholder="Note (optional)" value={exp.note} onChange={(e) => setExp({ ...exp, note: e.target.value })} aria-label="Note" />
             <label className="flex h-9 items-center gap-2 text-[13px] text-text-2">
               <input type="checkbox" checked={exp.recurring} onChange={(e) => setExp({ ...exp, recurring: e.target.checked })} /> Monthly
             </label>
@@ -155,10 +220,19 @@ const Finance = () => {
             {[...fin.cash]
               .sort((a, b) => b.date.localeCompare(a.date))
               .map((c) => (
-                <div key={c.id} className="flex justify-between border-b border-line-soft py-2 text-[13px] last:border-b-0">
+                <div key={c.id} className="flex items-center justify-between gap-2 border-b border-line-soft py-2 text-[13px] last:border-b-0">
                   <span className="num text-text-2">{c.date}</span>
                   <span className="text-text-3">{c.source === "manual" ? "Manual" : "Bank export"}</span>
-                  <span className="num">{fmt(c.balanceMinor, "EUR")}</span>
+                  <span className="num ml-auto">{fmt(c.balanceMinor, "EUR")}</span>
+                  {canEdit ? (
+                    <RowMenu
+                      label={`Actions for the ${c.date} snapshot`}
+                      items={[
+                        { label: "Edit", onSelect: () => setEditingCash(c) },
+                        { label: "Delete", danger: true, onSelect: () => remove(`${c.date} cash snapshot`, () => data.deleteCashSnapshot(c.id), load) },
+                      ]}
+                    />
+                  ) : null}
                 </div>
               ))}
             <form
@@ -184,7 +258,93 @@ const Finance = () => {
           </section>
         </div>
       </div>
+      {editing ? <ExpenseEdit expense={editing} onClose={() => setEditing(null)} onSaved={load} /> : null}
+      {editingCash ? <CashEdit snapshot={editingCash} onClose={() => setEditingCash(null)} onSaved={load} /> : null}
     </div>
+  );
+};
+
+const ExpenseEdit = ({ expense, onClose, onSaved }: { expense: Expense; onClose: () => void; onSaved: () => void }) => {
+  const run = useRun();
+  const [f, setF] = useState({ date: expense.date, vendor: expense.vendor, category: expense.category, amount: String(expense.amountMinor / 100), currency: expense.currency, recurring: expense.recurring, note: expense.note ?? "" });
+  return (
+    <Modal open onClose={onClose} title={`Edit · ${expense.vendor}`}>
+      <form
+        className="grid gap-4 sm:grid-cols-2"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          const ok = await run(
+            () => data.updateExpense(expense.id, { date: f.date, vendor: f.vendor, category: f.category, amountMinor: Math.round(Number(f.amount) * 100), currency: f.currency, recurring: f.recurring, note: f.note.trim() || null }),
+            "Expense saved",
+          );
+          if (ok) {
+            onSaved();
+            onClose();
+          }
+        }}
+      >
+        <Field label="Vendor" wide>
+          <input className="input" required value={f.vendor} onChange={(e) => setF({ ...f, vendor: e.target.value })} />
+        </Field>
+        <Field label="Date">
+          <input className="input" type="date" required value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} />
+        </Field>
+        <Field label="Category">
+          <select className="input capitalize" value={f.category} onChange={(e) => setF({ ...f, category: e.target.value as Expense["category"] })}>
+            {CATEGORIES.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Amount">
+          <input className="input font-mono" type="number" step="0.01" min="0.01" required value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value })} />
+        </Field>
+        <Field label="Currency">
+          <select className="input" value={f.currency} onChange={(e) => setF({ ...f, currency: e.target.value as "EUR" | "USD" })}>
+            <option>EUR</option>
+            <option>USD</option>
+          </select>
+        </Field>
+        <Field label="Note" wide>
+          <input className="input" value={f.note} onChange={(e) => setF({ ...f, note: e.target.value })} placeholder="e.g. Annual plan, renews in March" />
+        </Field>
+        <label className="flex items-center gap-2 text-[13px] text-text-2 sm:col-span-2">
+          <input type="checkbox" checked={f.recurring} onChange={(e) => setF({ ...f, recurring: e.target.checked })} /> Charged every month
+        </label>
+        <button type="submit" className="btn-primary sm:col-span-2">
+          Save
+        </button>
+      </form>
+    </Modal>
+  );
+};
+
+const CashEdit = ({ snapshot, onClose, onSaved }: { snapshot: CashSnapshot; onClose: () => void; onSaved: () => void }) => {
+  const run = useRun();
+  const [f, setF] = useState({ date: snapshot.date, amount: String(snapshot.balanceMinor / 100) });
+  return (
+    <Modal open onClose={onClose} title="Edit cash snapshot">
+      <form
+        className="grid gap-4 sm:grid-cols-2"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (await run(() => data.updateCashSnapshot(snapshot.id, { date: f.date, balanceMinor: Math.round(Number(f.amount) * 100) }), "Snapshot saved")) {
+            onSaved();
+            onClose();
+          }
+        }}
+      >
+        <Field label="Date">
+          <input className="input" type="date" required value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} />
+        </Field>
+        <Field label="Balance (EUR)">
+          <input className="input font-mono" type="number" step="0.01" required value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value })} />
+        </Field>
+        <button type="submit" className="btn-primary sm:col-span-2">
+          Save
+        </button>
+      </form>
+    </Modal>
   );
 };
 

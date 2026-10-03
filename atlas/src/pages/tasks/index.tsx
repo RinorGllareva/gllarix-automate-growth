@@ -5,7 +5,9 @@ import { useUser } from "@/auth/AuthContext";
 import { usePageChrome } from "@/components/shell/PageChrome";
 import { Drawer, Modal, useToast } from "@/components/ui/overlay";
 import { EmptyState, Icon, ICONS, SkeletonRows } from "@/components/ui/primitives";
-import { data, type NotionRow, type TasksHome } from "@/data";
+import { RowMenu } from "@/components/ui/actions";
+import { CATEGORIES, PRIORITY_META, STATUS_META } from "@/config/tasks";
+import { data, type NotionRow, type TaskPriority, type TasksHome, type TaskStatus } from "@/data";
 import { isTypingTarget } from "@/lib/hotkeys";
 import { isoWeekKey } from "@/services/time";
 import { mapNotionRow } from "@/services/tasks";
@@ -58,6 +60,11 @@ const MoreMenu = () => {
           <Link role="menuitem" to="/automations" className={item}>
             Automations and templates
           </Link>
+          {user.role === "admin" ? (
+            <Link role="menuitem" to="/tasks/trash" className={item}>
+              Trash
+            </Link>
+          ) : null}
           {user.role === "admin" ? (
             <Link role="menuitem" to="/tasks/import" className={item}>
               {home.notionImportedAt ? `Notion imported ${home.notionImportedAt.slice(0, 10)}` : "Import from Notion…"}
@@ -117,7 +124,9 @@ const ListsRow = ({ spaceId, activeList }: { spaceId: string; activeList: string
   const entry = home.spaces.find((x) => x.space.id === spaceId);
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
+  const [editing, setEditing] = useState<{ id: string; name: string; was: string } | null>(null);
   if (!entry) return null;
+  const active = entry.lists.find((l) => l.id === activeList);
   const color = `var(--${entry.space.color})`;
   const chip = (on: boolean) => `flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[12px] ${on ? "text-text" : "text-text-2 hover:bg-surface-2/60 hover:text-text"}`;
   const tint = (on: boolean) => (on ? { background: `color-mix(in srgb, ${color} 18%, transparent)` } : undefined);
@@ -134,24 +143,63 @@ const ListsRow = ({ spaceId, activeList }: { spaceId: string; activeList: string
           aria-current={activeList === l.id ? "page" : undefined}
           className={chip(activeList === l.id)}
           style={tint(activeList === l.id)}
-          onContextMenu={async (e) => {
+          onContextMenu={(e) => {
             if (user.role !== "admin") return;
             e.preventDefault();
-            const next = window.prompt(`Rename "${l.name}" (or type ARCHIVE to archive it)`, l.name);
-            if (!next) return;
-            try {
-              if (next === "ARCHIVE") await data.archiveList(l.id);
-              else await data.renameList(l.id, next);
-              refresh();
-            } catch (err) {
-              toast((err as Error).message, "error");
-            }
+            setEditing({ id: l.id, name: l.name, was: l.name });
           }}
         >
           {l.name}
           <Count n={l.open} />
         </Link>
       ))}
+      {active && user.role === "admin" ? (
+        <RowMenu
+          label={`Actions for the ${active.name} list`}
+          items={[
+            { label: "Rename list", onSelect: () => setEditing({ id: active.id, name: active.name, was: active.name }) },
+            {
+              label: "Archive list",
+              danger: true,
+              onSelect: async () => {
+                if (!window.confirm(`Archive "${active.name}"? Its tasks stay searchable; the list leaves this row.`)) return;
+                try {
+                  await data.archiveList(active.id);
+                  toast(`${active.name} archived`, "good");
+                  refresh();
+                } catch (err) {
+                  toast((err as Error).message, "error");
+                }
+              },
+            },
+          ]}
+        />
+      ) : null}
+      <Modal open={!!editing} onClose={() => setEditing(null)} title={editing ? `Rename · ${editing.was}` : ""}>
+        {editing ? (
+          <form
+            className="flex flex-col gap-4"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                await data.renameList(editing.id, editing.name.trim());
+                setEditing(null);
+                refresh();
+              } catch (err) {
+                toast((err as Error).message, "error");
+              }
+            }}
+          >
+            <label className="flex flex-col gap-2">
+              <span className="field-label">List name</span>
+              <input autoFocus className="input" value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
+            </label>
+            <button type="submit" className="btn-primary" disabled={!editing.name.trim() || editing.name.trim() === editing.was}>
+              Save
+            </button>
+          </form>
+        ) : null}
+      </Modal>
       {adding ? (
         <form
           onSubmit={async (e: FormEvent) => {
@@ -212,10 +260,13 @@ const NewTaskModal = ({ open, onClose, defaultList }: { open: boolean; onClose: 
   const [title, setTitle] = useState("");
   const [listId, setListId] = useState(defaultList ?? lists[0]?.id ?? "");
   const [due, setDue] = useState("");
+  const blank = { status: "todo" as TaskStatus, priority: "normal" as TaskPriority, assigneeIds: [] as string[], startAt: "", estimate: "", category: "", description: "" };
+  const [more, setMore] = useState(blank);
   useEffect(() => {
     if (open) {
       setTitle("");
       setDue("");
+      setMore(blank);
       setListId(defaultList ?? lists[0]?.id ?? "");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -227,7 +278,18 @@ const NewTaskModal = ({ open, onClose, defaultList }: { open: boolean; onClose: 
         onSubmit={async (e) => {
           e.preventDefault();
           try {
-            const t = await data.createTask({ listId, title, dueAt: due || null });
+            const t = await data.createTask({
+              listId,
+              title,
+              dueAt: due || null,
+              status: more.status,
+              priority: more.priority,
+              assigneeIds: more.assigneeIds,
+              startAt: more.startAt || null,
+              estimateMinutes: more.estimate ? Math.round(Number(more.estimate) * 60) : null,
+              category: more.category || null,
+              descriptionMd: more.description,
+            });
             refresh();
             onClose();
             openTask(t.id);
@@ -256,6 +318,72 @@ const NewTaskModal = ({ open, onClose, defaultList }: { open: boolean; onClose: 
             <input type="date" className="input" value={due} onChange={(e) => setDue(e.target.value)} />
           </label>
         </div>
+        <div className="grid gap-3 sm:grid-cols-4">
+          <label className="flex flex-col gap-2">
+            <span className="field-label">Status</span>
+            <select className="input" value={more.status} onChange={(e) => setMore({ ...more, status: e.target.value as TaskStatus })}>
+              {(Object.keys(STATUS_META) as TaskStatus[]).map((s) => (
+                <option key={s} value={s}>
+                  {STATUS_META[s].label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-2">
+            <span className="field-label">Priority</span>
+            <select className="input" value={more.priority} onChange={(e) => setMore({ ...more, priority: e.target.value as TaskPriority })}>
+              {(Object.keys(PRIORITY_META) as TaskPriority[]).map((p) => (
+                <option key={p} value={p}>
+                  {PRIORITY_META[p].label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-2">
+            <span className="field-label">Start</span>
+            <input type="date" className="input" value={more.startAt} onChange={(e) => setMore({ ...more, startAt: e.target.value })} />
+          </label>
+          <label className="flex flex-col gap-2">
+            <span className="field-label">Estimate (h)</span>
+            <input type="number" min={0} step={0.5} className="input" value={more.estimate} onChange={(e) => setMore({ ...more, estimate: e.target.value })} />
+          </label>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-[1fr_200px]">
+          <div className="flex flex-col gap-2">
+            <span className="field-label">Owners</span>
+            <span className="flex flex-wrap gap-1.5">
+              {home.users.map((u) => {
+                const on = more.assigneeIds.includes(u.id);
+                return (
+                  <button
+                    key={u.id}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => setMore({ ...more, assigneeIds: on ? more.assigneeIds.filter((a) => a !== u.id) : [...more.assigneeIds, u.id] })}
+                    className={`h-7 rounded-full border px-2.5 text-[12px] ${on ? "border-ice bg-ice text-ice-ink" : "border-line-strong text-text-2 hover:text-text"}`}
+                  >
+                    {u.name.split(" ")[0]}
+                  </button>
+                );
+              })}
+            </span>
+          </div>
+          <label className="flex flex-col gap-2">
+            <span className="field-label">Category</span>
+            <select className="input" value={more.category} onChange={(e) => setMore({ ...more, category: e.target.value })}>
+              <option value="">None</option>
+              {(home.categories.length ? home.categories : CATEGORIES).map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <label className="flex flex-col gap-2">
+          <span className="field-label">Description</span>
+          <textarea className="input h-auto min-h-24 py-2" value={more.description} onChange={(e) => setMore({ ...more, description: e.target.value })} placeholder="What done looks like. Markdown works." />
+        </label>
         <div className="flex justify-end gap-3">
           <button type="button" className="btn-ghost" onClick={onClose}>
             Cancel
@@ -266,6 +394,55 @@ const NewTaskModal = ({ open, onClose, defaultList }: { open: boolean; onClose: 
         </div>
       </form>
     </Modal>
+  );
+};
+
+/** Trash (admin): deleted tasks for 30 days, with Restore. Subtasks come back with their parent. */
+const TrashView = () => {
+  const { refresh } = useTasks();
+  const toast = useToast();
+  const [rows, setRows] = useState<Awaited<ReturnType<typeof data.listDeletedTasks>> | null>(null);
+  const load = useCallback(() => data.listDeletedTasks().then(setRows, (e: Error) => toast(e.message, "error")), [toast]);
+  useEffect(() => {
+    load();
+  }, [load]);
+  if (!rows) return <SkeletonRows rows={5} />;
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1">
+        <h1 className="page-title m-0">Task trash</h1>
+        <p className="m-0 text-[13px] text-text-2">Deleted tasks stay here for 30 days. Restoring brings back the subtasks too.</p>
+      </div>
+      {!rows.length ? (
+        <EmptyState title="The trash is empty." />
+      ) : (
+        <div className="card flex flex-col">
+          {rows.map((r) => (
+            <div key={r.id} className="flex items-center gap-3 border-b border-line-soft px-4 py-2.5 text-[13px] last:border-b-0">
+              <span className="min-w-0 flex-1 truncate">{r.title}</span>
+              <span className="hidden text-[12px] text-text-3 sm:inline">{r.listName}</span>
+              <span className="w-28 text-right text-[12px] text-text-3">{r.daysLeft} day{r.daysLeft === 1 ? "" : "s"} left</span>
+              <button
+                type="button"
+                className="btn-outline h-8 text-[12px]"
+                onClick={async () => {
+                  try {
+                    await data.restoreTask(r.id);
+                    toast(`${r.title} restored`, "good");
+                    load();
+                    refresh();
+                  } catch (e) {
+                    toast((e as Error).message, "error");
+                  }
+                }}
+              >
+                Restore
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -493,6 +670,7 @@ const TasksModule = () => {
               <Route path="my-work" element={<ListView myWork title="My work" />} />
               <Route path="inbox" element={<InboxView />} />
               <Route path="import" element={<NotionImport />} />
+              <Route path="trash" element={<TrashView />} />
               <Route path=":id" element={<FullPageTask />} />
             </Routes>
           </div>

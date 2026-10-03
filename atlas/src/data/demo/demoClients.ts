@@ -50,6 +50,8 @@ const DAY = 86_400_000;
 
 /** The parts of the demo store the clients module reads and writes. */
 export interface ClientsStore {
+  /** Settings › Commissions (demoSettings); defaults from the price book. */
+  commissionRules?: { pct: number; months: number };
   /** Support tickets (demoSupport); open ones lower the health score. */
   tickets?: Pick<Ticket, "clientId" | "status">[];
   companies: Company[];
@@ -163,17 +165,20 @@ export const createDemoClients = <S extends ClientsStore>(ctx: Ctx<S>) => {
     }
     const owner = users.find((u) => u.id === deal.ownerId);
     if (!owner || (owner.role !== "bdr" && owner.role !== "closer")) return;
-    const already = s.commissions.filter((c) => c.dealId === deal.id && c.type === "recurring_commission").reduce((n, c) => n + (c.note?.startsWith("Annual") ? COMM_MONTHS : 1), 0);
+    // Founders can change the share and the months (Settings › Commissions); new lines use the current rule.
+    const pct = s.commissionRules?.pct ?? COMM_PCT;
+    const commMonths = s.commissionRules?.months ?? COMM_MONTHS;
+    const already = s.commissions.filter((c) => c.dealId === deal.id && c.type === "recurring_commission").reduce((n, c) => n + (c.note?.startsWith("Annual") ? commMonths : 1), 0);
     for (const line of inv.lines) {
       if (line.type !== "monthly" && line.type !== "annual") continue;
-      if (already >= COMM_MONTHS) break;
-      const months = line.type === "annual" ? COMM_MONTHS - already : 1;
+      if (already >= commMonths) break;
+      const months = line.type === "annual" ? commMonths - already : 1;
       const base = line.type === "annual" ? (line.amountMinor / 12) * months : line.amountMinor;
       s.commissions.push({
         id: uid("cm"), userId: owner.id, meetingId: null, dealId: deal.id, type: "recurring_commission",
-        amountMinor: Math.round(base * COMM_PCT), currency: inv.currency, status: "pending", period: at.slice(0, 7),
+        amountMinor: Math.round(base * pct), currency: inv.currency, status: "pending", period: at.slice(0, 7),
         earnableAt: iso(new Date(at).getTime() + 30 * DAY),
-        note: line.type === "annual" ? `Annual prepay: 10% of ${months} months' fees` : `10% of monthly fee · payment ${already + 1} of ${COMM_MONTHS}`,
+        note: line.type === "annual" ? `Annual prepay: ${Math.round(pct * 100)}% of ${months} months' fees` : `${Math.round(pct * 100)}% of monthly fee · payment ${already + 1} of ${commMonths}`,
         createdAt: at,
       });
     }
@@ -511,6 +516,7 @@ export const createDemoClients = <S extends ClientsStore>(ctx: Ctx<S>) => {
         companyName: companyOf(s, c)?.name ?? "—",
         contactName: contact ? `${contact.firstName} ${contact.lastName}`.trim() : null,
         contactEmail: contact?.email ?? null,
+        contact: contact ? { firstName: contact.firstName, lastName: contact.lastName, title: contact.title, email: contact.email, phone: contact.phone } : null,
         deal: { id: deal.id, brand: deal.brand, items: deal.items, pilot: deal.pilot, ownerId: deal.ownerId },
         ownerName: users.find((u) => u.id === deal.ownerId)?.name ?? null,
         plan: planText(deal, sub, finance),
@@ -552,6 +558,48 @@ export const createDemoClients = <S extends ClientsStore>(ctx: Ctx<S>) => {
       } else {
         Object.assign(step, done ? { done: true, doneAt: iso(), doneBy: user.id } : { done: false, doneAt: null, doneBy: null });
         audit(user.id, "client.onboarding", "client", c.id, null, { key, done });
+      }
+      await save();
+    },
+
+    async updateClientAccount(clientId, patch) {
+      const user = await viewer();
+      if (user.role !== "admin" && user.role !== "implementer") throw new AccessError(403);
+      if ((patch.ownerId !== undefined || patch.plan) && user.role !== "admin") throw new AccessError(403, "Founders change the owner and the plan.");
+      const s = await load();
+      const c = s.clients.find((x) => x.id === clientId);
+      if (!c) throw new AccessError(404);
+      if (patch.contact) {
+        const p = patch.contact;
+        if (!p.firstName.trim()) throw new Error("The contact needs a first name.");
+        if (p.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(p.email)) throw new Error("That email doesn't look right.");
+        const lead = leadOf(s, c);
+        let contact = s.contacts.find((x) => x.id === lead.primaryContactId);
+        if (!contact) {
+          contact = { id: uid("ct"), companyId: lead.companyId, firstName: "", lastName: "", title: null, email: null, emailStatus: "unknown", phone: null, phoneType: "unknown", phoneVerified: false } as unknown as Contact;
+          s.contacts.push(contact);
+          lead.primaryContactId = contact.id;
+        }
+        const before = { firstName: contact.firstName, lastName: contact.lastName, email: contact.email, phone: contact.phone };
+        Object.assign(contact, { firstName: p.firstName.trim(), lastName: p.lastName.trim(), title: p.title?.trim() || null, phone: p.phone?.trim() || null });
+        if ((p.email?.trim() || null) !== contact.email) Object.assign(contact, { email: p.email?.trim() || null, emailStatus: "unknown" });
+        audit(user.id, "client.contact_update", "client", c.id, before, p);
+      }
+      if (patch.ownerId !== undefined) {
+        if (!users.some((u) => u.id === patch.ownerId && u.active)) throw new Error("Pick someone on the team.");
+        const deal = dealOf(s, c);
+        audit(user.id, "client.owner_update", "client", c.id, { ownerId: deal.ownerId }, { ownerId: patch.ownerId });
+        deal.ownerId = patch.ownerId;
+      }
+      if (patch.plan) {
+        const sub = subOf(s, c);
+        if (!sub) throw new Error("This client has no subscription yet: it starts at go-live.");
+        const p = patch.plan;
+        if (!(p.monthlyMinor >= 0) || !(p.includedMinutes >= 0) || !(p.overageRateMinor >= 0)) throw new Error("Use zero or more.");
+        const before = { monthlyMinor: sub.monthlyMinor, includedMinutes: sub.includedMinutes, overageRateMinor: sub.overageRateMinor };
+        Object.assign(sub, { monthlyMinor: Math.round(p.monthlyMinor), includedMinutes: Math.round(p.includedMinutes), overageRateMinor: Math.round(p.overageRateMinor) });
+        if (!sub.pilot) sub.listMonthlyMinor = sub.monthlyMinor;
+        audit(user.id, "client.plan_update", "client", c.id, before, p);
       }
       await save();
     },

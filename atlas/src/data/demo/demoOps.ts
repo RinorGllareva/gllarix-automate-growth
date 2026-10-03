@@ -20,6 +20,7 @@ interface Ctx<S extends OpsStore> {
   viewer: () => Promise<User>;
   now: () => number;
   uid: (p: string) => string;
+  users: { id: string; name: string }[];
   audit: (userId: string | null, action: string, entity: string, entityId: string | null, before?: unknown, after?: unknown) => void;
 }
 
@@ -75,7 +76,8 @@ export const createDemoOps = <S extends OpsStore>(ctx: Ctx<S>) => {
       const user = await viewer();
       internal(user);
       const s = await ready();
-      return { sops: [...s.sops].sort((a, b) => a.num - b.num), checks: s.opsChecks, capacity: capacity(s), canEdit: user.role === "admin" };
+      const names = Object.fromEntries(ctx.users.map((u) => [u.id, u.name.split(" ")[0]]));
+      return { sops: [...s.sops].sort((a, b) => a.num - b.num), checks: s.opsChecks, names, capacity: capacity(s), canEdit: user.role === "admin" };
     },
 
     async updateSop(id, patch) {

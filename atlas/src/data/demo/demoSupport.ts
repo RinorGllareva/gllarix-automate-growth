@@ -8,6 +8,9 @@ import { AccessError, type Notification, type User } from "../types";
 export interface SupportStore {
   clients: Client[];
   companies: Company[];
+  /** To email replies to the client's main contact. */
+  leads: { id: string; primaryContactId: string | null }[];
+  contacts: { id: string; email: string | null }[];
   tickets?: Ticket[];
 }
 
@@ -125,7 +128,14 @@ export const createDemoSupport = <S extends SupportStore>(ctx: Ctx<S>) => {
       const tk = find(s, id);
       if (!input.text.trim()) throw new Error("Write something first.");
       const at = iso();
-      tk.messages.push({ id: uid("tm"), at, by: user.id, text: input.text.trim(), internal: input.internal });
+      // Replies go to the client's main contact by email (the sender picks them up with real email; demo records the address).
+      let emailedTo: string | null = null;
+      if (!input.internal) {
+        const client = s.clients.find((c) => c.id === tk.clientId);
+        const lead = client ? s.leads.find((l) => l.id === client.leadId) : undefined;
+        emailedTo = (lead?.primaryContactId ? s.contacts.find((c) => c.id === lead.primaryContactId)?.email : null) ?? null;
+      }
+      tk.messages.push({ id: uid("tm"), at, by: user.id, text: input.text.trim(), internal: input.internal, ...(input.internal ? {} : { emailedTo }) });
       if (!input.internal) {
         tk.firstResponseAt ??= at;
         if (tk.status === "open") tk.status = "waiting";
@@ -149,7 +159,20 @@ export const createDemoSupport = <S extends SupportStore>(ctx: Ctx<S>) => {
         if (patch.assigneeId && patch.assigneeId !== user.id) notify({ userId: patch.assigneeId, type: "task", text: `${user.name} gave you ticket ${tk.number}: ${tk.subject}`, href: `/support/${tk.id}` });
       }
       if (patch.priority) tk.priority = patch.priority;
-      audit(user.id, "ticket.update", "ticket", tk.id, before, { status: tk.status, assigneeId: tk.assigneeId, priority: tk.priority });
+      if (patch.subject !== undefined) {
+        if (!patch.subject.trim()) throw new Error("A ticket needs a subject.");
+        tk.subject = patch.subject.trim();
+      }
+      if (patch.category) {
+        if (!TICKET_CATEGORIES[patch.category]) throw new Error("Unknown category.");
+        tk.category = patch.category;
+      }
+      if (patch.channel) tk.channel = patch.channel;
+      if (patch.clientId && patch.clientId !== tk.clientId) {
+        if (!s.clients.some((c) => c.id === patch.clientId)) throw new AccessError(404);
+        tk.clientId = patch.clientId;
+      }
+      audit(user.id, "ticket.update", "ticket", tk.id, before, { status: tk.status, assigneeId: tk.assigneeId, priority: tk.priority, subject: tk.subject, category: tk.category, channel: tk.channel, clientId: tk.clientId });
       await save();
     },
   };

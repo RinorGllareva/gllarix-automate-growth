@@ -425,6 +425,27 @@ export const createDemoTime = <S extends TimeStore>(ctx: Ctx<S>) => {
       await save();
     },
 
+    async updateTimeEntry(id, patch) {
+      const user = await viewer();
+      const s = await load();
+      const e = s.timeEntries.find((x) => x.id === id);
+      if (!e) throw new AccessError(404);
+      if (e.userId !== user.id && user.role !== "admin") throw new AccessError(403, "You can edit your own time.");
+      if (isLocked(s, e.userId, e.startedAt)) throw new Error("That week is submitted. Ask an admin to reopen it first.");
+      if (patch.minutes !== undefined && (!Number.isFinite(patch.minutes) || patch.minutes <= 0 || patch.minutes > 24 * 60)) throw new Error("Hours must be between 0 and 24.");
+      if (patch.date !== undefined) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(patch.date)) throw new Error("Pick a day.");
+        const moved = `${patch.date}T12:00:00.000Z`;
+        if (isLocked(s, e.userId, moved)) throw new Error("That day's week is submitted.");
+        e.startedAt = moved;
+      }
+      if (patch.minutes !== undefined) e.minutes = Math.round(patch.minutes);
+      if (patch.category !== undefined) e.category = patch.category;
+      if (patch.billable !== undefined) e.billable = patch.billable;
+      if (patch.note !== undefined) e.note = patch.note?.trim() || null;
+      await save();
+    },
+
     async startTimerOn(link, category) {
       const user = await viewer();
       if (user.role === "viewer") throw new AccessError(403);

@@ -107,28 +107,50 @@ export const Drawer = ({
 };
 
 type ToastTone = "info" | "good" | "error";
+/** An optional button on the toast, e.g. Undo after a delete. Toasts with an action stay 10 s. */
+export interface ToastAction {
+  label: string;
+  run: () => void | Promise<void>;
+}
 interface ToastItem {
   id: number;
   text: string;
   tone: ToastTone;
+  action?: ToastAction;
 }
 
-const ToastContext = createContext<(text: string, tone?: ToastTone) => void>(() => undefined);
+const ToastContext = createContext<(text: string, tone?: ToastTone, action?: ToastAction) => void>(() => undefined);
 
 export const ToastProvider = ({ children }: { children: ReactNode }) => {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
-  const push = useCallback((text: string, tone: ToastTone = "info") => {
-    const id = Date.now() + Math.random();
-    setToasts((t) => [...t, { id, text, tone }]);
-    window.setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4000);
-  }, []);
+  const drop = useCallback((id: number) => setToasts((t) => t.filter((x) => x.id !== id)), []);
+  const push = useCallback(
+    (text: string, tone: ToastTone = "info", action?: ToastAction) => {
+      const id = Date.now() + Math.random();
+      setToasts((t) => [...t, { id, text, tone, action }]);
+      window.setTimeout(() => drop(id), action ? 10_000 : 4000);
+    },
+    [drop],
+  );
   return (
     <ToastContext.Provider value={push}>
       {children}
-      <div className="pointer-events-none fixed bottom-6 right-6 z-[60] flex flex-col gap-2" aria-live="polite">
+      <div className="pointer-events-none fixed bottom-20 right-4 z-[60] flex flex-col gap-2 lg:bottom-6 lg:right-6" aria-live="polite">
         {toasts.map((t) => (
           <Toast key={t.id} tone={t.tone}>
-            {t.text}
+            <span className="min-w-0 flex-1">{t.text}</span>
+            {t.action ? (
+              <button
+                type="button"
+                className="shrink-0 rounded-md px-2 py-1 text-[13px] font-medium text-cyan hover:bg-surface-2"
+                onClick={async () => {
+                  drop(t.id);
+                  await t.action!.run();
+                }}
+              >
+                {t.action.label}
+              </button>
+            ) : null}
           </Toast>
         ))}
       </div>
@@ -142,7 +164,7 @@ export const Toast = ({ tone = "info", children }: { tone?: ToastTone; children:
   const dot = { info: "bg-cyan", good: "bg-mint", error: "bg-coral" }[tone];
   return (
     <div className="pointer-events-auto flex min-w-72 items-center gap-3 border border-line-strong rounded-lg bg-surface px-4 py-3 text-[13px]">
-      <span className={`h-2 w-2 shrink-0 ${dot}`} aria-hidden="true" />
+      <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} aria-hidden="true" />
       {children}
     </div>
   );

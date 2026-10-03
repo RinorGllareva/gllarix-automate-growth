@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useUser } from "@/auth/AuthContext";
+import { useToast } from "@/components/ui/overlay";
 import { Icon } from "@/components/ui/primitives";
 import { MEETING_BONUS_MINOR, CASH_RESERVE_EUR } from "@/config/targets";
 import { COMPETITOR_CHECK_DAYS } from "@/config/marketing";
@@ -99,11 +100,16 @@ interface Item {
   text: string;
   to: string;
   tone: "coral" | "amber" | "cyan" | "lavender";
+  /** Decide here without leaving Today (each one also links to its page). */
+  inline?: { key: string; label: string; actions: { label: string; run: () => Promise<unknown>; done: string; danger?: boolean }[] }[];
 }
 
 /** Founders: one list of decisions waiting, from every module. Each line links to where it's decided. */
 export const FounderDecisions = ({ stats }: { stats: TodayStats }) => {
   const [items, setItems] = useState<Item[] | null>(null);
+  const [open, setOpen] = useState<string | null>(null);
+  const [reload, setReload] = useState(0);
+  const toast = useToast();
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -128,11 +134,36 @@ export const FounderDecisions = ({ stats }: { stats: TodayStats }) => {
       }
       if (invoices.status === "fulfilled") {
         const late = invoices.value.filter((i) => (dunningStep(i, t)?.days ?? -1) >= 3);
-        if (late.length) out.push({ n: late.length, text: `late invoice${late.length > 1 ? "s" : ""} need a reminder or a call`, to: "/payments", tone: "coral" });
+        if (late.length)
+          out.push({
+            n: late.length,
+            text: `late invoice${late.length > 1 ? "s" : ""} need a reminder or a call`,
+            to: "/payments",
+            tone: "coral",
+            inline: late.map((i) => ({
+              key: i.id,
+              label: `${i.companyName} · ${(i.totalMinor / 100).toLocaleString("en-US")} ${i.currency}`,
+              actions: [{ label: "Send reminder", run: () => data.sendInvoiceReminder(i.id), done: `Reminder queued to ${i.companyName}` }],
+            })),
+          });
       }
       if (decisions.status === "fulfilled") {
         const spends = decisions.value.filter((d) => d.source === "spend" && d.status.startsWith("proposed"));
-        if (spends.length) out.push({ n: spends.length, text: `proposed spend${spends.length > 1 ? "s" : ""} to agree on`, to: "/roi", tone: "cyan" });
+        if (spends.length)
+          out.push({
+            n: spends.length,
+            text: `proposed spend${spends.length > 1 ? "s" : ""} to agree on`,
+            to: "/roi",
+            tone: "cyan",
+            inline: spends.map((d) => ({
+              key: d.id,
+              label: d.title,
+              actions: [
+                { label: "Agree", run: () => data.decideSpend(d.id, "agreed", "Agreed from Today"), done: "Spend agreed" },
+                { label: "Reject", run: () => data.decideSpend(d.id, "rejected", "Rejected from Today"), done: "Spend rejected", danger: true },
+              ],
+            })),
+          });
         const review = decisions.value.filter((d) => d.reviewDate && d.reviewDate <= new Date(t).toISOString().slice(0, 10) && !/^(done|closed|rejected)/i.test(d.status));
         if (review.length) out.push({ n: review.length, text: `decision${review.length > 1 ? "s are" : " is"} due for review`, to: "/advisor", tone: "cyan" });
       }
@@ -144,7 +175,21 @@ export const FounderDecisions = ({ stats }: { stats: TodayStats }) => {
       }
       if (hiring.status === "fulfilled") {
         const decide = hiring.value.candidates.filter((c) => c.status === "trial" || c.status === "offer");
-        if (decide.length) out.push({ n: decide.length, text: `candidate${decide.length > 1 ? "s" : ""} at trial week or offer`, to: "/hiring", tone: "lavender" });
+        if (decide.length)
+          out.push({
+            n: decide.length,
+            text: `candidate${decide.length > 1 ? "s" : ""} at trial week or offer`,
+            to: "/hiring",
+            tone: "lavender",
+            inline: decide.map((c) => ({
+              key: c.id,
+              label: `${c.name} · ${c.status === "trial" ? "trial week" : "offer"}`,
+              actions: [
+                ...(c.status === "trial" ? [{ label: "Make an offer", run: () => data.updateCandidate(c.id, { status: "offer" }), done: `${c.name} → offer` }] : []),
+                { label: "To the bench", run: () => data.updateCandidate(c.id, { status: "bench" }), done: `${c.name} → bench` },
+              ],
+            })),
+          });
       }
       if (markets.status === "fulfilled") {
         const stale = markets.value.competitors.filter((c) => t - new Date(c.lastCheckedAt).getTime() > COMPETITOR_CHECK_DAYS * DAY);
@@ -169,7 +214,7 @@ export const FounderDecisions = ({ stats }: { stats: TodayStats }) => {
     return () => {
       alive = false;
     };
-  }, [stats.meetingsAwaitingApproval]);
+  }, [stats.meetingsAwaitingApproval, reload]);
 
   return (
     <section aria-label="Needs a founder" className="card flex flex-col gap-2.5 px-5 py-[18px]">
@@ -178,13 +223,49 @@ export const FounderDecisions = ({ stats }: { stats: TodayStats }) => {
         <span className="text-[13px] text-text-3">Checking every module…</span>
       ) : items.length ? (
         items.map((i) => (
-          <Link key={i.text} to={i.to} className="group flex items-start gap-2.5 text-[13px] hover:text-text">
-            <span className="num w-6 shrink-0 text-right font-semibold" style={{ color: `var(--${i.tone})` }}>
-              {i.n}
-            </span>
-            <span className="min-w-0 flex-1 text-text-2 group-hover:text-text">{i.text}</span>
-            <Icon d="M5 12h14M13 6l6 6-6 6" size={14} className="mt-0.5 shrink-0 text-text-3 opacity-0 group-hover:opacity-100" />
-          </Link>
+          <div key={i.text} className="flex flex-col gap-1.5">
+            <div className="flex items-start gap-2.5 text-[13px]">
+              <span className="num w-6 shrink-0 text-right font-semibold" style={{ color: `var(--${i.tone})` }}>
+                {i.n}
+              </span>
+              <Link to={i.to} className="group flex min-w-0 flex-1 items-start gap-2 text-text-2 hover:text-text">
+                <span className="min-w-0 flex-1">{i.text}</span>
+                <Icon d="M5 12h14M13 6l6 6-6 6" size={14} className="mt-0.5 shrink-0 text-text-3 opacity-0 group-hover:opacity-100" />
+              </Link>
+              {i.inline?.length ? (
+                <button type="button" className="shrink-0 text-[12px] text-cyan hover:underline" aria-expanded={open === i.text} onClick={() => setOpen(open === i.text ? null : i.text)}>
+                  {open === i.text ? "Close" : "Decide here"}
+                </button>
+              ) : null}
+            </div>
+            {open === i.text && i.inline ? (
+              <div className="ml-8 flex flex-col gap-1.5 rounded-lg bg-inset px-3 py-2">
+                {i.inline.map((x) => (
+                  <div key={x.key} className="flex flex-wrap items-center gap-2 text-[12px]">
+                    <span className="min-w-0 flex-1 truncate text-text-2">{x.label}</span>
+                    {x.actions.map((a) => (
+                      <button
+                        key={a.label}
+                        type="button"
+                        className={`btn-outline h-7 px-2.5 text-[12px] ${a.danger ? "text-coral" : ""}`}
+                        onClick={async () => {
+                          try {
+                            await a.run();
+                            toast(a.done, "good");
+                            setReload((n) => n + 1);
+                          } catch (e) {
+                            toast((e as Error).message, "error");
+                          }
+                        }}
+                      >
+                        {a.label}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
         ))
       ) : (
         <span className="text-[13px] text-text-2">Nothing is waiting for a decision.</span>

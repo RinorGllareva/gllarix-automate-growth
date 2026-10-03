@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useUser } from "@/auth/AuthContext";
 import { usePageChrome } from "@/components/shell/PageChrome";
 import { EmptyState, SkeletonRows, StatusChip } from "@/components/ui/primitives";
 import { USD_PER_EUR } from "@/config/targets";
 import { data, type DailyBdrReport, type KpiRow, type User, type WeeklyReport } from "@/data";
 import { downloadText } from "@/lib/format";
-import { isoWeekKey, localDateKey, shiftWeek } from "@/services/time";
+import { canAccess } from "@/lib/nav";
+import { rangeKey } from "@/services/reports";
+import { isoWeekKey, localDateKey, shiftDateKey, shiftWeek } from "@/services/time";
 
 const FUNNEL_TONES = ["bg-line-button", "bg-cyan-line", "bg-text-3", "bg-cyan", "bg-mint", "bg-lavender"];
 const pct = (v: number | null) => (v === null ? "—" : `${Math.round(v * 100)}%`);
@@ -129,9 +131,10 @@ const Reports = () => {
   const user = useUser();
   const isAdmin = user.role === "admin";
   const [params, setParams] = useSearchParams();
-  const kind = params.get("month") ? "month" : "week";
+  const kind: "week" | "month" | "range" = params.get("range") ? "range" : params.get("month") ? "month" : "week";
   const todayKey = localDateKey(Date.now(), user.timezone);
   const key = params.get(kind) ?? (kind === "week" ? isoWeekKey(todayKey) : todayKey.slice(0, 7));
+  const [rangeFrom, rangeTo] = kind === "range" ? key.split("..") : [shiftDateKey(todayKey, -29), todayKey];
   const person = isAdmin ? (params.get("person") ?? "team") : undefined;
   const [report, setReport] = useState<WeeklyReport | null>(null);
   const [daily, setDaily] = useState<DailyBdrReport | null>(null);
@@ -175,6 +178,20 @@ const Reports = () => {
     downloadText(`atlas-report-${report.period.key}.csv`, rows.map((r) => r.map((c) => (/[",]/.test(c) ? `"${c.replace(/"/g, '""')}"` : c)).join(",")).join("\n"));
   };
   const people = users.filter((u) => u.dailyCapacity && u.active);
+  // Every number opens the records behind it, on pages this role can open.
+  const drill = (k: string): string | null => {
+    const target =
+      k === "booked" || k === "held" || k === "meetings_booked" || k === "show_rate" || k === "approved_per_booked"
+        ? "meetings"
+        : k === "won" || k === "close_rate_held"
+          ? "pipeline"
+          : k === "dials" || k === "connects" || k === "conversations" || k === "dials_per_day" || k === "conversations_per_day" || k === "crm_same_day" || k === "followup_24h"
+            ? "team"
+            : null;
+    if (!target || !canAccess(user.role, target)) return null;
+    if (target === "team") return report.personId !== "team" ? `/team/${report.personId}` : "/team";
+    return `/${target}`;
+  };
   const minutesAgo = Math.max(0, Math.round((Date.now() - new Date(report.computedAt).getTime()) / 60_000));
 
   return (
@@ -186,26 +203,35 @@ const Reports = () => {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div role="radiogroup" aria-label="Period" className="flex border border-line-strong">
-            {(["week", "month"] as const).map((k) => (
+            {(["week", "month", "range"] as const).map((k) => (
               <button
                 key={k}
                 type="button"
                 role="radio"
                 aria-checked={kind === k}
-                onClick={() => set({ week: null, month: k === "month" ? todayKey.slice(0, 7) : null })}
+                onClick={() => set({ week: null, month: k === "month" ? todayKey.slice(0, 7) : null, range: k === "range" ? rangeKey(shiftDateKey(todayKey, -29), todayKey) : null })}
                 className={`h-9 px-3.5 text-[11px] uppercase tracking-[0.2em] ${kind === k ? "bg-ice text-ice-ink" : "text-text-2 hover:text-text"}`}
               >
                 {k}
               </button>
             ))}
           </div>
-          <button type="button" className="btn-outline h-9 px-3" aria-label="Previous period" onClick={() => set({ [kind]: kind === "week" ? shiftWeek(key, -1) : shiftMonth(key, -1) })}>
-            ←
-          </button>
-          <span className="min-w-40 text-center text-[13px] text-text-2">{report.period.label}</span>
-          <button type="button" className="btn-outline h-9 px-3" aria-label="Next period" onClick={() => set({ [kind]: kind === "week" ? shiftWeek(key, 1) : shiftMonth(key, 1) })}>
-            →
-          </button>
+          {kind === "range" ? (
+            <>
+              <input type="date" className="input h-9 w-auto" aria-label="From" value={rangeFrom} max={rangeTo} onChange={(e) => e.target.value && set({ range: rangeKey(e.target.value, rangeTo) })} />
+              <input type="date" className="input h-9 w-auto" aria-label="To" value={rangeTo} min={rangeFrom} onChange={(e) => e.target.value && set({ range: rangeKey(rangeFrom, e.target.value) })} />
+            </>
+          ) : (
+            <>
+              <button type="button" className="btn-outline h-9 px-3" aria-label="Previous period" onClick={() => set({ [kind]: kind === "week" ? shiftWeek(key, -1) : shiftMonth(key, -1) })}>
+                ←
+              </button>
+              <span className="min-w-40 text-center text-[13px] text-text-2">{report.period.label}</span>
+              <button type="button" className="btn-outline h-9 px-3" aria-label="Next period" onClick={() => set({ [kind]: kind === "week" ? shiftWeek(key, 1) : shiftMonth(key, 1) })}>
+                →
+              </button>
+            </>
+          )}
           {isAdmin ? (
             <select aria-label="Person" className="input h-9 w-40" value={person} onChange={(e) => set({ person: e.target.value === "team" ? null : e.target.value })}>
               <option value="team">Whole team</option>
@@ -229,7 +255,13 @@ const Reports = () => {
           </span>
           {report.funnel.map((f, i) => (
             <div key={f.key} className="grid grid-cols-[110px_1fr_70px] items-center gap-3 text-[13px]">
-              <span className="text-text-2">{f.label}</span>
+              {drill(f.key) ? (
+                <Link to={drill(f.key)!} className="text-text-2 hover:text-cyan" title="Open the records behind this number">
+                  {f.label}
+                </Link>
+              ) : (
+                <span className="text-text-2">{f.label}</span>
+              )}
               <div className="h-6 bg-line-soft">
                 <div className={`h-6 ${FUNNEL_TONES[i]}`} style={{ width: `${Math.max(f.count ? 2 : 0, (f.count / top) * 100)}%` }} />
               </div>
@@ -248,13 +280,19 @@ const Reports = () => {
         <section aria-label="KPIs" className="card min-w-0">
           <div className="grid grid-cols-[minmax(0,1.6fr)_80px_minmax(0,1fr)_100px] gap-3 border-b border-line px-5 py-3 text-[12px] font-medium text-text-3 bg-surface-2">
             <span>KPI</span>
-            <span>{kind === "week" ? "This week" : "This month"}</span>
+            <span>{kind === "week" ? "This week" : kind === "month" ? "This month" : "In range"}</span>
             <span>Target</span>
             <span>Status</span>
           </div>
           {report.kpis.map((k) => (
             <div key={k.key} className="grid grid-cols-[minmax(0,1.6fr)_80px_minmax(0,1fr)_100px] items-center gap-3 border-b border-line-soft px-5 py-3 text-[13px] last:border-b-0">
-              <span>{k.label}</span>
+              {drill(k.key) ? (
+                <Link to={drill(k.key)!} className="hover:text-cyan" title="Open the records behind this number">
+                  {k.label}
+                </Link>
+              ) : (
+                <span>{k.label}</span>
+              )}
               <span className="num">{fmtKpi(k)}</span>
               <span className="text-text-2">{k.target}</span>
               <span>{k.status ? <StatusChip status={k.status} /> : <span className="text-text-3">—</span>}</span>
@@ -268,7 +306,13 @@ const Reports = () => {
           {report.gates.map((g) => (
             <div key={g.key} className="flex flex-col gap-1.5">
               <div className="flex justify-between gap-3 text-[13px]">
-                <span>{g.label}</span>
+                {canAccess(user.role, "clients") ? (
+                  <Link to="/clients" className="hover:text-cyan">
+                    {g.label}
+                  </Link>
+                ) : (
+                  <span>{g.label}</span>
+                )}
                 <span className={`num ${g.met ? "text-mint" : "text-text-2"}`}>{g.value}</span>
               </div>
               <div className="h-[3px] bg-line">
@@ -277,7 +321,7 @@ const Reports = () => {
               <span className="text-[12px] text-text-3">{g.note}</span>
             </div>
           ))}
-          <span className="text-[11px] text-text-3">Paying client = won deal with a paid deposit. Gate 3's churn check needs Clients (M7).</span>
+          <span className="text-[11px] text-text-3">Paying client = won deal with a paid deposit. Churn = clients lost in the last 90 days, per month, over the clients live 90 days ago.</span>
         </section>
       </div>
 

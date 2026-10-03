@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, useParams } from "react-router-dom";
-import { data, ROLE_LABEL, type AuditEntry, type User } from "@/data";
+import { data, type AuditEntry, type User } from "@/data";
 import { EmptyState, SkeletonRows } from "@/components/ui/primitives";
 import { Drawer } from "@/components/ui/overlay";
 import CadencesSection from "./admin/CadencesSection";
@@ -12,10 +12,21 @@ import PriceBookSection from "./admin/PriceBookSection";
 import SettingsSection from "./admin/SettingsSection";
 import AdvisorSection from "./admin/AdvisorSection";
 import CountryRulesSection from "./admin/CountryRulesSection";
+import TrashSection from "./admin/TrashSection";
+import UsersSection from "./admin/UsersSection";
+import FieldsSection from "./admin/FieldsSection";
+import EventsSection from "./admin/EventsSection";
+import ImportCenter from "./admin/ImportCenter";
+import { CommissionsSection, CompanySection } from "./admin/CompanySection";
 
 const SECTIONS = [
   { id: "users", label: "Users and roles", milestone: "M0" },
   { id: "settings", label: "Settings", milestone: "M1" },
+  { id: "company", label: "Company profile", milestone: "Apps" },
+  { id: "commissions", label: "Commission rules", milestone: "Apps" },
+  { id: "fields", label: "Fields", milestone: "Apps" },
+  { id: "import", label: "Import Center", milestone: "Apps" },
+  { id: "events", label: "Events and webhooks", milestone: "Apps" },
   { id: "country-rules", label: "Country rules", milestone: "M2" },
   { id: "scoring", label: "Scoring models", milestone: "M2" },
   { id: "cadences", label: "Cadences", milestone: "M3" },
@@ -25,6 +36,7 @@ const SECTIONS = [
   { id: "advisor", label: "AI co-founder", milestone: "M14" },
   { id: "integrations", label: "Integrations", milestone: "M3" },
   { id: "audit", label: "Audit log", milestone: "M0" },
+  { id: "trash", label: "Trash", milestone: "Apps" },
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number]["id"];
@@ -33,50 +45,6 @@ const formatTime = (iso: string) =>
   new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(
     new Date(iso),
   );
-
-const UsersSection = () => {
-  const [users, setUsers] = useState<User[] | null>(null);
-  useEffect(() => {
-    data.listUsers().then(setUsers);
-  }, []);
-  const cols = "grid-cols-[1.1fr_1.5fr_110px_1.2fr_90px_90px]";
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-end justify-between gap-4">
-        <h1 className="page-title m-0">Users and roles</h1>
-        <button type="button" className="btn-outline" disabled title="Invites need the Supabase backend">
-          Invite user →
-        </button>
-      </div>
-      <div className="card">
-        <div className={`grid ${cols} gap-2.5 border-b border-line px-4 py-3 text-[12px] font-medium text-text-3 bg-surface-2`}>
-          <span>Name</span>
-          <span>Email</span>
-          <span>Role</span>
-          <span>Timezone</span>
-          <span>Capacity</span>
-          <span>Status</span>
-        </div>
-        {users ? (
-          users.map((u) => (
-            <div key={u.id} className={`grid ${cols} h-[46px] items-center gap-2.5 border-b border-line-soft px-4 text-[13px] last:border-b-0`}>
-              <span>{u.name}</span>
-              <span className="truncate text-text-2">{u.email}</span>
-              <span>{ROLE_LABEL[u.role]}</span>
-              <span className="truncate font-mono text-[12px] text-text-2">{u.timezone}</span>
-              <span className="num">{u.dailyCapacity ?? "—"}</span>
-              <span className={`text-[12px] font-medium ${u.active ? "text-mint" : "text-amber"}`}>
-                {u.active ? "Active" : "Paused"}
-              </span>
-            </div>
-          ))
-        ) : (
-          <SkeletonRows rows={4} />
-        )}
-      </div>
-    </div>
-  );
-};
 
 const AuditSection = () => {
   const [entries, setEntries] = useState<AuditEntry[] | null>(null);
@@ -194,6 +162,18 @@ const Admin = () => {
           <AdvisorSection />
         ) : section === "integrations" ? (
           <IntegrationsSection />
+        ) : section === "company" ? (
+          <CompanySection />
+        ) : section === "commissions" ? (
+          <CommissionsSection />
+        ) : section === "fields" ? (
+          <FieldsSection />
+        ) : section === "import" ? (
+          <ImportCenter />
+        ) : section === "events" ? (
+          <EventsSection />
+        ) : section === "trash" ? (
+          <TrashSection />
         ) : current ? (
           <div className="flex flex-col gap-4">
             <h1 className="page-title m-0">{current.label}</h1>

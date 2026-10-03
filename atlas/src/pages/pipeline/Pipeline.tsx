@@ -8,6 +8,7 @@ import { BRAND_HUE, DEAL_STAGE_HUE, hueTint, hueVar } from "@/config/colors";
 import { LOST_REASONS } from "@/config/targets";
 import { BDR_MAX_STAGE, data, DEAL_STAGE_LABEL, DEAL_STAGES, type DealRow, type DealStage, type PipelineQuery, type User } from "@/data";
 import { localHHMM } from "@/services/time";
+import { canAccess } from "@/lib/nav";
 
 const BOARD: DealStage[] = DEAL_STAGES.filter((s) => s !== "lost");
 const STALE_DAYS = 14;
@@ -44,6 +45,9 @@ const Pipeline = () => {
   const [reason, setReason] = useState<string>(LOST_REASONS[0]);
   const [note, setNote] = useState("");
   const [dragOver, setDragOver] = useState<DealStage | null>(null);
+  const [q, setQ] = useState("");
+  // The accountant reads the pipeline value; deal pages aren't theirs, so cards don't link there.
+  const dealLinks = canAccess(user.role, "deals");
 
   const load = useCallback(() => {
     setError(null);
@@ -67,6 +71,8 @@ const Pipeline = () => {
     if (!canMove) return false;
     if (isAdmin) return true;
     if (row.deal.ownerId !== user.id || row.deal.stage === "won") return false;
+    // Reopening a lost deal: back into an early stage only.
+    if (row.deal.stage === "lost") return DEAL_STAGES.indexOf(stage) <= DEAL_STAGES.indexOf(BDR_MAX_STAGE);
     return stage === "lost" || DEAL_STAGES.indexOf(stage) <= DEAL_STAGES.indexOf(BDR_MAX_STAGE);
   };
 
@@ -83,7 +89,7 @@ const Pipeline = () => {
     }
     try {
       await data.moveDeal(row.deal.id, { stage, ...extra });
-      toast(`${row.company.name} → ${DEAL_STAGE_LABEL[stage]}`, "good");
+      toast(row.deal.stage === "lost" ? `${row.company.name} reopened in ${DEAL_STAGE_LABEL[stage]}` : `${row.company.name} → ${DEAL_STAGE_LABEL[stage]}`, "good");
       setPending(null);
       setNote("");
       load();
@@ -130,7 +136,12 @@ const Pipeline = () => {
       <div className="flex shrink-0 flex-wrap items-end justify-between gap-4">
         <h1 className="page-title m-0">Pipeline</h1>
         <div className="flex flex-wrap items-center gap-2">
-          <div role="radiogroup" aria-label="Brand" className="flex border border-line-strong">
+          <input type="search" className="input h-9 w-48" placeholder="Company or contact" aria-label="Search deals" value={q} onChange={(e) => setQ(e.target.value)} />
+          <label className="flex h-9 items-center gap-2 text-[12px] text-text-2">
+            <input type="checkbox" checked={!!query.includeLost} onChange={(e) => setQuery({ ...query, includeLost: e.target.checked })} />
+            Show lost
+          </label>
+          <div role="radiogroup" aria-label="Brand" className="flex overflow-hidden rounded-lg border border-line-strong">
             {(["both", "gllarix", "arcadian"] as const).map((b) => (
               <button
                 key={b}
@@ -159,8 +170,11 @@ const Pipeline = () => {
       {!canMove ? <span className="text-[12px] text-text-3">Read-only for your role.</span> : null}
 
       <div className="flex min-h-0 flex-1 gap-2.5 overflow-x-auto pb-1">
-        {BOARD.map((stage) => {
-          const cards = rows.filter((r) => r.deal.stage === stage).sort((a, b) => b.deal.setupMinor - a.deal.setupMinor);
+        {(query.includeLost ? [...BOARD, "lost" as DealStage] : BOARD).map((stage) => {
+          const needle = q.trim().toLowerCase();
+          const cards = rows
+            .filter((r) => r.deal.stage === stage && (!needle || `${r.company.name} ${r.contactName ?? ""} ${r.ownerName ?? ""}`.toLowerCase().includes(needle)))
+            .sort((a, b) => b.deal.setupMinor - a.deal.setupMinor);
           const won = stage === "won";
           const hue = DEAL_STAGE_HUE[stage];
           return (
@@ -206,14 +220,22 @@ const Pipeline = () => {
                       data-card={r.deal.id}
                       tabIndex={0}
                       draggable={canMove && (isAdmin || (r.deal.ownerId === user.id && r.deal.stage !== "won"))}
+                      title={stage === "lost" ? "Drag into a stage to reopen" : undefined}
                       onDragStart={(e) => e.dataTransfer.setData("text/plain", r.deal.id)}
                       onKeyDown={onCardKey(r)}
                       aria-label={`${r.company.name}, ${DEAL_STAGE_LABEL[stage]}. Shift and arrow keys move it.`}
                       className="group flex shrink-0 flex-col gap-1.5 rounded-md bg-surface-2 px-2.5 py-2 shadow-card outline-none hover:bg-[color-mix(in_srgb,var(--surface-2)_70%,var(--line-strong))] focus-visible:outline focus-visible:outline-1 focus-visible:outline-cyan"
                     >
-                      <Link to={`/deals/${r.deal.id}`} className="truncate text-[13px] font-medium leading-tight hover:text-cyan" draggable={false} title={r.company.name}>
-                        {r.company.name}
-                      </Link>
+                      {dealLinks ? (
+                        <Link to={`/deals/${r.deal.id}`} className="truncate text-[13px] font-medium leading-tight hover:text-cyan" draggable={false} title={r.company.name}>
+                          {r.company.name}
+                        </Link>
+                      ) : (
+                        <span className="truncate text-[13px] font-medium leading-tight" title={r.company.name}>
+                          {r.company.name}
+                        </span>
+                      )}
+                      {stage === "lost" && r.deal.lostReason ? <span className="truncate text-[11px] text-text-3">{r.deal.lostReason}</span> : null}
                       <div className="flex items-baseline justify-between gap-2">
                         <span className="font-mono text-[12px] text-text">{money(r.deal.setupMinor, r.deal.currency)}</span>
                         <span className="font-mono text-[11px] text-text-3">+{money(r.deal.monthlyMinor, r.deal.currency)}/mo</span>

@@ -97,6 +97,25 @@ export function DataTable<T>(p: Props<T>) {
   // A different table id (e.g. Time grouped another way) has its own remembered columns.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setHidden(readHidden(p.id, p.columns)), [p.id]);
+  // Columns that arrive later (custom fields load after the rows) get their default visibility too, unless the person
+  // already chose for this table.
+  const known = useRef(new Set(p.columns.map((c) => c.key)));
+  const columnKeys = p.columns.map((c) => c.key).join("|");
+  useEffect(() => {
+    const fresh = p.columns.filter((c) => !known.current.has(c.key));
+    if (!fresh.length) return;
+    fresh.forEach((c) => known.current.add(c.key));
+    let stored = false;
+    try {
+      stored = localStorage.getItem(STORE(p.id)) !== null;
+    } catch {
+      // storage blocked: use the defaults
+    }
+    if (stored) return;
+    const toHide = fresh.filter((c) => c.defaultHidden).map((c) => c.key);
+    if (toHide.length) setHidden((h) => new Set([...h, ...toHide]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [columnKeys, p.id]);
 
   useEffect(() => {
     if (!picker) return;

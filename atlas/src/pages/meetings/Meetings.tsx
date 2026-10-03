@@ -168,6 +168,8 @@ const Meetings = () => {
   const [calendarKey, setCalendarKey] = useState(0);
   const [booking, setBooking] = useState<{ date: string; time: string } | null | false>(false);
   const canBook = ["admin", "bdr", "closer"].includes(user.role);
+  const [statusFilter, setStatusFilter] = useState<MeetingStatus | "all">("all");
+  const [q, setQ] = useState("");
   const [team, setTeam] = useState<{ id: string; name: string }[]>([]);
   useEffect(() => {
     if (user.role === "admin") data.listUsers().then((us) => setTeam(us.filter((u) => u.active && u.role !== "viewer")));
@@ -203,6 +205,12 @@ const Meetings = () => {
   const [y, mo] = month.split("-").map(Number);
   const lastMonth = new Date(Date.UTC(y, mo - 2, 1)).toISOString().slice(0, 7);
   const cols = "grid-cols-[110px_minmax(0,1.6fr)_minmax(0,0.8fr)_120px_80px]";
+  const needle = q.trim().toLowerCase();
+  const rows = view.rows.filter(
+    (r) =>
+      (statusFilter === "all" || r.status === statusFilter) &&
+      (!needle || `${r.company.name} ${r.meeting.withWhom} ${r.bookedByName ?? ""} ${r.ownerName ?? ""}`.toLowerCase().includes(needle)),
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -299,6 +307,26 @@ const Meetings = () => {
         </div>
       ) : null}
 
+      {mode === "list" && user.role !== "viewer" && view.rows.length ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <input type="search" className="input h-9 w-56" placeholder="Company or person" aria-label="Search meetings" value={q} onChange={(e) => setQ(e.target.value)} />
+          <div role="radiogroup" aria-label="Status" className="flex flex-wrap gap-1.5">
+            {(["all", "upcoming", "to_hold", "to_approve", "approved", "no_show", "rejected"] as const).map((st) => (
+              <button
+                key={st}
+                type="button"
+                role="radio"
+                aria-checked={statusFilter === st}
+                onClick={() => setStatusFilter(st)}
+                className={`h-8 rounded-full border px-3 text-[12px] ${statusFilter === st ? "border-ice bg-ice text-ice-ink" : "border-line-strong text-text-2 hover:text-text"}`}
+              >
+                {st === "all" ? `All · ${view.rows.length}` : `${STATUS[st].label} · ${view.rows.filter((r) => r.status === st).length}`}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       {user.role === "viewer" ? (
         <EmptyState title="Your role sees meeting totals only. Ask an admin if you need the individual meetings." />
       ) : mode === "calendar" ? (
@@ -312,7 +340,7 @@ const Meetings = () => {
         <div className="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
           {/* Phones: one card per meeting, opening its page. */}
           <section aria-label="Meetings this week" className="flex flex-col gap-2 sm:hidden">
-            {view.rows.map((r) => {
+            {rows.map((r) => {
               const tz = r.company.timezone ?? user.timezone;
               return (
                 <Link key={r.meeting.id} to={`/meetings/${r.meeting.id}`} className="card flex items-center gap-3 p-3.5">
@@ -339,7 +367,7 @@ const Meetings = () => {
               <span>Status</span>
               <span>Bonus</span>
             </div>
-            {view.rows.map((r) => {
+            {rows.map((r) => {
               const tz = r.company.timezone ?? user.timezone;
               const active = selected?.meeting.id === r.meeting.id;
               return (

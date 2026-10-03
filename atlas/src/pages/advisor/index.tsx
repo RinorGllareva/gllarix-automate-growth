@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { Link, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import { Link, Route, Routes, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { RowMenu } from "@/components/ui/actions";
 import { useUser } from "@/auth/AuthContext";
 import { usePageChrome } from "@/components/shell/PageChrome";
 import { Drawer, useToast } from "@/components/ui/overlay";
@@ -19,25 +20,57 @@ const fmtCall = (name: string, args: Record<string, unknown>) => {
 };
 
 /** Threads list (left column, or a drawer on a phone). */
-const Threads = ({ home, activeId, onPick }: { home: AdvisorHome; activeId: string | null; onPick: () => void }) => {
+const Threads = ({ home, activeId, onPick, onChanged }: { home: AdvisorHome; activeId: string | null; onPick: () => void; onChanged: (deletedId?: string) => void }) => {
   const [q, setQ] = useState("");
+  const [renaming, setRenaming] = useState<{ id: string; title: string } | null>(null);
+  const toast = useToast();
+  const act = async (fn: () => Promise<unknown>, deletedId?: string) => {
+    try {
+      await fn();
+      onChanged(deletedId);
+    } catch (e) {
+      toast((e as Error).message, "error");
+    }
+  };
   const list = home.threads.filter((t) => !q || t.title.toLowerCase().includes(q.toLowerCase()));
   return (
     <nav aria-label="Threads" className="flex min-h-0 flex-col gap-2">
       <span className="label-caps px-1">Threads</span>
       <input className="input h-9 text-[13px]" placeholder="Search threads" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search threads" />
       <div className="flex min-h-0 flex-col gap-1 overflow-y-auto">
-        {list.map((t) => (
-          <Link
-            key={t.id}
-            to={`/advisor/${t.id}`}
-            onClick={onPick}
-            className={`flex flex-col gap-1 px-3 py-2.5 ${t.id === activeId ? "bg-ice text-ice-ink" : "text-text-2 hover:bg-surface hover:text-text"}`}
-          >
-            <span className="truncate text-[13px]">{t.title}</span>
-            <span className={`text-[10px] tracking-[0.18em] ${t.id === activeId ? "text-ice-ink" : t.kind === "alert" ? "text-amber" : "text-text-3"}`}>{t.meta}</span>
-          </Link>
-        ))}
+        {list.map((t) =>
+          renaming?.id === t.id ? (
+            <form
+              key={t.id}
+              className="flex gap-1 px-1 py-1"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const r = renaming;
+                setRenaming(null);
+                act(() => data.renameAdvisorThread(r.id, r.title));
+              }}
+            >
+              <input autoFocus aria-label="Thread title" className="input h-8 min-w-0 flex-1 text-[13px]" value={renaming.title} onChange={(e) => setRenaming({ ...renaming, title: e.target.value })} onKeyDown={(e) => e.key === "Escape" && setRenaming(null)} />
+              <button type="submit" className="btn-outline h-8 px-2 text-[12px]" disabled={!renaming.title.trim()}>
+                Save
+              </button>
+            </form>
+          ) : (
+            <div key={t.id} className={`group flex items-center ${t.id === activeId ? "bg-ice text-ice-ink" : "text-text-2 hover:bg-surface hover:text-text"}`}>
+              <Link to={`/advisor/${t.id}`} onClick={onPick} className="flex min-w-0 flex-1 flex-col gap-1 px-3 py-2.5">
+                <span className="truncate text-[13px]">{t.title}</span>
+                <span className={`text-[10px] tracking-[0.18em] ${t.id === activeId ? "text-ice-ink" : t.kind === "alert" ? "text-amber" : "text-text-3"}`}>{t.meta}</span>
+              </Link>
+              <RowMenu
+                label={`Actions for ${t.title}`}
+                items={[
+                  { label: "Rename", onSelect: () => setRenaming({ id: t.id, title: t.title }) },
+                  { label: "Delete", danger: true, onSelect: () => window.confirm(`Delete "${t.title}" and its messages?`) && act(() => data.deleteAdvisorThread(t.id), t.id) },
+                ]}
+              />
+            </div>
+          ),
+        )}
         {!list.length ? <span className="px-1 text-[12px] text-text-3">{q ? "No threads match." : "No threads yet."}</span> : null}
       </div>
     </nav>
@@ -324,6 +357,18 @@ const AdvisorPage = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [drawer, setDrawer] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  // "Ask about this" on a lead, deal or client opens here with the question filled in (sent only when you press Ask).
+  const [params, setParams] = useSearchParams();
+  useEffect(() => {
+    const ask = params.get("ask");
+    if (!ask) return;
+    setText(ask);
+    setParams({}, { replace: true });
+  }, [params, setParams]);
+  const threadsChanged = async (deletedId?: string) => {
+    setHome(await data.advisorHome());
+    if (deletedId && deletedId === threadId) navigate("/advisor", { replace: true });
+  };
 
   const loadHome = useCallback(async () => {
     try {
@@ -401,11 +446,11 @@ const AdvisorPage = () => {
   return (
     <div className="-mx-4 -my-5 sm:-mx-5 sm:-my-6 grid min-h-[calc(100vh-72px)] grid-cols-1 lg:-mx-10 lg:-my-8 lg:grid-cols-[220px_minmax(0,1fr)] 2xl:grid-cols-[220px_minmax(0,1fr)_290px]">
       <aside className="hidden flex-col gap-4 border-r border-line px-4 py-6 lg:flex">
-        <Threads home={home} activeId={threadId} onPick={() => undefined} />
+        <Threads home={home} activeId={threadId} onPick={() => undefined} onChanged={threadsChanged} />
         <MemoryReview home={home} onChange={loadHome} />
       </aside>
       <Drawer open={drawer} onClose={() => setDrawer(false)} title="Threads">
-        <Threads home={home} activeId={threadId} onPick={() => setDrawer(false)} />
+        <Threads home={home} activeId={threadId} onPick={() => setDrawer(false)} onChanged={threadsChanged} />
         <div className="mt-4">
           <MemoryReview home={home} onChange={loadHome} />
         </div>

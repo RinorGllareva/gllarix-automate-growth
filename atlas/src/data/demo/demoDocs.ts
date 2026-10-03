@@ -56,7 +56,7 @@ export const createDemoDocs = <S extends DocsStore>(ctx: Ctx<S>) => {
       const user = await viewer();
       const s = await load();
       const fresh = !s.docs;
-      const docs = rowsOf(s).sort((a, b) => a.title.localeCompare(b.title));
+      const docs = rowsOf(s).sort((a, b) => (a.order ?? 1e9) - (b.order ?? 1e9) || a.title.localeCompare(b.title));
       if (fresh) await save();
       const notion = docsOf(s).filter((d) => d.source === "notion" && !d.archived);
       return {
@@ -166,5 +166,5 @@ export const createDemoDocs = <S extends DocsStore>(ctx: Ctx<S>) => {
     },
   };
 
-  return { api };
+  return { api, docsOf };
 };

@@ -1,15 +1,20 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, Route, Routes, useNavigate } from "react-router-dom";
 import { useUser } from "@/auth/AuthContext";
 import { usePageChrome } from "@/components/shell/PageChrome";
-import { Avatar, EmptyState, Icon, ICONS, KpiCard, SkeletonRows, StageChip } from "@/components/ui/primitives";
+import { Avatar, EmptyState, KpiCard, SkeletonRows, StageChip } from "@/components/ui/primitives";
 import { DEAL_STAGE_HUE, hueVar } from "@/config/colors";
-import { data, DEAL_STAGE_LABEL, type DealRow, type DealStage } from "@/data";
+import { data, DEAL_STAGE_LABEL, type DealRow, type DealStage, type DiscountApproval } from "@/data";
+import { useRun } from "@/components/ui/actions";
 import { since } from "@/lib/format";
 import { toEurMinor } from "@/services/money";
 import { formatMoney } from "@/services/pricing";
 import { dealsSummary, formatByCurrency, groupByStage, quoteProgress, type QuoteProgress } from "@/services/deals";
 import { DataTable } from "@/components/DataTable";
+import { useCustomColumns } from "@/components/CustomFields";
+import { ViewBar } from "@/components/ViewBar";
+import type { ViewState } from "@/data";
+import { applyView, EMPTY_VIEW, type ViewField } from "@/services/views";
 import DealBuilder, { NewDeal } from "./DealBuilder";
 
 const STEPS: { key: Exclude<QuoteProgress, "none">; label: string }[] = [
@@ -53,51 +58,112 @@ const nextStep = (r: DealRow, p: QuoteProgress, tz: string) => {
 
 const thisMonth = () => new Date().toISOString().slice(0, 7);
 
+/** Founders: discounts above the cap wait here for the other founder. */
+const DiscountApprovals = ({ rows, onChanged }: { rows: DealRow[]; onChanged: () => void }) => {
+  const run = useRun();
+  const [pending, setPending] = useState<DiscountApproval[]>([]);
+  const [names, setNames] = useState<Record<string, string>>({});
+  const load = useCallback(() => data.pendingDiscounts().then(setPending, () => setPending([])), []);
+  useEffect(() => {
+    load();
+    data.listUsers().then((u) => setNames(Object.fromEntries(u.map((x) => [x.id, x.name]))), () => undefined);
+  }, [load]);
+  if (!pending.length) return null;
+  const company = (dealId: string) => rows.find((r) => r.deal.id === dealId)?.company.name ?? "A deal";
+  return (
+    <section aria-label="Discounts waiting for approval" className="card flex flex-col gap-2 border-amber/40 p-4">
+      <span className="text-[14px] font-semibold">
+        {pending.length} discount{pending.length > 1 ? "s" : ""} waiting for your OK
+      </span>
+      {pending.map((a) => (
+        <div key={a.id} className="flex flex-wrap items-center gap-3 text-[13px]">
+          <Link to={`/deals/${a.dealId}`} className="min-w-0 flex-1 truncate hover:text-cyan">
+            <span className="font-medium">{company(a.dealId)}</span>
+            <span className="text-text-2">
+              {" "}
+              · {a.pct}% asked by {names[a.requestedBy] ?? "someone"}
+              {a.note ? ` · "${a.note}"` : ""}
+            </span>
+          </Link>
+          <button type="button" className="btn-primary h-8 text-[12px]" onClick={async () => (await run(() => data.decideDiscount(a.id, true), `${a.pct}% approved`)) && (load(), onChanged())}>
+            Approve
+          </button>
+          <button type="button" className="btn-outline h-8 text-[12px]" onClick={async () => (await run(() => data.decideDiscount(a.id, false), "Discount rejected")) && (load(), onChanged())}>
+            Reject
+          </button>
+        </div>
+      ))}
+    </section>
+  );
+};
+
+const dealId = (r: DealRow) => r.deal.id;
+
 /** /deals: every deal grouped by stage, with what the client pays, where the quote is and the next step. */
 const DealsList = () => {
   const user = useUser();
   const navigate = useNavigate();
   const [rows, setRows] = useState<DealRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [q, setQ] = useState("");
-  const [brand, setBrand] = useState<"all" | "gllarix" | "arcadian">("all");
-  const [owner, setOwner] = useState("all");
+  const [view, setView] = useState<ViewState>(EMPTY_VIEW);
   const [showClosed, setShowClosed] = useState(false);
+  const custom = useCustomColumns<DealRow>("deal", rows, dealId);
   const [folded, setFolded] = useState<Set<DealStage>>(new Set());
   useEffect(() => {
     data.listDeals().then(setRows).catch((e: Error) => setError(e.message));
   }, []);
   usePageChrome({ context: rows ? `${rows.length} deals` : "Deals" });
 
-  const owners = useMemo(() => [...new Map((rows ?? []).filter((r) => r.deal.ownerId).map((r) => [r.deal.ownerId!, r.ownerName ?? "—"])).entries()], [rows]);
   const summary = useMemo(() => (rows ? dealsSummary(rows, thisMonth()) : null), [rows]);
 
   if (error) return <EmptyState title={error} />;
   if (!rows || !summary) return <SkeletonRows rows={8} />;
 
-  const needle = q.trim().toLowerCase();
-  const shown = rows.filter(
-    (r) =>
-      (brand === "all" || r.deal.brand === brand) &&
-      (owner === "all" || r.deal.ownerId === owner) &&
-      (showClosed || r.deal.stage !== "lost") &&
-      (showClosed || r.deal.stage !== "won" || (r.deal.wonAt ?? "").slice(0, 7) === thisMonth()) &&
-      (!needle || r.company.name.toLowerCase().includes(needle) || (r.contactName ?? "").toLowerCase().includes(needle)),
+  const fields: ViewField<DealRow>[] = [
+    {
+      key: "brand",
+      label: "Brand",
+      type: "select",
+      options: [
+        { value: "gllarix", label: "Gllarix" },
+        { value: "arcadian", label: "Arcadian" },
+      ],
+      get: (r) => r.deal.brand,
+    },
+    { key: "stage", label: "Stage", type: "select", options: Object.entries(DEAL_STAGE_LABEL).map(([value, label]) => ({ value, label })), get: (r) => r.deal.stage },
+    ...(user.role === "admin" || user.role === "viewer" ? [{ key: "owner", label: "Owner", type: "select" as const, get: (r: DealRow) => r.ownerName ?? "—" }] : []),
+    { key: "market", label: "Market", type: "select", get: (r) => r.deal.market.toUpperCase() },
+    { key: "pilot", label: "Pilot", type: "select", options: [{ value: "yes", label: "Pilot" }, { value: "no", label: "Not a pilot" }], get: (r) => (r.deal.pilot ? "yes" : "no") },
+    { key: "setup", label: "Setup (EUR)", type: "number", get: (r) => toEurMinor(r.deal.setupMinor, r.deal.currency) / 100 },
+    { key: "updated", label: "Updated", type: "date", get: (r) => r.deal.updatedAt.slice(0, 10) },
+    ...custom.viewFields,
+  ];
+  // A stage filter shows those stages whatever their age; otherwise lost and older won deals hide unless asked for.
+  const stageFiltered = view.filters.some((f) => f.key === "stage" && f.values?.length);
+  const shown = applyView(rows, view, fields, (r) => `${r.company.name} ${r.contactName ?? ""}`).filter(
+    (r) => stageFiltered || ((showClosed || r.deal.stage !== "lost") && (showClosed || r.deal.stage !== "won" || (r.deal.wonAt ?? "").slice(0, 7) === thisMonth())),
   );
   const groups = groupByStage(shown);
   const clear = () => {
-    setQ("");
-    setBrand("all");
-    setOwner("all");
+    setView(EMPTY_VIEW);
     setShowClosed(true);
   };
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="page-title m-0">Deals and quotes</h1>
-        <p className="m-0 text-[14px] text-text-2">Every deal, what the client pays, where its quote is and what to do next. Open a deal to build or send its quote.</p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <h1 className="page-title m-0">Deals and quotes</h1>
+          <p className="m-0 text-[14px] text-text-2">Every deal, what the client pays, where its quote is and what to do next. Open a deal to build or send its quote.</p>
+        </div>
+        {user.role !== "viewer" ? (
+          <Link to="/deals/new" className="btn-primary">
+            + New deal
+          </Link>
+        ) : null}
       </div>
+
+      {user.role === "admin" ? <DiscountApprovals rows={rows} onChanged={() => data.listDeals().then(setRows)} /> : null}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <KpiCard title="Open pipeline · setup" value={formatByCurrency(summary.openSetup, true)} caption={`${summary.openCount} open deals · ${formatByCurrency(summary.openMonthly, true)}/mo recurring`} tone="cyan" />
@@ -107,27 +173,7 @@ const DealsList = () => {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <label className="relative flex min-w-[240px] flex-1 items-center sm:max-w-[320px]">
-          <Icon d={ICONS.search} size={15} className="pointer-events-none absolute left-3 text-text-3" />
-          <input className="input pl-9" placeholder="Search company or contact" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search deals" />
-        </label>
-        <div role="radiogroup" aria-label="Brand" className="flex rounded-lg bg-inset p-0.5">
-          {(["all", "gllarix", "arcadian"] as const).map((b) => (
-            <button key={b} type="button" role="radio" aria-checked={brand === b} onClick={() => setBrand(b)} className={`h-8 rounded-md px-3 text-[13px] ${brand === b ? "bg-surface-2 text-text shadow-card" : "text-text-2 hover:text-text"}`}>
-              {b === "all" ? "Both brands" : b === "gllarix" ? "Gllarix" : "Arcadian"}
-            </button>
-          ))}
-        </div>
-        {user.role === "admin" || user.role === "viewer" ? (
-          <select className="input w-auto" value={owner} onChange={(e) => setOwner(e.target.value)} aria-label="Owner">
-            <option value="all">Every owner</option>
-            {owners.map(([id, name]) => (
-              <option key={id} value={id}>
-                {name}
-              </option>
-            ))}
-          </select>
-        ) : null}
+        <ViewBar page="deals" fields={fields} rows={rows} value={view} onChange={setView} placeholder="Search company or contact" />
         <label className="ml-auto flex items-center gap-2 text-[13px] text-text-2">
           <input type="checkbox" checked={showClosed} onChange={(e) => setShowClosed(e.target.checked)} />
           Show lost and older won deals
@@ -223,6 +269,7 @@ const DealsList = () => {
               sortValue: (r) => r.deal.updatedAt,
               render: (r) => <span className="num text-[12px] text-text-3">{since(r.deal.updatedAt)}</span>,
             },
+            ...custom.columns,
           ]}
         />
       ) : (

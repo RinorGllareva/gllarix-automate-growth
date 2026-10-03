@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useToast } from "@/components/ui/overlay";
+import { Field, RowMenu, useRun } from "@/components/ui/actions";
+import { Modal, useToast } from "@/components/ui/overlay";
 import { SkeletonRows } from "@/components/ui/primitives";
 import { TEMPLATE_VARIABLES } from "@/config/emailTemplates";
 import { CADENCE_LABEL, QUEUE } from "@/config/queue";
-import { data, type EmailTemplate } from "@/data";
+import { data, type EmailTemplate, type NewTemplateInput } from "@/data";
 import { validateTemplate } from "@/services/templates";
 
 /** Admin › Cadences (admin/05_CADENCES.md): cadence steps and the template library with preview. */
@@ -11,7 +12,9 @@ const CadencesSection = () => {
   const toast = useToast();
   const [templates, setTemplates] = useState<EmailTemplate[] | null>(null);
   const [key, setKey] = useState<string | null>(null);
-  const [draft, setDraft] = useState({ subject: "", body: "" });
+  const [draft, setDraft] = useState({ name: "", subject: "", body: "" });
+  const [creating, setCreating] = useState<(NewTemplateInput & { copyOf?: string }) | null>(null);
+  const run = useRun();
   const [preview, setPreview] = useState<{ subject: string; body: string; problems: string[]; leadName: string | null } | null>(null);
 
   const load = () =>
@@ -25,14 +28,29 @@ const CadencesSection = () => {
 
   const current = templates?.find((t) => t.key === key) ?? null;
   useEffect(() => {
-    if (current) setDraft({ subject: current.subject, body: current.body });
+    if (current) setDraft({ name: current.name, subject: current.subject, body: current.body });
   }, [current]);
   useEffect(() => {
     if (key) data.previewTemplate(key).then(setPreview);
   }, [key, templates]);
 
   const errors = current ? validateTemplate(draft.subject, draft.body) : [];
-  const dirty = current && (draft.subject !== current.subject || draft.body !== current.body);
+  const dirty = current && (draft.subject !== current.subject || draft.body !== current.body || draft.name !== current.name);
+  const blank = (): NewTemplateInput => ({
+    name: "",
+    channel: "email",
+    list: "trades",
+    subject: "",
+    body: "Hi {{contact.first_name}},\n\n[TO WRITE]\n\n{{bdr.name}}\n\n{{footer_address}}\nUnsubscribe: {{unsubscribe_url}}",
+  });
+  const duplicate = (t: EmailTemplate) => setCreating({ name: `${t.name} (copy)`, channel: t.channel, list: t.list, subject: t.subject, body: t.body, copyOf: t.key });
+  const remove = async (t: EmailTemplate) => {
+    if (!window.confirm(`Delete the "${t.name}" template?`)) return;
+    if (await run(() => data.deleteTemplate(t.key), `${t.name} deleted`)) {
+      setKey(null);
+      load();
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -54,22 +72,31 @@ const CadencesSection = () => {
       </div>
 
       <section aria-label="Templates" className="flex flex-col gap-4">
-        <span className="label-caps">Templates</span>
+        <span className="flex items-center justify-between">
+          <span className="label-caps">Templates</span>
+          <button type="button" className="btn-outline h-8 text-[12px]" onClick={() => setCreating(blank())}>
+            + Template
+          </button>
+        </span>
         {!templates ? (
           <SkeletonRows rows={4} />
         ) : (
           <div className="grid gap-5 xl:grid-cols-[260px_minmax(0,1fr)_minmax(0,1fr)]">
             <nav aria-label="Templates" className="flex flex-col gap-0.5">
               {templates.map((t) => (
-                <button
-                  key={t.key}
-                  type="button"
-                  onClick={() => setKey(t.key)}
-                  className={`flex h-10 items-center justify-between gap-2 px-3 text-left text-[13px] ${t.key === key ? "bg-ice text-ice-ink" : "text-text-2 hover:bg-surface hover:text-text"}`}
-                >
-                  <span className="truncate">{t.name}</span>
-                  {/\[TO WRITE/.test(t.body) ? <span className="shrink-0 text-[12px] font-medium text-amber">To write</span> : null}
-                </button>
+                <span key={t.key} className={`flex items-center rounded-lg ${t.key === key ? "bg-ice text-ice-ink" : "text-text-2 hover:bg-surface hover:text-text"}`}>
+                  <button type="button" onClick={() => setKey(t.key)} className="flex h-10 min-w-0 flex-1 items-center justify-between gap-2 px-3 text-left text-[13px]">
+                    <span className="truncate">{t.name}</span>
+                    {/\[TO WRITE/.test(t.body) ? <span className="shrink-0 text-[12px] font-medium text-amber">To write</span> : null}
+                  </button>
+                  <RowMenu
+                    label={`Actions for ${t.name}`}
+                    items={[
+                      { label: "Duplicate", onSelect: () => duplicate(t) },
+                      { label: "Delete", danger: true, hidden: !t.custom, onSelect: () => remove(t) },
+                    ]}
+                  />
+                </span>
               ))}
             </nav>
 
@@ -79,7 +106,7 @@ const CadencesSection = () => {
                 onSubmit={async (e) => {
                   e.preventDefault();
                   try {
-                    await data.saveTemplate({ key: current.key, ...draft });
+                    await data.saveTemplate({ key: current.key, subject: draft.subject, body: draft.body, ...(current.custom ? { name: draft.name } : {}) });
                     toast("Template saved", "good");
                     load();
                   } catch (err) {
@@ -87,6 +114,12 @@ const CadencesSection = () => {
                   }
                 }}
               >
+                {current.custom ? (
+                  <label className="flex flex-col gap-2">
+                    <span className="field-label">Name</span>
+                    <input className="input" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+                  </label>
+                ) : null}
                 <label className="flex flex-col gap-2">
                   <span className="field-label">Subject</span>
                   <input className="input" value={draft.subject} onChange={(e) => setDraft({ ...draft, subject: e.target.value })} />
@@ -139,6 +172,54 @@ const CadencesSection = () => {
           </div>
         )}
       </section>
+
+      <Modal open={!!creating} onClose={() => setCreating(null)} title={creating?.copyOf ? "Duplicate template" : "New template"} width={640}>
+        {creating ? (
+          <form
+            className="grid gap-4 sm:grid-cols-2"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              let made = "";
+              if (await run(async () => void (made = await data.createTemplate(creating)), `${creating.name} created`)) {
+                setCreating(null);
+                await load();
+                setKey(made);
+              }
+            }}
+          >
+            <Field label="Name" wide>
+              <input className="input" required value={creating.name} onChange={(e) => setCreating({ ...creating, name: e.target.value })} placeholder="e.g. Trades: seasonal follow-up" />
+            </Field>
+            <Field label="Channel">
+              <select className="input" value={creating.channel} onChange={(e) => setCreating({ ...creating, channel: e.target.value as NewTemplateInput["channel"] })}>
+                <option value="email">Email</option>
+                <option value="linkedin">LinkedIn</option>
+              </select>
+            </Field>
+            <Field label="For which list">
+              <select className="input" value={creating.list} onChange={(e) => setCreating({ ...creating, list: e.target.value as NewTemplateInput["list"] })}>
+                <option value="trades">Trades</option>
+                <option value="developers">Developers</option>
+                <option value="any">Any list</option>
+              </select>
+            </Field>
+            <Field label="Subject" wide>
+              <input className="input" value={creating.subject} onChange={(e) => setCreating({ ...creating, subject: e.target.value })} />
+            </Field>
+            <Field label="Body" wide>
+              <textarea className="input h-auto min-h-48 py-2.5 font-mono text-[12px]" value={creating.body} onChange={(e) => setCreating({ ...creating, body: e.target.value })} />
+            </Field>
+            {validateTemplate(creating.subject, creating.body).length ? (
+              <p role="alert" className="m-0 text-[12px] text-coral sm:col-span-2">
+                {validateTemplate(creating.subject, creating.body).join(" ")}
+              </p>
+            ) : null}
+            <button type="submit" className="btn-primary sm:col-span-2" disabled={!creating.name.trim() || validateTemplate(creating.subject, creating.body).length > 0}>
+              Create template
+            </button>
+          </form>
+        ) : null}
+      </Modal>
     </div>
   );
 };

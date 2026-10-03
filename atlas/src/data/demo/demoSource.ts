@@ -1,3 +1,4 @@
+import type { AtlasEvent } from "../foundationTypes";
 import type { AuditEntry, DataSource, Notification, SignInResult, User } from "../types";
 import { createDemoLeads } from "./demoLeads";
 import { SEED_NOTIFICATIONS, SEED_USERS } from "./seed";
@@ -5,6 +6,8 @@ import { SEED_NOTIFICATIONS, SEED_USERS } from "./seed";
 const STORE_KEY = "atlas-demo-v1";
 const SESSION_KEY = "atlas-demo-session";
 
+/** Demo keeps the newest events; Supabase keeps them all in the events table. */
+export const EVENTS_KEPT = 3000;
 export const IDLE_TIMEOUT_MS = 12 * 60 * 60 * 1000;
 export const MAX_FAILED_ATTEMPTS = 5;
 export const LOCKOUT_WINDOW_MS = 15 * 60 * 1000;
@@ -14,6 +17,10 @@ interface Store {
   audit: AuditEntry[];
   /** Failed sign-in timestamps per lower-cased email. */
   failures: Record<string, number[]>;
+  /** Settings › Users: the list once anyone was invited or edited (replaces the seed). */
+  users?: User[];
+  /** The events table (newest first): every write, for automations, webhooks and record timelines. */
+  events?: AtlasEvent[];
 }
 
 interface Session {
@@ -62,6 +69,8 @@ export const createDemoSource = ({ password, storage = globalThis.localStorage, 
       return false;
     }
   })();
+  // Each source gets its own copy: invites and edits change it in place (demoSettings), never the seed.
+  const users: User[] = SEED_USERS.map((u) => ({ ...u }));
   const fresh = (): Store => ({ notifications: SEED_NOTIFICATIONS, audit: [], failures: {} });
   let memory: Store = read<Store>(storage, STORE_KEY) ?? fresh();
   let session = read<Session>(storage, SESSION_KEY);
@@ -70,9 +79,18 @@ export const createDemoSource = ({ password, storage = globalThis.localStorage, 
     if (!persistent) return;
     memory = read<Store>(storage, STORE_KEY) ?? fresh();
     session = read<Session>(storage, SESSION_KEY);
+    applyUsers();
   };
 
   const save = () => write(storage, STORE_KEY, memory);
+  // Update in place (same objects): code holding a user from earlier in a call keeps seeing the current values.
+  const applyUsers = () => {
+    for (const saved of memory.users ?? []) {
+      const cur = users.find((u) => u.id === saved.id);
+      if (cur) Object.assign(cur, saved);
+      else users.push({ ...saved });
+    }
+  };
   const setSession = (next: Session | null) => {
     session = next;
     write(storage, SESSION_KEY, next);
@@ -84,6 +102,11 @@ export const createDemoSource = ({ password, storage = globalThis.localStorage, 
       { id: uid(), userId, action, entity, entityId, before, after, at: new Date(now()).toISOString() },
       ...memory.audit,
     ].slice(0, 1000);
+    // Writes become events; reads ("team.view") and sign-ins stay in the audit log only.
+    if (!/\.view$|^auth\.|^session/.test(action) && entity !== "session") {
+      const actorName = userId ? (users.find((u) => u.id === userId)?.name ?? null) : null;
+      memory.events = [{ id: uid(), type: action, entity, entityId, actor: userId, actorName, payload: after, at: new Date(now()).toISOString() }, ...(memory.events ?? [])].slice(0, EVENTS_KEPT);
+    }
     save();
   };
   const audit = (userId: string | null, action: string, after: unknown = null) => record(userId, action, "session", userId, null, after);
@@ -97,6 +120,8 @@ export const createDemoSource = ({ password, storage = globalThis.localStorage, 
   const recentFailures = (email: string) =>
     (memory.failures[email] ?? []).filter((t) => now() - t < LOCKOUT_WINDOW_MS);
 
+  // eslint-disable-next-line prefer-const
+  let leads: ReturnType<typeof createDemoLeads>;
   const auth = {
     kind: "demo" as const,
 
@@ -105,7 +130,7 @@ export const createDemoSource = ({ password, storage = globalThis.localStorage, 
       const email = rawEmail.trim().toLowerCase();
       if (recentFailures(email).length >= MAX_FAILED_ATTEMPTS) return { ok: false, error: "rate_limited" };
 
-      const user = SEED_USERS.find((u) => u.email === email);
+      const user = users.find((u) => u.email === email);
       if (!user || pass !== password) {
         memory.failures[email] = [...recentFailures(email), now()];
         save();
@@ -140,7 +165,7 @@ export const createDemoSource = ({ password, storage = globalThis.localStorage, 
         setSession(null);
         return null;
       }
-      const user = SEED_USERS.find((u) => u.id === session!.userId && u.active) ?? null;
+      const user = users.find((u) => u.id === session!.userId && u.active) ?? null;
       if (!user) setSession(null);
       else setSession({ ...session, lastSeen: now() });
       return user;
@@ -148,7 +173,7 @@ export const createDemoSource = ({ password, storage = globalThis.localStorage, 
 
     async listUsers() {
       sync();
-      return SEED_USERS;
+      return users;
     },
 
     async listNotifications(userId: string) {
@@ -181,9 +206,30 @@ export const createDemoSource = ({ password, storage = globalThis.localStorage, 
     },
   };
 
+  applyUsers();
+  leads = createDemoLeads({
+    currentUser: auth.currentUser,
+    users,
+    audit: record,
+    notify,
+    now,
+    persist: persistLeads,
+    aiProvider,
+    readEvents: () => {
+      sync();
+      return memory.events ?? [];
+    },
+    saveUsers: (list) => {
+      // Re-read first (other tabs), then write this list and put it back in place: sync() alone would restore the old one.
+      sync();
+      memory.users = list;
+      save();
+      applyUsers();
+    },
+  });
   return {
     ...auth,
-    ...createDemoLeads({ currentUser: auth.currentUser, users: SEED_USERS, audit: record, notify, now, persist: persistLeads, aiProvider }),
+    ...leads,
   };
 };
 

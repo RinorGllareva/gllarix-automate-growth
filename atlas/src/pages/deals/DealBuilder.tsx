@@ -7,18 +7,24 @@ import { Avatar, BrandChip, EmptyState, Icon, ICONS, SkeletonRows, StageChip, To
 import { DEAL_STAGE_HUE } from "@/config/colors";
 import { BRANDS, BY_ID, DISCOUNT_HARD_MAX, MARKETS, PRICE_BOOK_VERSION, type MarketId } from "@/config/priceBook";
 import { LOST_REASONS } from "@/config/targets";
-import { AccessError, BDR_MAX_STAGE, data, DEAL_STAGE_LABEL, DEAL_STAGES, type DealDetail, type DealStage, type Quote } from "@/data";
+import { AccessError, BDR_MAX_STAGE, data, DEAL_STAGE_LABEL, DEAL_STAGES, type Brand, type DealDetail, type DealStage, type Quote } from "@/data";
 import { tableDate } from "@/lib/format";
 import { compute, formatMoney, itemAvailable, itemIncluded, quoteSummary, type QuoteSelection } from "@/services/pricing";
 import { Forbidden } from "@/pages/StatusPages";
 import LinkedTasks from "@/components/LinkedTasks";
+import { CustomFieldsPanel } from "@/components/CustomFields";
+import { ActivityTimeline, InlineSelect, PropertyRow, RecordPage } from "@/components/record/Record";
 import RecordFiles from "@/components/RecordFiles";
 import ContractPanel from "./ContractPanel";
+import LeadPicker from "@/components/LeadPicker";
+import { Field, RowMenu, useDeleteWithUndo, useRun } from "@/components/ui/actions";
+import { askAboutHref } from "@/lib/askAbout";
+import { canAccess } from "@/lib/nav";
 
 const MARKET_ORDER: MarketId[] = ["us", "we", "ch", "xk"];
 
 /** The price book, inline: tiers are radio cards, add-ons have − / + steppers, custom work takes build days. */
-const PackageEditor = ({ sel, onChange }: { sel: QuoteSelection; onChange: (s: QuoteSelection) => void }) => {
+export const PackageEditor = ({ sel, onChange }: { sel: QuoteSelection; onChange: (s: QuoteSelection) => void }) => {
   const [brand, setBrand] = useState(BRANDS[0].id);
   const b = BRANDS.find((x) => x.id === brand)!;
   return (
@@ -177,11 +183,13 @@ const DealBuilder = () => {
   const [requesting, setRequesting] = useState(false);
   const [requestPct, setRequestPct] = useState(15);
   const [requestNote, setRequestNote] = useState("");
-  const [tab, setTab] = useState<"history" | "contract" | "files" | "tasks" | "payments">("history");
   const [showMath, setShowMath] = useState(false);
   const [pending, setPending] = useState<"lost" | "won" | null>(null);
   const [lostReason, setLostReason] = useState<string>(LOST_REASONS[0]);
   const [note, setNote] = useState("");
+  const [editingDeal, setEditingDeal] = useState(false);
+  const remove = useDeleteWithUndo();
+  const navigate = useNavigate();
 
   const load = useCallback(() => {
     data
@@ -261,62 +269,86 @@ const DealBuilder = () => {
         : null;
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header: who, where in the pipeline, and the one thing to do next. */}
-      <div className="flex flex-col gap-4">
-        <Link to="/deals" className="flex items-center gap-1 self-start text-[13px] text-text-3 hover:text-text">
-          <Icon d={ICONS.chevronLeft} size={14} /> Deals
-        </Link>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex min-w-0 flex-col gap-2">
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="page-title m-0">
-                <Link to={`/leads/${detail.row.lead.id}`} className="hover:text-cyan">
-                  {detail.row.company.name}
-                </Link>
-              </h1>
-              <BrandChip brand={deal.brand} />
-            </div>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px] text-text-2">
-              {detail.row.contactName ? <span>{detail.row.contactName}</span> : null}
-              <span className="flex items-center gap-1.5">
-                <Avatar id={deal.ownerId} name={detail.row.ownerName ?? "?"} size={20} />
-                {detail.row.ownerName ?? "Unassigned"}
-              </span>
-              <label className="relative flex items-center gap-1.5">
-                <span className="text-text-3">Stage</span>
-                <StageChip hue={DEAL_STAGE_HUE[deal.stage]}>{DEAL_STAGE_LABEL[deal.stage]}</StageChip>
-                {canMove ? (
-                  <select aria-label="Move to stage" className="absolute inset-0 cursor-pointer opacity-0" value={deal.stage} onChange={(e) => move(e.target.value as DealStage)}>
-                    {DEAL_STAGES.map((s) => (
-                      <option key={s} value={s} disabled={!stageAllowed(s)}>
-                        {DEAL_STAGE_LABEL[s]}
-                        {!stageAllowed(s) ? " (admin)" : ""}
-                      </option>
-                    ))}
-                  </select>
-                ) : null}
-              </label>
-              {!detail.editable ? <span className="text-amber">Locked: the client accepted or paid this quote</span> : null}
-            </div>
-          </div>
-          {primary ? (
-            <div className="flex flex-col items-end gap-1">
-              <button type="button" className="btn-primary" onClick={primary.go}>
+    <>
+      <RecordPage
+        sideWidth={380}
+        breadcrumb={[{ label: "Deals", to: "/deals" }, { label: detail.row.company.name }]}
+        status={
+          <>
+            <BrandChip brand={deal.brand} />
+            <StageChip hue={DEAL_STAGE_HUE[deal.stage]}>{DEAL_STAGE_LABEL[deal.stage]}</StageChip>
+            {deal.pilot ? <span className="chip border-line-strong text-text-2">Pilot</span> : null}
+            {!detail.editable ? <span className="text-[13px] text-amber">Locked: the client accepted or paid this quote</span> : null}
+          </>
+        }
+        title={
+          <Link to={`/leads/${detail.row.lead.id}`} className="hover:text-cyan" title="Open the lead">
+            {detail.row.company.name}
+          </Link>
+        }
+        actions={
+          <>
+            {primary ? (
+              <button type="button" className="btn-primary h-9" title={primary.help} onClick={primary.go}>
                 {primary.label}
                 <Icon d={ICONS.arrow} size={15} />
               </button>
-              <span className="max-w-[300px] text-right text-[12px] text-text-3">{primary.help}</span>
+            ) : null}
+            <RowMenu
+              label="Deal actions"
+              items={[
+                { label: "Change owner or brand", hidden: !isAdmin, onSelect: () => setEditingDeal(true) },
+                { label: "Ask the AI co-founder about this deal", hidden: !canAccess(user.role, "advisor"), onSelect: () => navigate(askAboutHref(`How do I close the deal with ${detail.row.company.name}? Check the quote, the discount and what the client has seen.`)) },
+                { label: "Delete deal", danger: true, hidden: !isAdmin, onSelect: () => remove(`Deal with ${detail.row.company.name}`, () => data.deleteDeal(deal.id), () => navigate("/deals")) },
+              ]}
+            />
+          </>
+        }
+        properties={
+          <div className="flex flex-col gap-3">
+            <PropertyRow
+              items={[
+                {
+                  label: "Stage",
+                  value: canMove ? (
+                    <InlineSelect<DealStage>
+                      label="Move to stage"
+                      value={deal.stage}
+                      options={DEAL_STAGES.map((st) => ({ value: st, label: `${DEAL_STAGE_LABEL[st]}${stageAllowed(st) ? "" : " (admin)"}`, disabled: !stageAllowed(st) }))}
+                      onChange={(v) => move(v)}
+                    />
+                  ) : (
+                    DEAL_STAGE_LABEL[deal.stage]
+                  ),
+                },
+                {
+                  label: "Owner",
+                  value: (
+                    <span className="flex items-center gap-1.5">
+                      <Avatar id={deal.ownerId} name={detail.row.ownerName ?? "?"} size={20} />
+                      {detail.row.ownerName ?? "Unassigned"}
+                    </span>
+                  ),
+                },
+                { label: "Contact", value: detail.row.contactName ?? <span className="text-text-3">No contact yet</span> },
+                { label: "Setup", value: <span className="num">{fmt(r.setup)}</span> },
+                { label: "Monthly", value: <span className="num text-cyan">{fmt(r.monthly)}</span> },
+                { label: "Market", value: market.label },
+                { label: "Updated", value: <span className="text-text-2">{tableDate(deal.updatedAt)}</span> },
+              ]}
+            />
+            <div className="card flex flex-col gap-2 px-5 py-4">
+              <Stepper q={latest} dirty={dirty && canEdit} />
+              {primary ? <span className="text-[12px] text-text-3">Next: {primary.help}</span> : null}
             </div>
-          ) : null}
-        </div>
-        <div className="card px-5 py-4">
-          <Stepper q={latest} dirty={dirty && canEdit} />
-        </div>
-      </div>
-
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="flex min-w-0 flex-col gap-6">
+          </div>
+        }
+        tabs={[
+          {
+            id: "quote",
+            label: "Build the quote",
+            content: (
+              <div className="flex min-w-0 flex-col gap-6">
           <fieldset disabled={!canEdit} className="m-0 flex min-w-0 flex-col gap-6 border-0 p-0 disabled:opacity-70">
             <legend className="sr-only">Build the offer</legend>
             <Section step="1" title="Market" help="Prices follow the client's market.">
@@ -407,26 +439,16 @@ const DealBuilder = () => {
               </div>
             </Section>
           </fieldset>
-
-          <section aria-label="History, contract, files, tasks and payments" className="card flex flex-col">
-            <div role="tablist" className="flex gap-1 border-b border-line px-3 pt-2">
-              {(
-                [
-                  ["history", `Quote history · ${detail.quotes.length}`],
-                  ["contract", "Contract"],
-                  ["files", "Files"],
-                  ["tasks", "Tasks"],
-                  ["payments", `Payments · ${detail.payments.length}`],
-                ] as const
-              ).map(([k, label]) => (
-                <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`-mb-px border-b-2 px-3 py-2 text-[13px] font-medium ${tab === k ? "border-app text-text" : "border-transparent text-text-3 hover:text-text"}`}>
-                  {label}
-                </button>
-              ))}
-            </div>
-            <div className="p-5">
-              {tab === "history" ? (
-                detail.quotes.length ? (
+              </div>
+            ),
+          },
+          {
+            id: "history",
+            label: "Quote history",
+            count: detail.quotes.length,
+            content: (
+              <div className="card p-5">
+                {detail.quotes.length ? (
                   <div className="flex flex-col">
                     {detail.quotes.map((q) => (
                       <div key={q.id} className="grid grid-cols-[70px_110px_minmax(0,1fr)_auto] items-center gap-3 border-b border-line-soft py-2.5 text-[13px] last:border-b-0">
@@ -441,32 +463,41 @@ const DealBuilder = () => {
                   </div>
                 ) : (
                   <span className="text-[13px] text-text-3">No saved quotes yet. Build the package, then save it.</span>
-                )
-              ) : tab === "contract" ? (
-                <ContractPanel dealId={deal.id} canEdit={isAdmin || (isSeller && deal.ownerId === user.id)} contactEmail={detail.contactEmail ?? null} hasQuote={!!latest} />
-              ) : tab === "files" ? (
-                <RecordFiles entity="deal" id={deal.id} hint="Proposals, floor plans, the client's brief" />
-              ) : tab === "tasks" ? (
-                <LinkedTasks type="deal" id={deal.id} compact />
-              ) : detail.payments.length ? (
-                <div className="flex flex-col">
-                  {detail.payments.map((p) => (
-                    <div key={p.id} className="flex justify-between border-b border-line-soft py-2.5 text-[13px] last:border-b-0">
-                      <span className="capitalize text-text-2">
-                        {p.type.replace("_", " ")} · {tableDate(p.paidAt)}
-                      </span>
-                      <span className="num text-mint">{formatMoney(p.amountMinor / 100, sel.market)}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <span className="text-[13px] text-text-3">No payments yet. The deposit arrives when the client pays from the quote page.</span>
-              )}
-            </div>
-          </section>
-        </div>
-
-        <aside className="flex flex-col gap-4 xl:sticky xl:top-6">
+                )}
+              </div>
+            ),
+          },
+          { id: "contract", label: "Contract", content: <ContractPanel dealId={deal.id} canEdit={isAdmin || (isSeller && deal.ownerId === user.id)} contactEmail={detail.contactEmail ?? null} hasQuote={!!latest} /> },
+          { id: "files", label: "Files", content: <RecordFiles entity="deal" id={deal.id} hint="Proposals, floor plans, the client's brief" /> },
+          { id: "tasks", label: "Tasks", content: <LinkedTasks type="deal" id={deal.id} compact /> },
+          {
+            id: "payments",
+            label: "Payments",
+            count: detail.payments.length,
+            content: (
+              <div className="card p-5">
+                {detail.payments.length ? (
+                  <div className="flex flex-col">
+                    {detail.payments.map((p) => (
+                      <div key={p.id} className="flex justify-between border-b border-line-soft py-2.5 text-[13px] last:border-b-0">
+                        <span className="capitalize text-text-2">
+                          {p.type.replace("_", " ")} · {tableDate(p.paidAt)}
+                        </span>
+                        <span className="num text-mint">{formatMoney(p.amountMinor / 100, sel.market)}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-[13px] text-text-3">No payments yet. The deposit arrives when the client pays from the quote page.</span>
+                )}
+              </div>
+            ),
+          },
+          { id: "changes", label: "Activity", content: <ActivityTimeline entity="deal" id={deal.id} reloadKey={detail} /> },
+        ]}
+        side={
+          <>
+          <CustomFieldsPanel entity="deal" id={deal.id} canEdit={isAdmin || (isSeller && deal.ownerId === user.id)} />
           <section aria-label="What the client pays" className="card flex flex-col gap-4 p-5">
             <span className="text-[15px] font-semibold">What the client pays</span>
             <div className="grid grid-cols-2 gap-4">
@@ -588,8 +619,9 @@ const DealBuilder = () => {
               ) : null}
             </section>
           ) : null}
-        </aside>
-      </div>
+          </>
+        }
+      />
 
       <Modal open={requesting} onClose={() => setRequesting(false)} title="Ask for a bigger discount">
         <form
@@ -659,23 +691,70 @@ const DealBuilder = () => {
           </button>
         </form>
       </Modal>
-    </div>
+      {editingDeal ? <DealEdit dealId={deal.id} ownerId={deal.ownerId} brand={deal.brand} onClose={() => setEditingDeal(false)} onSaved={load} /> : null}
+    </>
   );
 };
 
-/** /deals/new?lead=… creates (or reuses) the deal and opens the builder. */
+/** Founders: who owns the deal and which brand sells it. */
+const DealEdit = ({ dealId, ownerId, brand, onClose, onSaved }: { dealId: string; ownerId: string | null; brand: Brand; onClose: () => void; onSaved: () => void }) => {
+  const run = useRun();
+  const [people, setPeople] = useState<{ id: string; name: string }[]>([]);
+  const [f, setF] = useState({ ownerId: ownerId ?? "", brand });
+  useEffect(() => {
+    data.listUsers().then((u) => setPeople(u.filter((x) => x.active && ["admin", "bdr", "closer"].includes(x.role))));
+  }, []);
+  return (
+    <Modal open onClose={onClose} title="Owner and brand">
+      <form
+        className="flex flex-col gap-4"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (await run(() => data.updateDeal(dealId, { ownerId: f.ownerId || null, brand: f.brand }), "Deal updated")) {
+            onSaved();
+            onClose();
+          }
+        }}
+      >
+        <Field label="Owner">
+          <select className="input" value={f.ownerId} onChange={(e) => setF({ ...f, ownerId: e.target.value })}>
+            {people.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Brand">
+          <select className="input" value={f.brand} onChange={(e) => setF({ ...f, brand: e.target.value as Brand })}>
+            <option value="gllarix">Gllarix</option>
+            <option value="arcadian">Arcadian</option>
+          </select>
+        </Field>
+        <span className="text-[12px] text-text-3">The new owner is told. Commission follows the owner at the time the deposit is paid.</span>
+        <button type="submit" className="btn-primary">
+          Save
+        </button>
+      </form>
+    </Modal>
+  );
+};
+
+/** /deals/new?lead=… creates the deal; without a lead it asks which one (search, or add the lead right there). */
 export const NewDeal = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const lead = params.get("lead");
   useEffect(() => {
-    const lead = params.get("lead");
-    if (!lead) return setError("Open a lead and choose Create deal, or start from the call workspace.");
+    if (!lead) return;
+    setError(null);
     data
       .createDeal(lead)
       .then((dealId) => navigate(`/deals/${dealId}`, { replace: true }))
       .catch((e: Error) => setError(e.message));
-  }, [params, navigate]);
+  }, [lead, navigate]);
+  if (!lead) return <LeadPicker open title="New deal · which lead?" onClose={() => navigate("/deals")} onPick={(id) => navigate(`/deals/new?lead=${id}`, { replace: true })} />;
   return error ? <EmptyState title={error} action={<Link to="/leads" className="btn-outline">Go to leads</Link>} /> : <SkeletonRows rows={4} />;
 };
 

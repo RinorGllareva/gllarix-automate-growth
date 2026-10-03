@@ -175,6 +175,22 @@ describe("team performance (M12 done-when)", () => {
     expect(r.humanRequested).toMatchObject({ assigneeId: "u-cofounder", reason: "dispute" });
     expect((await src.listNotifications("u-cofounder")).some((n) => /disputes a call score/.test(n.text))).toBe(true);
     expect((await src.scorecard("u-bdr")).comments.some((c) => c.kind === "dispute")).toBe(true);
+    // A dispute can't be edited or deleted; the rep's own comments can.
+    const disputeComment = (await src.scorecard("u-bdr")).comments.find((c) => c.kind === "dispute")!;
+    await expect(src.deleteScorecardComment(disputeComment.id)).rejects.toThrow(/resolve/);
+    await src.addScorecardComment("u-bdr", "Typo in my last note");
+    const mine = (await src.scorecard("u-bdr")).comments.find((c) => c.body === "Typo in my last note")!;
+    await src.editScorecardComment(mine.id, "Fixed note");
+    expect((await src.scorecard("u-bdr")).comments.some((c) => c.body === "Fixed note")).toBe(true);
+    await expect(src.resolveDispute(id, "Score stands")).rejects.toMatchObject({ status: 403 });
+    // A founder keeps the score and closes the dispute; the rep is told.
+    await switchTo(src, "artin@atlas.test");
+    await src.resolveDispute(id, "The value came up after the booking question.");
+    expect((await src.getCallReview(id)).review.disputed?.resolvedAt).toBeTruthy();
+    await expect(src.resolveDispute(id, "Again")).rejects.toThrow(/already resolved/);
+    await src.deleteScorecardComment(mine.id);
+    expect((await src.scorecard("u-bdr")).comments.some((c) => c.id === mine.id)).toBe(false);
+    expect((await src.listNotifications("u-bdr")).some((n) => /resolved your dispute/.test(n.text))).toBe(true);
   });
 
   it("guardrails: pay never reads AI scores, no ranking, no emotion output", async () => {

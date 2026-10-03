@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useUser } from "@/auth/AuthContext";
 import LinkedTasks from "@/components/LinkedTasks";
 import { usePageChrome } from "@/components/shell/PageChrome";
@@ -10,6 +10,9 @@ import { timelineDate } from "@/lib/format";
 import { Forbidden } from "@/pages/StatusPages";
 import { localHHMM, zoneAbbr } from "@/services/time";
 import { ApprovalPanel, STATUS } from "./Meetings";
+import { MeetingActions } from "@/components/MeetingActions";
+import { ActivityTimeline, NextStepCard, PropertyRow, RecordPage } from "@/components/record/Record";
+import { RowMenu } from "@/components/ui/actions";
 
 const TYPE_LABEL = { video: "Video call", phone: "Phone", in_person: "In person" } as const;
 const NOTES_DEBOUNCE_MS = 800;
@@ -24,6 +27,7 @@ const longWhen = (iso: string, tz: string) =>
 const MeetingPage = () => {
   const { id = "" } = useParams();
   const user = useUser();
+  const navigate = useNavigate();
   const [row, setRow] = useState<MeetingRow | null>(null);
   const [history, setHistory] = useState<Activity[]>([]);
   const [error, setError] = useState<Error | null>(null);
@@ -69,93 +73,152 @@ const MeetingPage = () => {
   const canMark = isAdmin || m.bookedBy === user.id || m.ownerId === user.id;
   const c = row.contact;
 
+  const step =
+    row.status === "upcoming"
+      ? notes.trim()
+        ? `Ready. Join ${longWhen(m.scheduledAt, user.timezone)}.`
+        : "Write the prep notes: what we know, who decides, what we want from this meeting."
+      : row.status === "to_hold"
+        ? "Mark it held or no-show, and write what they said."
+        : row.status === "to_approve"
+          ? "A founder checks the 6 approval points (the $15 bonus depends on it)."
+          : row.status === "no_show"
+            ? "They didn't show: call them and book a new time."
+            : "Send the quote, or book the follow-up meeting.";
+
+  const notesTab = (
+    <div className="flex min-w-0 flex-col gap-6">
+      <section aria-label="Notes" className="card flex flex-col gap-2 p-5">
+        <span className="flex items-center justify-between">
+          <span className="text-[15px] font-semibold">{upcoming ? "Prep" : "Notes"}</span>
+          <span className="text-[12px] text-text-3" aria-live="polite">
+            {saved === "saving" ? "Saving…" : saved === "saved" ? "Saved" : "Saved automatically"}
+          </span>
+        </span>
+        <textarea
+          className="input h-auto min-h-[180px] resize-y bg-surface py-3 text-[14px] leading-relaxed"
+          aria-label={upcoming ? "Prep notes" : "Meeting notes"}
+          readOnly={!canEdit}
+          value={notes}
+          placeholder={
+            upcoming
+              ? "What do we know? Calls they miss, job value, who decides. What do we want from this meeting?"
+              : "What did they say? Objections, the decision-maker, budget, timing, next step agreed."
+          }
+          onChange={(e) => {
+            dirty.current = true;
+            setNotes(e.target.value);
+          }}
+        />
+      </section>
+
+      <section aria-label="Recording" className="card flex flex-col gap-2 p-5">
+        <span className="text-[15px] font-semibold">Recording</span>
+        {m.recordingUrl ? (
+          <>
+            <audio controls src={m.recordingUrl} className="w-full" aria-label={`Recording of the meeting with ${row.company.name}`} />
+            <a href={m.recordingUrl} target="_blank" rel="noreferrer" className="text-[12px] text-cyan hover:underline">
+              Open the recording ↗
+            </a>
+          </>
+        ) : (
+          <span className="text-[13px] text-text-2">
+            {upcoming ? "Phone and video meetings over 60 seconds are recorded and attached here." : "No recording attached. Add the key points to the notes instead."}
+          </span>
+        )}
+      </section>
+    </div>
+  );
+
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-2">
+    <RecordPage
+      breadcrumb={[{ label: "Meetings", to: "/meetings" }, { label: row.company.name }]}
+      status={
+        <>
           <Pill hue={STATUS[row.status].hue} dot>
             {STATUS[row.status].label}
           </Pill>
           <Pill hue={MEETING_TYPE_HUE[m.type]}>{TYPE_LABEL[m.type]}</Pill>
-        </div>
-        <h1 className="page-title m-0">
-          <Link to={`/leads/${row.lead.id}`} className="hover:text-cyan">
-            {row.company.name}
-          </Link>
-        </h1>
-        <p className="m-0 text-[14px] text-text-2">
-          {longWhen(m.scheduledAt, tz)} for them
-          {tz !== user.timezone ? <span className="text-text-3"> · {longWhen(m.scheduledAt, user.timezone)} for you</span> : null}
-          {m.durationMin ? ` · ${m.durationMin} min` : ""}
-        </p>
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="flex min-w-0 flex-col gap-6">
-          <section aria-label="Notes" className="card flex flex-col gap-2 p-5">
-            <span className="flex items-center justify-between">
-              <span className="text-[15px] font-semibold">{upcoming ? "Prep" : "Notes"}</span>
-              <span className="text-[12px] text-text-3" aria-live="polite">
-                {saved === "saving" ? "Saving…" : saved === "saved" ? "Saved" : "Saved automatically"}
-              </span>
-            </span>
-            <textarea
-              className="input h-auto min-h-[180px] resize-y bg-surface py-3 text-[14px] leading-relaxed"
-              aria-label={upcoming ? "Prep notes" : "Meeting notes"}
-              readOnly={!canEdit}
-              value={notes}
-              placeholder={
-                upcoming
-                  ? "What do we know? Calls they miss, job value, who decides. What do we want from this meeting?"
-                  : "What did they say? Objections, the decision-maker, budget, timing, next step agreed."
-              }
-              onChange={(e) => {
-                dirty.current = true;
-                setNotes(e.target.value);
-              }}
-            />
-          </section>
-
-          <section aria-label="Recording" className="card flex flex-col gap-2 p-5">
-            <span className="text-[15px] font-semibold">Recording</span>
-            {m.recordingUrl ? (
-              <>
-                <audio controls src={m.recordingUrl} className="w-full" aria-label={`Recording of the meeting with ${row.company.name}`} />
-                <a href={m.recordingUrl} target="_blank" rel="noreferrer" className="text-[12px] text-cyan hover:underline">
-                  Open the recording ↗
-                </a>
-              </>
-            ) : (
-              <span className="text-[13px] text-text-2">
-                {upcoming ? "Phone and video meetings over 60 seconds are recorded and attached here." : "No recording attached. Add the key points to the notes instead."}
-              </span>
-            )}
-          </section>
-
-          <section aria-label="Next steps" className="flex flex-col gap-3">
-            <span className="text-[15px] font-semibold">Next steps</span>
-            {canEdit ? (
-              <div className="flex flex-wrap gap-2">
-                {user.role !== "implementer" ? (
-                  <Link to={`/deals/new?lead=${row.lead.id}`} className="btn-primary h-9">
-                    Create quote
-                  </Link>
-                ) : null}
-                <Link to={`/call/${row.lead.id}?book=1`} className="btn-outline h-9">
-                  Book a follow-up meeting
-                </Link>
-                <Link to={`/leads/${row.lead.id}`} className="btn-outline h-9">
-                  Open the lead
-                </Link>
-              </div>
-            ) : null}
-            <LinkedTasks type="meeting" id={m.id} />
-          </section>
-        </div>
-
-        <aside className="flex flex-col gap-6">
-          <section aria-label="Attendees" className="card flex flex-col gap-3 p-5">
-            <span className="text-[15px] font-semibold">Who's on it</span>
+        </>
+      }
+      title={
+        <Link to={`/leads/${row.lead.id}`} className="hover:text-cyan" title="Open the lead">
+          {row.company.name}
+        </Link>
+      }
+      actions={
+        <>
+          {canEdit && user.role !== "implementer" ? (
+            <Link to={`/deals/new?lead=${row.lead.id}`} className="btn-primary h-9">
+              Create quote
+            </Link>
+          ) : null}
+          <MeetingActions row={row} onChanged={load} />
+          <RowMenu
+            label="More meeting actions"
+            items={[
+              { label: "Book a follow-up meeting", hidden: !canEdit, onSelect: () => navigate(`/call/${row.lead.id}?book=1`) },
+              { label: "Open the lead", onSelect: () => navigate(`/leads/${row.lead.id}`) },
+            ]}
+          />
+        </>
+      }
+      properties={
+        <PropertyRow
+          items={[
+            { label: "When (for them)", value: longWhen(m.scheduledAt, tz) },
+            { label: "For you", hidden: tz === user.timezone, value: <span className="text-text-2">{longWhen(m.scheduledAt, user.timezone)}</span> },
+            { label: "Length", hidden: !m.durationMin, value: `${m.durationMin} min` },
+            { label: "With", value: m.withWhom },
+            {
+              label: "Runs it",
+              value: (
+                <span className="flex items-center gap-1.5">
+                  <Avatar id={m.ownerId ?? m.bookedBy} name={row.ownerName} size={20} />
+                  {row.ownerName ?? "No owner"}
+                </span>
+              ),
+            },
+            { label: "Booked by", hidden: !row.bookedByName || row.bookedByName === row.ownerName, value: row.bookedByName },
+          ]}
+        />
+      }
+      tabs={[
+        { id: "notes", label: upcoming ? "Prep" : "Notes", content: notesTab },
+        { id: "tasks", label: "Tasks", content: <LinkedTasks type="meeting" id={m.id} /> },
+        {
+          id: "before",
+          label: "Before this meeting",
+          count: history.length || undefined,
+          content: (
+            <section aria-label="History with this lead" className="card flex flex-col gap-2.5 p-5">
+              {history.length ? (
+                history.map((a) => (
+                  <div key={a.id} className="flex gap-3 text-[13px]">
+                    <span className="w-14 shrink-0 font-mono text-[12px] text-text-3">{timelineDate(a.at, user.timezone)}</span>
+                    <span className="min-w-0">
+                      <span className="block text-text-2">{a.title}</span>
+                      {a.detail ? <span className="block truncate text-[12px] text-text-3">{a.detail}</span> : null}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <span className="text-[13px] text-text-3">No calls or emails logged yet.</span>
+              )}
+              <Link to={`/leads/${row.lead.id}`} className="text-[12px] text-cyan hover:underline">
+                Full history on the lead
+              </Link>
+            </section>
+          ),
+        },
+        { id: "activity", label: "Activity", content: <ActivityTimeline entity="meeting" id={m.id} reloadKey={row} /> },
+      ]}
+      side={
+        <>
+          <NextStepCard text={step} />
+          <ApprovalPanel row={row} isAdmin={isAdmin} canMark={canMark} onChanged={load} embedded />
+          <section aria-label="Attendees" className="card flex flex-col gap-3 p-4">
+            <span className="text-[12px] font-medium text-text-3">Who's on it</span>
             <div className="flex items-start gap-3 text-[13px]">
               <Avatar id={c?.id ?? m.id} name={m.withWhom} size={28} />
               <span className="flex min-w-0 flex-col">
@@ -167,36 +230,10 @@ const MeetingPage = () => {
                 {c?.email ? <span className="truncate text-[12px] text-text-2">{c.email}</span> : null}
               </span>
             </div>
-            <div className="flex items-center gap-3 text-[13px]">
-              <Avatar id={m.ownerId ?? m.bookedBy} name={row.ownerName} size={28} />
-              <span className="flex flex-col">
-                <span className="font-medium">{row.ownerName ?? "No owner"}</span>
-                <span className="text-[12px] text-text-3">Runs the meeting{row.bookedByName && row.bookedByName !== row.ownerName ? ` · booked by ${row.bookedByName}` : ""}</span>
-              </span>
-            </div>
           </section>
-
-          <ApprovalPanel row={row} isAdmin={isAdmin} canMark={canMark} onChanged={load} embedded />
-
-          <section aria-label="History with this lead" className="card flex flex-col gap-2.5 p-5">
-            <span className="text-[15px] font-semibold">Before this meeting</span>
-            {history.length ? (
-              history.map((a) => (
-                <div key={a.id} className="flex gap-3 text-[13px]">
-                  <span className="w-14 shrink-0 font-mono text-[12px] text-text-3">{timelineDate(a.at, user.timezone)}</span>
-                  <span className="min-w-0">
-                    <span className="block text-text-2">{a.title}</span>
-                    {a.detail ? <span className="block truncate text-[12px] text-text-3">{a.detail}</span> : null}
-                  </span>
-                </div>
-              ))
-            ) : (
-              <span className="text-[13px] text-text-3">No calls or emails logged yet.</span>
-            )}
-          </section>
-        </aside>
-      </div>
-    </div>
+        </>
+      }
+    />
   );
 };
 

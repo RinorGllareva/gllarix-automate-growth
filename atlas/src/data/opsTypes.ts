@@ -21,6 +21,10 @@ export interface InboundRequest {
   firstResponseAt: string | null;
   leadId: string | null;
   referredBy?: string | null;
+  /** What the first reply said or promised (logged with "Mark replied"). */
+  replyNote?: string | null;
+  /** The status before a dismiss, so it can be undone. */
+  dismissedFrom?: InboundStatus | null;
 }
 
 export interface InboundHome {
@@ -35,6 +39,8 @@ export interface InboundHome {
   };
   targetMinutes: number;
   canAct: boolean;
+  /** Who a request can be handed to (founders reassign). */
+  people: { id: string; name: string }[];
 }
 
 export interface InboundApi {
@@ -47,6 +53,10 @@ export interface InboundApi {
   /** Create (or match) the lead, owned by the assignee; returns the lead id. */
   convertInbound(id: string): Promise<string>;
   dismissInbound(id: string, reason: "not_fit" | "spam"): Promise<void>;
+  /** Put a dismissed request back where it was. */
+  undoDismissInbound(id: string): Promise<void>;
+  /** Founders: hand a request to someone else (null = unassigned). */
+  assignInbound(id: string, userId: string | null): Promise<void>;
 }
 
 export type SopStatus = "not_started" | "draft" | "in_review" | "done";
@@ -68,6 +78,8 @@ export interface OpsHome {
   sops: Sop[];
   /** "itemKey:period" → who ticked it and when. */
   checks: Record<string, { at: string; by: string }>;
+  /** User id → first name, to show who ticked an item. */
+  names: Record<string, string>;
   capacity: {
     onboarding: { clientId: string; companyName: string; waitingDays: number }[];
     avgDepositToLiveDays: number | null;

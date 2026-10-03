@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { usePageChrome } from "@/components/shell/PageChrome";
-import { useToast } from "@/components/ui/overlay";
+import { Field, RowMenu, useDeleteWithUndo } from "@/components/ui/actions";
+import { Modal, useToast } from "@/components/ui/overlay";
 import { EmptyState, Icon, Pill, SkeletonRows } from "@/components/ui/primitives";
 import type { Hue } from "@/config/colors";
 import { COMPLIANCE_OPS, DELIVERY_CAPACITY, PEOPLE_STAGE1, periodKey, RHYTHM, RISKS, SERVICE_LEVELS, SOP_FORMAT, VENDORS, type Cadence } from "@/config/operations";
-import { data, type OpsHome, type SopStatus } from "@/data";
+import { data, type OpsHome, type Sop, type SopStatus } from "@/data";
 
 const SOP_STATUS: Record<SopStatus, { label: string; hue: Hue }> = {
   not_started: { label: "Not started", hue: "text-3" },
@@ -61,6 +62,8 @@ const OperationsPlan = () => {
   const [home, setHome] = useState<OpsHome | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [linkDraft, setLinkDraft] = useState<Record<string, string>>({});
+  const [sopEdit, setSopEdit] = useState<(Pick<Sop, "title" | "owner" | "due"> & { id: string; link: string }) | null>(null);
+  const remove = useDeleteWithUndo();
   usePageChrome({ context: "Work · operations plan" });
 
   const load = useCallback(() => data.opsHome().then(setHome, (e: Error) => setError(e.message)), []);
@@ -125,6 +128,7 @@ const OperationsPlan = () => {
                             {r.when} · {r.who} · {r.time}
                             {r.cadence === "weekly" && r.weekday !== undefined && r.weekday === weekday ? " · today" : ""}
                             {overdue ? ` · was due ${WEEKDAY[r.weekday!]}` : ""}
+                            {check ? ` · ticked by ${home.names[check.by] ?? "someone"} ${new Date(check.at).toLocaleString("en-GB", { weekday: "short", hour: "2-digit", minute: "2-digit" })}` : ""}
                           </span>
                         </span>
                         {r.href ? (
@@ -179,15 +183,20 @@ const OperationsPlan = () => {
         help={`Format: ${SOP_FORMAT}.`}
         action={
           <span className="flex flex-col items-end gap-1 text-[12px]">
-            <span className="text-text-2">
+            <span className="flex items-center gap-3 text-text-2">
               {written} of {home.sops.length} written
+              {home.canEdit ? (
+                <button type="button" className="btn-outline h-8 text-[12px]" onClick={() => setSopEdit({ id: "", title: "", owner: "", due: today, link: "" })}>
+                  + SOP
+                </button>
+              ) : null}
             </span>
             <span className={firstFour.every((s) => s.status === "done") ? "text-mint" : "text-amber"}>SOPs 1–4 needed before {SOPS_DEADLINE.slice(8)} Oct: {firstFour.filter((s) => s.status === "done").length} of 4</span>
           </span>
         }
       >
         <div className="overflow-x-auto">
-          <div className="grid min-w-[980px] grid-cols-[32px_minmax(0,0.9fr)_minmax(0,1.8fr)_100px_96px_120px_minmax(0,1fr)] gap-3 border-b border-line pb-2 text-[12px] text-text-3">
+          <div className="grid min-w-[980px] grid-cols-[32px_minmax(0,0.9fr)_minmax(0,1.8fr)_100px_96px_120px_minmax(0,1fr)_32px] gap-3 border-b border-line pb-2 text-[12px] text-text-3">
             <span>#</span>
             <span>SOP</span>
             <span>Covers</span>
@@ -195,11 +204,12 @@ const OperationsPlan = () => {
             <span>Due</span>
             <span>Status</span>
             <span>Written SOP</span>
+            <span />
           </div>
           {home.sops.map((s) => {
             const late = s.status !== "done" && s.due < today;
             return (
-              <div key={s.id} className="grid min-w-[980px] grid-cols-[32px_minmax(0,0.9fr)_minmax(0,1.8fr)_100px_96px_120px_minmax(0,1fr)] items-center gap-3 border-b border-line-soft py-2.5 text-[13px] last:border-b-0">
+              <div key={s.id} className="grid min-w-[980px] grid-cols-[32px_minmax(0,0.9fr)_minmax(0,1.8fr)_100px_96px_120px_minmax(0,1fr)_32px] items-center gap-3 border-b border-line-soft py-2.5 text-[13px] last:border-b-0">
                 <span className="num text-text-3">{s.num}</span>
                 <span className="font-medium">{s.title}</span>
                 <span className="text-[12px] text-text-2">{s.covers}</span>
@@ -246,11 +256,62 @@ const OperationsPlan = () => {
                     <span className="text-[12px] text-text-3">Not written yet</span>
                   )}
                 </span>
+                {home.canEdit ? (
+                  <RowMenu
+                    label={`Actions for SOP ${s.num}`}
+                    items={[
+                      { label: "Edit title, owner, due, link", onSelect: () => setSopEdit({ id: s.id, title: s.title, owner: s.owner, due: s.due, link: s.link ?? "" }) },
+                      { label: "Delete", danger: true, onSelect: () => remove(`SOP ${s.num}`, () => data.deleteSop(s.id), load) },
+                    ]}
+                  />
+                ) : (
+                  <span />
+                )}
               </div>
             );
           })}
         </div>
       </Card>
+
+      <Modal open={!!sopEdit} onClose={() => setSopEdit(null)} title={sopEdit?.id ? "Edit SOP" : "New SOP"}>
+        {sopEdit ? (
+          <form
+            className="grid gap-4 sm:grid-cols-2"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const x = sopEdit;
+              setSopEdit(null);
+              await run(
+                () =>
+                  x.id
+                    ? data.updateSop(x.id, { owner: x.owner.trim(), due: x.due, ...(x.link.trim() ? { link: x.link.trim() } : { link: null }) })
+                    : data.addSop({ title: x.title, owner: x.owner, due: x.due }),
+                x.id ? "SOP saved" : `${x.title} added`,
+              );
+            }}
+          >
+            {!sopEdit.id ? (
+              <Field label="Title" wide>
+                <input className="input" required value={sopEdit.title} onChange={(e) => setSopEdit({ ...sopEdit, title: e.target.value })} placeholder="e.g. Refund a client" />
+              </Field>
+            ) : null}
+            <Field label="Owner">
+              <input className="input" value={sopEdit.owner} onChange={(e) => setSopEdit({ ...sopEdit, owner: e.target.value })} />
+            </Field>
+            <Field label="Due">
+              <input className="input" type="date" value={sopEdit.due} onChange={(e) => setSopEdit({ ...sopEdit, due: e.target.value })} />
+            </Field>
+            {sopEdit.id ? (
+              <Field label="Link to the written SOP" wide>
+                <input className="input" value={sopEdit.link} onChange={(e) => setSopEdit({ ...sopEdit, link: e.target.value })} placeholder="https://… or /docs/…" />
+              </Field>
+            ) : null}
+            <button type="submit" className="btn-primary sm:col-span-2" disabled={!sopEdit.id && !sopEdit.title.trim()}>
+              {sopEdit.id ? "Save" : "Add SOP"}
+            </button>
+          </form>
+        ) : null}
+      </Modal>
 
       <Card title="Who does what" help="Stage 1.">
         <Table cols="grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)_minmax(0,0.9fr)_minmax(0,1fr)]" head={["Person", "Owns", "Hours", "Tools"]} rows={PEOPLE_STAGE1.map((p) => [p.who, p.owns, p.hours, p.tools])} />

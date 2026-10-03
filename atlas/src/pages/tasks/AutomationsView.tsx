@@ -3,7 +3,7 @@ import { useUser } from "@/auth/AuthContext";
 import { Modal, useToast } from "@/components/ui/overlay";
 import { EmptyState, SkeletonRows } from "@/components/ui/primitives";
 import { DEFAULT_STATUSES, STATUS_META } from "@/config/tasks";
-import { data, type Action, type Automation, type AutomationRun, type Condition, type GoalKpi, type GoalView, type TaskStatus, type TaskTemplate, type TriggerType } from "@/data";
+import { data, type Action, type Automation, type AutomationRun, type Condition, type GoalKpi, type GoalView, type TaskStatus, type TaskTemplate, type TemplateItem, type TriggerType } from "@/data";
 import { KPI_LABEL } from "@/services/automations";
 import { useTasks } from "./shared";
 
@@ -22,17 +22,31 @@ const describeAction = (a: Action, templates: TaskTemplate[]) =>
           : `Add the tag "${a.tag}"`;
 
 /** A small builder: one trigger, up to one condition, one action. */
-const AutomationEditor = ({ templates, onClose, onSaved }: { templates: TaskTemplate[]; onClose: () => void; onSaved: () => void }) => {
+const AutomationEditor = ({ templates, existing, onClose, onSaved }: { templates: TaskTemplate[]; existing?: Automation; onClose: () => void; onSaved: () => void }) => {
   const toast = useToast();
-  const [name, setName] = useState("");
-  const [trigger, setTrigger] = useState<TriggerType>("task_status_changed");
-  const [condField, setCondField] = useState("to");
-  const [condValue, setCondValue] = useState("done");
-  const [actionType, setActionType] = useState<Action["type"]>("notify");
-  const [notifyTo, setNotifyTo] = useState("trigger_creator");
-  const [text, setText] = useState("Done: {{task}}");
-  const [templateId, setTemplateId] = useState(templates[0]?.id ?? "");
-  const [status, setStatus] = useState("review");
+  const first = existing?.actions[0];
+  const cond = existing?.conditions[0];
+  const [name, setName] = useState(existing?.name ?? "");
+  const [trigger, setTrigger] = useState<TriggerType>(existing?.trigger.type ?? "task_status_changed");
+  const [condField, setCondField] = useState(cond?.field ?? (existing ? "" : "to"));
+  const [condValue, setCondValue] = useState(cond ? String(cond.value) : existing ? "" : "done");
+  const [actionType, setActionType] = useState<Action["type"]>(first?.type ?? "notify");
+  const [notifyTo, setNotifyTo] = useState(first?.type === "notify" ? first.to : "trigger_creator");
+  const [text, setText] = useState(first?.type === "notify" ? first.text : first?.type === "add_tag" ? first.tag : "Done: {{task}}");
+  const [templateId, setTemplateId] = useState(first?.type === "create_tasks_from_template" ? first.templateId : (templates[0]?.id ?? ""));
+  const [status, setStatus] = useState<string>(first?.type === "set_status" ? first.status : "review");
+  const [target, setTarget] = useState(
+    first?.type === "create_tasks_from_template"
+      ? { spaceName: first.spaceName, listName: first.listName, assignee: first.assignee, link: first.link }
+      : { spaceName: "Delivery", listName: "Onboarding", assignee: "implementer", link: "deal" as "client" | "deal" | "lead" | "none" },
+  );
+  const [spaces, setSpaces] = useState<{ name: string; lists: string[] }[]>([]);
+  useEffect(() => {
+    data.tasksHome().then(
+      (h) => setSpaces(h.spaces.map((x) => ({ name: x.space.name, lists: x.lists.map((l) => l.name) }))),
+      () => setSpaces([]),
+    );
+  }, []);
   const fields: Record<TriggerType, string[]> = { deal_won: ["brand", "pilot"], task_status_changed: ["to", "from", "priority", "category"], task_created: ["priority", "category"], due_date_passed: ["priority", "category"] };
 
   const save = async () => {
@@ -41,12 +55,12 @@ const AutomationEditor = ({ templates, onClose, onSaved }: { templates: TaskTemp
       actionType === "notify"
         ? { type: "notify", to: notifyTo, text }
         : actionType === "create_tasks_from_template"
-          ? { type: "create_tasks_from_template", templateId, spaceName: "Delivery", listName: "Onboarding", assignee: "implementer", link: "deal" }
+          ? { type: "create_tasks_from_template", templateId, spaceName: target.spaceName, listName: target.listName, assignee: target.assignee, link: target.link }
           : actionType === "set_status"
             ? { type: "set_status", status: status as TaskStatus }
             : { type: "add_tag", tag: text.trim() || "flagged" };
     try {
-      await data.saveAutomation({ name, trigger: { type: trigger }, conditions, actions: [action] });
+      await data.saveAutomation({ ...(existing ? { id: existing.id, active: existing.active } : {}), name, trigger: { type: trigger }, conditions, actions: [action] });
       toast("Automation saved", "good");
       onSaved();
     } catch (e) {
@@ -55,7 +69,7 @@ const AutomationEditor = ({ templates, onClose, onSaved }: { templates: TaskTemp
   };
 
   return (
-    <Modal open onClose={onClose} title="New automation" width={600}>
+    <Modal open onClose={onClose} title={existing ? `Edit · ${existing.name}` : "New automation"} width={600}>
       <div className="flex flex-col gap-4 text-[13px]">
         <label className="flex flex-col gap-1.5">
           <span className="field-label">Name</span>
@@ -115,13 +129,41 @@ const AutomationEditor = ({ templates, onClose, onSaved }: { templates: TaskTemp
               <input className="input flex-1" value={text} onChange={(e) => setText(e.target.value)} aria-label="Message" />
             </div>
           ) : actionType === "create_tasks_from_template" ? (
-            <select className="input" value={templateId} onChange={(e) => setTemplateId(e.target.value)}>
-              {templates.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <select className="input sm:col-span-2" aria-label="Template" value={templateId} onChange={(e) => setTemplateId(e.target.value)}>
+                {templates.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+              <select className="input" aria-label="Space" value={target.spaceName} onChange={(e) => setTarget({ ...target, spaceName: e.target.value, listName: spaces.find((x) => x.name === e.target.value)?.lists[0] ?? "" })}>
+                {(spaces.some((x) => x.name === target.spaceName) ? spaces : [{ name: target.spaceName, lists: [target.listName] }, ...spaces]).map((x) => (
+                  <option key={x.name} value={x.name}>
+                    {x.name}
+                  </option>
+                ))}
+              </select>
+              <select className="input" aria-label="List" value={target.listName} onChange={(e) => setTarget({ ...target, listName: e.target.value })}>
+                {(spaces.find((x) => x.name === target.spaceName)?.lists ?? [target.listName]).map((l) => (
+                  <option key={l} value={l}>
+                    {l}
+                  </option>
+                ))}
+              </select>
+              <select className="input" aria-label="Assign to" value={target.assignee} onChange={(e) => setTarget({ ...target, assignee: e.target.value })}>
+                <option value="implementer">the implementer</option>
+                <option value="deal_owner">the deal owner</option>
+                <option value="trigger_assignees">the task's owners</option>
+                <option value="admin">a founder</option>
+              </select>
+              <select className="input" aria-label="Link the tasks to" value={target.link} onChange={(e) => setTarget({ ...target, link: e.target.value as typeof target.link })}>
+                <option value="client">linked to the client</option>
+                <option value="deal">linked to the deal</option>
+                <option value="lead">linked to the lead</option>
+                <option value="none">not linked</option>
+              </select>
+            </div>
           ) : actionType === "set_status" ? (
             <select className="input" value={status} onChange={(e) => setStatus(e.target.value)}>
               {DEFAULT_STATUSES.map((s) => (
@@ -148,6 +190,78 @@ const AutomationEditor = ({ templates, onClose, onSaved }: { templates: TaskTemp
   );
 };
 
+const ROLES: { value: TemplateItem["role"]; label: string }[] = [
+  { value: "assignee", label: "Whoever the rule assigns" },
+  { value: "implementer", label: "The implementer" },
+  { value: "deal_owner", label: "The deal owner" },
+  { value: "admin", label: "A founder" },
+];
+
+/** Create or edit a task template: the checklist of tasks an automation (or a person) creates in one go. */
+const TemplateEditor = ({ template, onClose, onSaved }: { template: TaskTemplate | null; onClose: () => void; onSaved: () => void }) => {
+  const toast = useToast();
+  const blank: TemplateItem = { title: "", estimateHours: 1, dueOffsetDays: 1, category: null, priority: "normal", role: "assignee" };
+  const [name, setName] = useState(template?.name ?? "");
+  const [description, setDescription] = useState(template?.description ?? "");
+  const [items, setItems] = useState<TemplateItem[]>(template?.items.length ? template.items : [blank]);
+  const set = (i: number, patch: Partial<TemplateItem>) => setItems(items.map((x, j) => (j === i ? { ...x, ...patch } : x)));
+  return (
+    <Modal open onClose={onClose} title={template ? `Edit · ${template.name}` : "New task template"} width={760}>
+      <form
+        className="flex flex-col gap-4 text-[13px]"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          try {
+            await data.saveTaskTemplate({ ...(template ? { id: template.id } : {}), name, description, items: items.filter((x) => x.title.trim()) });
+            toast("Template saved", "good");
+            onSaved();
+          } catch (err) {
+            toast((err as Error).message, "error");
+          }
+        }}
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="flex flex-col gap-1.5">
+            <span className="field-label">Name</span>
+            <input className="input" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Gllarix onboarding" />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="field-label">What it's for</span>
+            <input className="input" value={description} onChange={(e) => setDescription(e.target.value)} />
+          </label>
+        </div>
+        <div className="flex flex-col gap-2">
+          <span className="field-label">Tasks, in order</span>
+          {items.map((it, i) => (
+            <div key={i} className="grid grid-cols-[minmax(0,1fr)_80px_80px_170px_32px] items-center gap-2">
+              <input className="input h-9" aria-label={`Task ${i + 1} title`} value={it.title} onChange={(e) => set(i, { title: e.target.value })} placeholder="Task title" />
+              <input className="input h-9" type="number" min={0} aria-label="Due after (days)" title="Due this many days after the trigger" value={it.dueOffsetDays} onChange={(e) => set(i, { dueOffsetDays: Number(e.target.value) || 0 })} />
+              <input className="input h-9" type="number" min={0} step={0.5} aria-label="Estimate (hours)" title="Estimate in hours" value={it.estimateHours ?? ""} onChange={(e) => set(i, { estimateHours: e.target.value === "" ? null : Number(e.target.value) })} />
+              <select className="input h-9" aria-label="Who" value={it.role} onChange={(e) => set(i, { role: e.target.value as TemplateItem["role"] })}>
+                {ROLES.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+              <button type="button" aria-label={`Remove task ${i + 1}`} className="btn-ghost h-8 px-2 text-text-3 hover:text-coral" onClick={() => setItems(items.filter((_, j) => j !== i))} disabled={items.length === 1}>
+                ×
+              </button>
+            </div>
+          ))}
+          <span className="text-[11px] text-text-3">Columns: title · due after N days · estimate in hours · who gets it.</span>
+          <button type="button" className="btn-outline self-start h-8 text-[12px]" onClick={() => setItems([...items, blank])}>
+            + Task
+          </button>
+        </div>
+        <button type="submit" className="btn-primary" disabled={!name.trim() || !items.some((x) => x.title.trim())}>
+          Save template
+        </button>
+      </form>
+    </Modal>
+  );
+};
+
 /** Automations ("when X then Y"), task templates and the run log (A15). */
 /** `intro` renders under the title (Growth › Automations puts "Runs by itself" there). */
 export const AutomationsView = ({ intro }: { intro?: ReactNode }) => {
@@ -156,6 +270,9 @@ export const AutomationsView = ({ intro }: { intro?: ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [openTpl, setOpenTpl] = useState<string | null>(null);
+  const [editing, setEditing] = useState<Automation | null>(null);
+  const [tpl, setTpl] = useState<TaskTemplate | "new" | null>(null);
+  const toast = useToast();
   const load = useCallback(() => data.listAutomations().then(setD, (e: Error) => setError(e.message)), []);
   useEffect(() => {
     load();
@@ -196,6 +313,9 @@ export const AutomationsView = ({ intro }: { intro?: ReactNode }) => {
                   <input type="checkbox" checked={a.active} onChange={async (e) => (await data.setAutomationActive(a.id, e.target.checked), load())} className="accent-[var(--cyan)]" />
                   Active
                 </label>
+                <button type="button" className="text-[12px] text-text-2 hover:text-text" onClick={() => setEditing(a)}>
+                  Edit
+                </button>
                 <button type="button" className="text-[12px] text-coral" onClick={async () => window.confirm(`Delete "${a.name}"?`) && (await data.deleteAutomation(a.id), load())}>
                   Delete
                 </button>
@@ -206,7 +326,14 @@ export const AutomationsView = ({ intro }: { intro?: ReactNode }) => {
       </section>
 
       <section aria-label="Task templates" className="card flex flex-col">
-        <span className="label-caps border-b border-line px-4 py-3">Task templates</span>
+        <span className="flex items-center justify-between border-b border-line px-4 py-2.5">
+          <span className="label-caps">Task templates</span>
+          {admin ? (
+            <button type="button" className="btn-outline h-8 text-[12px]" onClick={() => setTpl("new")}>
+              + Template
+            </button>
+          ) : null}
+        </span>
         {d.templates.map((t) => (
           <div key={t.id} className="border-b border-line-soft last:border-b-0">
             <button type="button" className="flex w-full justify-between gap-3 px-4 py-3 text-left text-[13px] hover:bg-surface-2" onClick={() => setOpenTpl(openTpl === t.id ? null : t.id)} aria-expanded={openTpl === t.id}>
@@ -216,15 +343,39 @@ export const AutomationsView = ({ intro }: { intro?: ReactNode }) => {
               <span className="text-text-3">{t.items.length} tasks</span>
             </button>
             {openTpl === t.id ? (
-              <ol className="m-0 flex flex-col gap-1 bg-bg-deep px-10 py-3 text-[12px] text-text-2">
-                {t.items.map((it, i) => (
-                  <li key={i}>
-                    {it.title} · due +{it.dueOffsetDays} days · {it.estimateHours ?? "—"} h · {it.role.replace("_", " ")}
-                    {it.dependsOnPrevious ? " · after the previous one" : ""}
-                    {it.checklist?.length ? ` · checklist: ${it.checklist.join(", ")}` : ""}
-                  </li>
-                ))}
-              </ol>
+              <div className="flex flex-col gap-2 bg-bg-deep px-10 py-3">
+                <ol className="m-0 flex flex-col gap-1 text-[12px] text-text-2">
+                  {t.items.map((it, i) => (
+                    <li key={i}>
+                      {it.title} · due +{it.dueOffsetDays} days · {it.estimateHours ?? "—"} h · {it.role.replace("_", " ")}
+                      {it.dependsOnPrevious ? " · after the previous one" : ""}
+                      {it.checklist?.length ? ` · checklist: ${it.checklist.join(", ")}` : ""}
+                    </li>
+                  ))}
+                </ol>
+                {admin ? (
+                  <span className="flex gap-2">
+                    <button type="button" className="btn-outline h-8 text-[12px]" onClick={() => setTpl(t)}>
+                      Edit template
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-ghost h-8 text-[12px] text-coral"
+                      onClick={async () => {
+                        if (!window.confirm(`Delete the "${t.name}" template?`)) return;
+                        try {
+                          await data.deleteTaskTemplate(t.id);
+                          load();
+                        } catch (e) {
+                          toast((e as Error).message, "error");
+                        }
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </span>
+                ) : null}
+              </div>
             ) : null}
           </div>
         ))}
@@ -243,12 +394,27 @@ export const AutomationsView = ({ intro }: { intro?: ReactNode }) => {
         ))}
         {!d.runs.length ? <span className="px-4 py-3 text-[13px] text-text-3">Nothing has run yet. Win a deal or move a task to Review to see one.</span> : null}
       </section>
-      {creating ? (
+      {creating || editing ? (
         <AutomationEditor
           templates={d.templates}
-          onClose={() => setCreating(false)}
+          existing={editing ?? undefined}
+          onClose={() => {
+            setCreating(false);
+            setEditing(null);
+          }}
           onSaved={() => {
             setCreating(false);
+            setEditing(null);
+            load();
+          }}
+        />
+      ) : null}
+      {tpl ? (
+        <TemplateEditor
+          template={tpl === "new" ? null : tpl}
+          onClose={() => setTpl(null)}
+          onSaved={() => {
+            setTpl(null);
             load();
           }}
         />

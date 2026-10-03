@@ -461,7 +461,9 @@ export const createDemoTasks = <S extends TasksStore>(ctx: Ctx<S>) => {
         checklist: s.checklist.filter((c) => c.taskId === t.id).sort((a, b) => a.position - b.position),
         comments: s.taskComments.filter((c) => c.taskId === t.id && !c.deletedAt).sort((a, b) => a.createdAt.localeCompare(b.createdAt)).map((c) => ({ ...c, userName: nameOf(c.userId) ?? "—" })),
         attachments: s.taskAttachments.filter((a) => a.taskId === t.id),
-        waitingOn: rowsOf(s.taskDeps.filter((d) => d.taskId === t.id).map((d) => d.dependsOnId)),
+        waitingOn: s.taskDeps
+          .filter((d) => d.taskId === t.id)
+          .flatMap((d) => rowsOf([d.dependsOnId]).map((r) => ({ ...r, depId: d.id }))),
         blocks: rowsOf(s.taskDeps.filter((d) => d.dependsOnId === t.id).map((d) => d.taskId)),
         time: s.timeEntries.filter((e) => e.taskId === t.id).sort((a, b) => b.startedAt.localeCompare(a.startedAt)).map((e) => ({ ...e, userName: nameOf(e.userId) ?? "—" })),
         spentMinutes: s.timeEntries.filter((e) => e.taskId === t.id).reduce((n, e) => n + e.minutes, 0),
@@ -545,6 +547,23 @@ export const createDemoTasks = <S extends TasksStore>(ctx: Ctx<S>) => {
       for (const x of s.tasks.filter((x) => x.parentId === t.id)) x.deletedAt = null;
       log(s, t.id, user.id, "Restored from trash");
       await save();
+    },
+
+    async listDeletedTasks() {
+      const user = await viewer();
+      if (user.role !== "admin") throw new AccessError(403, "Only admins see the trash.");
+      const s = await load();
+      return s.tasks
+        .filter((t) => t.deletedAt && !(t.parentId && s.tasks.find((p) => p.id === t.parentId)?.deletedAt))
+        .map((t) => ({
+          id: t.id,
+          title: t.title,
+          listName: s.taskLists.find((l) => l.id === t.listId)?.name ?? "—",
+          deletedAt: t.deletedAt!,
+          daysLeft: Math.max(0, TRASH_DAYS - Math.floor((now() - new Date(t.deletedAt!).getTime()) / DAY)),
+        }))
+        .filter((t) => t.daysLeft > 0)
+        .sort((a, b) => b.deletedAt.localeCompare(a.deletedAt));
     },
 
     async addChecklistItem(taskId, text) {

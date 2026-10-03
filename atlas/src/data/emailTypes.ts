@@ -17,6 +17,16 @@ export interface Inbox {
 export interface EmailTemplate extends TemplateDef {
   updatedAt: string;
   updatedBy: string | null;
+  /** Made in Atlas (not one of the built-in templates the code sends): can be deleted. */
+  custom?: boolean;
+}
+
+export interface NewTemplateInput {
+  name: string;
+  channel: "email" | "linkedin";
+  list: "trades" | "developers" | "any";
+  subject: string;
+  body: string;
 }
 
 export type EmailKind = "cadence" | "send_info" | "no_show" | "booking_confirmation" | "reminder_24h" | "reminder_1h" | "manual";

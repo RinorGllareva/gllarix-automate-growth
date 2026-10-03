@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Route, Routes, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import CandidatePage, { CandidateRecord, daysIn, HireModal, ScoreBadge } from "./CandidateRecord";
 import { usePageChrome } from "@/components/shell/PageChrome";
+import { useDeleteWithUndo } from "@/components/ui/actions";
 import { Drawer, Modal, useToast } from "@/components/ui/overlay";
 import { EmptyState, Icon, ICONS, Pill, SkeletonRows } from "@/components/ui/primitives";
 import type { Hue } from "@/config/colors";
-import { data, HIRING_STAGE_HELP, HIRING_STAGE_LABEL, HIRING_STAGES, RED_FLAGS, SCORECARD, type Candidate, type Opening } from "@/data";
-import { scoreVerdict, weightedScore } from "@/services/people";
+import { data, HIRING_STAGE_HELP, HIRING_STAGE_LABEL, HIRING_STAGES, type Candidate, type Opening } from "@/data";
 
-const DAY = 86_400_000;
 const OPENING_STATUS: Record<Opening["status"], { label: string; hue: Hue }> = {
   open: { label: "Hiring", hue: "mint" },
   draft: { label: "Draft", hue: "text-3" },
@@ -16,31 +16,30 @@ const OPENING_STATUS: Record<Opening["status"], { label: string; hue: Hue }> = {
   closed: { label: "Closed", hue: "text-3" },
 };
 const SOURCES: Candidate["source"][] = ["Venezuela groups", "LinkedIn", "Referral", "Other"];
-const daysIn = (c: Candidate) => Math.max(0, Math.floor((Date.now() - new Date(c.stageChangedAt).getTime()) / DAY));
-
-const ScoreBadge = ({ c }: { c: Candidate }) => {
-  const w = weightedScore(c.scores);
-  const v = scoreVerdict(w.score, c.redFlags.length);
-  return (
-    <Pill hue={v.hue} dot className="self-start">
-      {w.score === null ? v.label : `${w.score} · ${v.label}`}
-    </Pill>
-  );
-};
-
 /** People › Hiring: openings by stage gate, the SOP 8 pipeline with the weighted scorecard, the bench. Founders only. */
-const Hiring = () => {
+const HiringBoard = () => {
   const toast = useToast();
   const navigate = useNavigate();
   const [board, setBoard] = useState<{ openings: Opening[]; candidates: Candidate[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [openingId, setOpeningId] = useState<string | null>(null);
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [params, setParams] = useSearchParams();
+  const openId = params.get("open");
+  const setOpenId = (cid: string | null) => {
+    const next = new URLSearchParams(params);
+    if (cid) next.set("open", cid);
+    else next.delete("open");
+    setParams(next, { replace: !cid });
+  };
   const [adding, setAdding] = useState(false);
   const [newCand, setNewCand] = useState({ name: "", source: "Venezuela groups" as Candidate["source"], voiceNoteUrl: "" });
   const [editingOpening, setEditingOpening] = useState<Partial<Opening> | null>(null);
   const [showPost, setShowPost] = useState(false);
-  const [start, setStart] = useState<{ candidate: Candidate; date: string } | null>(null);
+  const [start, setStart] = useState<{ candidate: Candidate } | null>(null);
+  const [q, setQ] = useState("");
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dropOn, setDropOn] = useState<string | null>(null);
+  const remove = useDeleteWithUndo();
   usePageChrome({ context: "People · hiring" });
 
   const load = useCallback(() => data.hiringBoard().then(setBoard, (e: Error) => setError(e.message)), []);
@@ -52,7 +51,8 @@ const Hiring = () => {
   if (!board) return <SkeletonRows rows={8} />;
 
   const opening = board.openings.find((o) => o.id === openingId) ?? board.openings.find((o) => o.status === "open") ?? board.openings[0];
-  const cands = board.candidates.filter((c) => c.openingId === opening?.id);
+  const needle = q.trim().toLowerCase();
+  const cands = board.candidates.filter((c) => c.openingId === opening?.id && (!needle || `${c.name} ${c.email ?? ""} ${c.source}`.toLowerCase().includes(needle)));
   const current = board.candidates.find((c) => c.id === openId) ?? null;
   const run = async (fn: () => Promise<unknown>, ok?: string) => {
     try {
@@ -116,8 +116,12 @@ const Hiring = () => {
                   Job post
                 </button>
               ) : null}
+              <input type="search" className="input h-9 w-44" placeholder="Find a candidate" aria-label="Find a candidate" value={q} onChange={(e) => setQ(e.target.value)} />
               <button type="button" className="btn-outline" onClick={() => setEditingOpening(opening)}>
                 Edit
+              </button>
+              <button type="button" className="btn-ghost text-coral" onClick={() => remove(`Opening "${opening.role}"`, () => data.deleteOpening(opening.id), () => (setOpeningId(null), load()))}>
+                Delete
               </button>
               <button type="button" className="btn-primary" onClick={() => setAdding(true)}>
                 <Icon d={ICONS.plus} size={15} /> Candidate
@@ -144,7 +148,25 @@ const Hiring = () => {
             {HIRING_STAGES.map((st) => {
               const list = cands.filter((c) => c.status === st);
               return (
-                <div key={st} className="flex min-w-0 flex-col gap-2 rounded-xl bg-surface-2/50 p-2">
+                <div
+                  key={st}
+                  className={`flex min-w-0 flex-col gap-2 rounded-xl p-2 transition-colors ${dropOn === st ? "bg-app/10 ring-1 ring-app" : "bg-surface-2/50"}`}
+                  onDragOver={(e) => {
+                    if (!dragId) return;
+                    e.preventDefault();
+                    setDropOn(st);
+                  }}
+                  onDragLeave={() => setDropOn((x) => (x === st ? null : x))}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const c = board.candidates.find((x) => x.id === dragId);
+                    setDragId(null);
+                    setDropOn(null);
+                    if (!c || c.status === st) return;
+                    if (st === "hired") return setStart({ candidate: c });
+                    move(c, st);
+                  }}
+                >
                   <div className="flex flex-col px-1">
                     <span className="flex items-center justify-between text-[13px] font-medium">
                       {HIRING_STAGE_LABEL[st]}
@@ -153,7 +175,16 @@ const Hiring = () => {
                     <span className="text-[11px] text-text-3">{HIRING_STAGE_HELP[st]}</span>
                   </div>
                   {list.map((c) => (
-                    <button key={c.id} type="button" onClick={() => setOpenId(c.id)} className="flex flex-col gap-1.5 rounded-lg bg-surface px-3 py-2.5 text-left shadow-card hover:bg-surface-2">
+                    <button
+                      key={c.id}
+                      type="button"
+                      draggable
+                      onDragStart={() => setDragId(c.id)}
+                      onDragEnd={() => (setDragId(null), setDropOn(null))}
+                      title="Drag to the next step, or click to open"
+                      onClick={() => setOpenId(c.id)}
+                      className={`flex cursor-grab flex-col gap-1.5 rounded-lg bg-surface px-3 py-2.5 text-left shadow-card hover:bg-surface-2 ${dragId === c.id ? "opacity-50" : ""}`}
+                    >
                       <span className="flex items-center justify-between gap-2">
                         <span className="truncate text-[13px] font-semibold">{c.name}</span>
                         {c.redFlags.length ? <Icon d="M5 21V4M5 4h11l-2 4 2 4H5" size={14} className="text-coral" /> : null}
@@ -188,117 +219,11 @@ const Hiring = () => {
         <EmptyState title="No openings yet. Add the first role you'll hire for." />
       )}
 
-      {/* Candidate: scorecard, red flags, notes and moves. */}
-      <Drawer open={!!current} onClose={() => setOpenId(null)} title={current ? current.name : "Candidate"} width={520}>
+      {/* Candidate: the same record as /hiring/:id, in a side panel. */}
+      <Drawer open={!!current} onClose={() => setOpenId(null)} title={current ? current.name : "Candidate"} width={760}>
         {current ? (
-          <div className="flex flex-col gap-5 p-5">
-            <div className="flex flex-wrap items-center gap-2 text-[13px] text-text-2">
-              <Pill hue="cyan" dot>
-                {HIRING_STAGE_LABEL[current.status]}
-              </Pill>
-              <span>{current.source}</span>
-              <span>· {daysIn(current)}d in stage</span>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {(() => {
-                const i = HIRING_STAGES.indexOf(current.status as (typeof HIRING_STAGES)[number]);
-                const next = i >= 0 && i < HIRING_STAGES.length - 1 ? HIRING_STAGES[i + 1] : null;
-                return (
-                  <>
-                    {next && next !== "hired" ? (
-                      <button type="button" className="btn-primary" onClick={() => move(current, next)}>
-                        Move to {HIRING_STAGE_LABEL[next].toLowerCase()} <Icon d={ICONS.arrow} size={14} />
-                      </button>
-                    ) : null}
-                    {current.status === "offer" ? (
-                      <button type="button" className="btn-primary" onClick={() => setStart({ candidate: current, date: new Date(Date.now() + 3 * DAY).toISOString().slice(0, 10) })}>
-                        Hire and start training
-                      </button>
-                    ) : null}
-                    {i > 0 && current.status !== "hired" ? (
-                      <button type="button" className="btn-outline" onClick={() => move(current, HIRING_STAGES[i - 1])}>
-                        Back a step
-                      </button>
-                    ) : null}
-                    {current.status !== "bench" && current.status !== "hired" ? (
-                      <button type="button" className="btn-outline" onClick={() => move(current, "bench")}>
-                        To the bench
-                      </button>
-                    ) : null}
-                    {current.status === "bench" || current.status === "rejected" ? (
-                      <button type="button" className="btn-outline" onClick={() => move(current, "applied")}>
-                        Back into the pipeline
-                      </button>
-                    ) : null}
-                    {current.status !== "rejected" && current.status !== "hired" ? (
-                      <button type="button" className="btn-danger" onClick={() => move(current, "rejected")}>
-                        Not a fit
-                      </button>
-                    ) : null}
-                  </>
-                );
-              })()}
-            </div>
-
-            <section aria-label="Scorecard" className="flex flex-col gap-3">
-              <span className="flex items-center justify-between">
-                <span className="text-[14px] font-semibold">Scorecard</span>
-                <ScoreBadge c={current} />
-              </span>
-              {SCORECARD.map((k) => (
-                <div key={k.key} className="flex items-center justify-between gap-3 text-[13px]">
-                  <span className="flex min-w-0 flex-col">
-                    <span>{k.label}</span>
-                    <span className="text-[11px] text-text-3">{k.weight}% of the score</span>
-                  </span>
-                  <div role="radiogroup" aria-label={k.label} className="flex shrink-0 rounded-lg bg-inset p-0.5">
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <button
-                        key={n}
-                        type="button"
-                        role="radio"
-                        aria-checked={current.scores[k.key] === n}
-                        onClick={() => run(() => data.updateCandidate(current.id, { scores: { [k.key]: n } }))}
-                        className={`h-7 w-7 rounded-md text-[12px] ${current.scores[k.key] === n ? "bg-surface-2 text-text shadow-card" : "text-text-3 hover:text-text"}`}
-                      >
-                        {n}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-              <span className="text-[12px] text-text-3">1 = weak, 5 = excellent. 70+ with no red flags is a strong candidate; the founders decide.</span>
-            </section>
-
-            <section aria-label="Red flags" className="flex flex-col gap-2">
-              <span className="text-[14px] font-semibold">Red flags</span>
-              <div className="flex flex-wrap gap-2">
-                {RED_FLAGS.map((f) => {
-                  const on = current.redFlags.includes(f);
-                  return (
-                    <button
-                      key={f}
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() => run(() => data.updateCandidate(current.id, { redFlags: on ? current.redFlags.filter((x) => x !== f) : [...current.redFlags, f] }))}
-                      className={`h-8 rounded-lg border px-3 text-[12px] ${on ? "border-coral/60 bg-coral-tint text-coral" : "border-line text-text-2 hover:border-line-strong"}`}
-                    >
-                      {f}
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-
-            <label className="flex flex-col gap-1.5">
-              <span className="field-label">Voice note link</span>
-              <input className="input" defaultValue={current.voiceNoteUrl ?? ""} key={`v-${current.id}`} placeholder="WhatsApp or Drive link" onBlur={(e) => e.target.value !== (current.voiceNoteUrl ?? "") && run(() => data.updateCandidate(current.id, { voiceNoteUrl: e.target.value || null }))} />
-            </label>
-            <label className="flex flex-col gap-1.5">
-              <span className="field-label">Notes</span>
-              <textarea className="input min-h-[96px] py-2" defaultValue={current.notes} key={`n-${current.id}`} onBlur={(e) => e.target.value !== current.notes && run(() => data.updateCandidate(current.id, { notes: e.target.value }), "Notes saved")} />
-            </label>
+          <div className="p-5">
+            <CandidateRecord id={current.id} panel onChanged={load} onGone={() => setOpenId(null)} />
           </div>
         ) : null}
       </Drawer>
@@ -388,31 +313,32 @@ const Hiring = () => {
         ) : null}
       </Modal>
 
-      <Modal open={!!start} onClose={() => setStart(null)} title={start ? `Hire ${start.candidate.name}` : "Hire"}>
-        {start ? (
-          <form
-            className="flex flex-col gap-4"
-            onSubmit={async (e) => {
-              e.preventDefault();
-              await run(() => data.startTraining({ candidateId: start.candidate.id, role: opening?.role ?? "New hire", startDate: start.date }), `${start.candidate.name} is hired. Training starts ${start.date}.`);
-              setStart(null);
-              setOpenId(null);
-              navigate("/training");
-            }}
-          >
-            <p className="m-0 text-[14px] text-text-2">This marks them hired, fills the opening, and starts the 10-day training. Send the contractor agreement (30-day trial) before day 1.</p>
-            <label className="flex flex-col gap-2">
-              <span className="field-label">Training starts</span>
-              <input type="date" className="input" value={start.date} onChange={(e) => setStart({ ...start, date: e.target.value })} />
-            </label>
-            <button type="submit" className="btn-primary">
-              Hire and start training
-            </button>
-          </form>
-        ) : null}
-      </Modal>
+      <HireModal
+        candidate={start?.candidate ?? null}
+        role={opening?.role ?? "New hire"}
+        onClose={() => setStart(null)}
+        onHired={() => {
+          setStart(null);
+          load();
+          navigate("/training");
+        }}
+      />
     </div>
   );
 };
+
+const CandidateRoute = () => {
+  const { id = "" } = useParams();
+  usePageChrome({ context: "People · hiring", action: { label: "All candidates", to: "/hiring" } });
+  return <CandidatePage id={id} />;
+};
+
+/** /hiring (the board) and /hiring/:id (one candidate). */
+const Hiring = () => (
+  <Routes>
+    <Route index element={<HiringBoard />} />
+    <Route path=":id" element={<CandidateRoute />} />
+  </Routes>
+);
 
 export default Hiring;

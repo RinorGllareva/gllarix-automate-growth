@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useUser } from "@/auth/AuthContext";
 import Markdown from "@/components/Markdown";
+import { ActivityTimeline, PropertyRow, RecordPage, RelatedList } from "@/components/record/Record";
+import { RowMenu } from "@/components/ui/actions";
 import { usePageChrome } from "@/components/shell/PageChrome";
 import { useToast } from "@/components/ui/overlay";
 import { EmptyState, Icon, ICONS, SkeletonRows } from "@/components/ui/primitives";
@@ -56,6 +58,8 @@ const Docs = () => {
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [draft, setDraft] = useState<{ title: string; body: string; parentId: string | null; icon: string } | null>(null);
+  const [hits, setHits] = useState<{ id: string; title: string; snippet: string }[] | null>(null);
+  const [archived, setArchived] = useState<{ id: string; title: string; updatedAt: string }[] | null>(null);
   // A page just created opens straight in the editor once it has loaded.
   const editNext = useRef<string | null>(null);
 
@@ -63,6 +67,13 @@ const Docs = () => {
   useEffect(() => {
     loadHome();
   }, [loadHome]);
+  // Full-text search over titles and page text, a beat after typing stops.
+  useEffect(() => {
+    const needle = q.trim();
+    if (!needle) return setHits(null);
+    const t = window.setTimeout(() => data.searchDocs(needle).then(setHits, () => setHits([])), 200);
+    return () => window.clearTimeout(t);
+  }, [q, home]);
   const currentId = id ?? home?.docs.find((d) => !d.parentId)?.id ?? null;
   useEffect(() => {
     setDraft(null);
@@ -94,7 +105,35 @@ const Docs = () => {
   if (error) return <EmptyState title={error} />;
   if (!home) return <SkeletonRows rows={8} />;
 
-  const filtered = q.trim() ? home.docs.filter((d) => d.title.toLowerCase().includes(q.trim().toLowerCase())) : null;
+  const showArchived = async () => {
+    if (archived) return setArchived(null);
+    try {
+      setArchived(await data.listArchivedDocs());
+    } catch (e) {
+      toast((e as Error).message, "error");
+    }
+  };
+  const restore = async (d: { id: string; title: string }) => {
+    try {
+      await data.restoreDoc(d.id);
+      toast(`${d.title} restored`, "good");
+      setArchived(await data.listArchivedDocs());
+      await loadHome();
+    } catch (e) {
+      toast((e as Error).message, "error");
+    }
+  };
+  const move = async (direction: "up" | "down") => {
+    if (!page) return;
+    try {
+      await data.moveDoc(page.id, direction);
+      await loadHome();
+    } catch (e) {
+      toast((e as Error).message, "error");
+    }
+  };
+  const siblings = page && home ? home.docs.filter((d) => d.parentId === page.parentId) : [];
+  const at = page ? siblings.findIndex((d) => d.id === page.id) : -1;
   const save = async () => {
     if (!draft) return;
     try {
@@ -129,23 +168,46 @@ const Docs = () => {
             </button>
           ) : null}
         </div>
-        <input type="search" className="input h-9" placeholder="Find a page" aria-label="Find a page" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input type="search" className="input h-9" placeholder="Search titles and text" aria-label="Search docs" value={q} onChange={(e) => setQ(e.target.value)} />
         <nav aria-label="Docs" className="flex flex-col">
-          {filtered ? (
-            filtered.length ? (
-              filtered.map((d) => (
-                <Link key={d.id} to={`/docs/${d.id}`} className="flex h-8 items-center gap-1.5 rounded-md px-2 text-[13px] text-text-2 hover:bg-surface-2 hover:text-text">
-                  <span aria-hidden="true">{d.icon ?? "📄"}</span>
-                  <span className="truncate">{d.title}</span>
+          {q.trim() ? (
+            !hits ? (
+              <span className="px-2 text-[13px] text-text-3">Searching…</span>
+            ) : hits.length ? (
+              hits.map((d) => (
+                <Link key={d.id} to={`/docs/${d.id}`} className="flex flex-col gap-0.5 rounded-md px-2 py-1.5 text-[13px] text-text-2 hover:bg-surface-2 hover:text-text">
+                  <span className="truncate font-medium text-text">{d.title}</span>
+                  {d.snippet ? <span className="line-clamp-2 text-[12px] text-text-3">{d.snippet}</span> : null}
                 </Link>
               ))
             ) : (
-              <span className="px-2 text-[13px] text-text-3">No page with that title.</span>
+              <span className="px-2 text-[13px] text-text-3">Nothing matches "{q.trim()}".</span>
             )
           ) : (
             <Tree docs={home.docs} current={currentId} />
           )}
         </nav>
+        {user.role === "admin" ? (
+          <div className="flex flex-col gap-1 border-t border-line-soft pt-2">
+            <button type="button" className="btn-ghost h-8 justify-start px-2 text-[12px]" aria-expanded={!!archived} onClick={showArchived}>
+              {archived ? "Hide archived pages" : "Archived pages"}
+            </button>
+            {archived ? (
+              archived.length ? (
+                archived.map((d) => (
+                  <span key={d.id} className="flex items-center justify-between gap-2 px-2 text-[12px] text-text-2">
+                    <span className="truncate">{d.title}</span>
+                    <button type="button" className="shrink-0 text-cyan hover:underline" onClick={() => restore(d)}>
+                      Restore
+                    </button>
+                  </span>
+                ))
+              ) : (
+                <span className="px-2 text-[12px] text-text-3">Nothing archived.</span>
+              )
+            ) : null}
+          </div>
+        ) : null}
         {home.move ? <NotionMoveChecklist move={home.move} onChanged={loadHome} /> : null}
       </aside>
 
@@ -200,81 +262,84 @@ const Docs = () => {
             </div>
           </div>
         ) : (
-          <>
-            {breadcrumbs.length ? (
-              <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-[12px] text-text-3">
-                {breadcrumbs.map((b) => (
-                  <span key={b.id} className="flex items-center gap-1">
-                    <Link to={`/docs/${b.id}`} className="hover:text-text">
-                      {b.title}
-                    </Link>
-                    <span aria-hidden="true">/</span>
-                  </span>
-                ))}
-              </nav>
-            ) : null}
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <h2 className="m-0 flex items-center gap-3 text-[30px] font-semibold leading-tight tracking-[-0.02em]">
+          <RecordPage
+            sideFrom="2xl"
+            breadcrumb={[{ label: "Docs", to: "/docs" }, ...breadcrumbs.map((b) => ({ label: b.title, to: `/docs/${b.id}` }))]}
+            status={page.source === "notion" ? <span className="chip border-line-strong text-text-2">Imported from Notion</span> : undefined}
+            title={
+              <span className="flex items-center gap-3">
                 <span aria-hidden="true">{page.icon ?? "📄"}</span>
                 {page.title}
-              </h2>
-              {home.canEdit ? (
-                <div className="flex gap-2">
-                  <button type="button" className="btn-outline h-9" onClick={() => setDraft({ title: page.title, body: page.body, parentId: page.parentId, icon: page.icon ?? "" })}>
+              </span>
+            }
+            actions={
+              home.canEdit ? (
+                <>
+                  <button type="button" className="btn-primary h-9" onClick={() => setDraft({ title: page.title, body: page.body, parentId: page.parentId, icon: page.icon ?? "" })}>
                     Edit
                   </button>
-                  <button type="button" className="btn-ghost h-9" onClick={() => newPage(page.id)}>
-                    + Subpage
-                  </button>
-                  {user.role === "admin" ? (
-                    <button
-                      type="button"
-                      className="btn-ghost h-9 text-coral"
-                      onClick={async () => {
-                        if (!window.confirm(`Archive "${page.title}"? Its subpages move up one level.`)) return;
-                        await data.archiveDoc(page.id);
-                        await loadHome();
-                        navigate("/docs");
-                      }}
-                    >
-                      Archive
-                    </button>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
-            <span className="text-[12px] text-text-3">
-              {page.source === "notion" ? "Imported from Notion · " : ""}
-              {page.updatedByName ? `Edited by ${page.updatedByName} · ` : ""}
-              {timelineDate(page.updatedAt, user.timezone)}
-            </span>
-            <div className="max-w-3xl">
-              <Markdown text={page.body} empty={<span className="text-text-3">{home.canEdit ? "Empty page. Press Edit to write it." : "Empty page."}</span>} />
-            </div>
-            {home.docs.filter((d) => d.parentId === page.id).length ? (
-              <section aria-label="Subpages" className="flex max-w-3xl flex-col gap-1 border-t border-line pt-4">
-                <span className="text-[12px] text-text-3">Subpages</span>
-                {home.docs
-                  .filter((d) => d.parentId === page.id)
-                  .map((d) => (
-                    <Link key={d.id} to={`/docs/${d.id}`} className="flex items-center gap-2 text-[14px] text-text-2 hover:text-text">
-                      <span aria-hidden="true">{d.icon ?? "📄"}</span>
-                      {d.title}
-                    </Link>
-                  ))}
-              </section>
-            ) : null}
-            {page.backlinks.length ? (
-              <section aria-label="Linked from" className="flex max-w-3xl flex-col gap-1 border-t border-line pt-4">
-                <span className="text-[12px] text-text-3">Linked from</span>
-                {page.backlinks.map((b) => (
-                  <Link key={b.id} to={`/docs/${b.id}`} className="text-[13px] text-text-2 hover:text-text">
-                    {b.title}
-                  </Link>
-                ))}
-              </section>
-            ) : null}
-          </>
+                  <RowMenu
+                    label="More page actions"
+                    items={[
+                      { label: "+ Subpage", onSelect: () => newPage(page.id) },
+                      { label: "Move up", hidden: at <= 0, onSelect: () => move("up") },
+                      { label: "Move down", hidden: at < 0 || at >= siblings.length - 1, onSelect: () => move("down") },
+                      {
+                        label: "Archive",
+                        danger: true,
+                        hidden: user.role !== "admin",
+                        onSelect: async () => {
+                          if (!window.confirm(`Archive "${page.title}"? Its subpages move up one level.`)) return;
+                          await data.archiveDoc(page.id);
+                          await loadHome();
+                          navigate("/docs");
+                        },
+                      },
+                    ]}
+                  />
+                </>
+              ) : undefined
+            }
+            properties={
+              <PropertyRow
+                items={[
+                  { label: "Inside", value: breadcrumbs.length ? <Link to={`/docs/${breadcrumbs[breadcrumbs.length - 1].id}`} className="hover:text-cyan">{breadcrumbs[breadcrumbs.length - 1].title}</Link> : "Top level" },
+                  { label: "Edited by", value: page.updatedByName ?? "—" },
+                  { label: "Updated", value: <span className="text-text-2">{timelineDate(page.updatedAt, user.timezone)}</span> },
+                  { label: "Subpages", value: String(home.docs.filter((d) => d.parentId === page.id).length) },
+                ]}
+              />
+            }
+            tabs={[
+              {
+                id: "page",
+                label: "Page",
+                content: (
+                  <div className="max-w-3xl">
+                    <Markdown text={page.body} empty={<span className="text-text-3">{home.canEdit ? "Empty page. Press Edit to write it." : "Empty page."}</span>} />
+                  </div>
+                ),
+              },
+              { id: "activity", label: "Activity", content: <ActivityTimeline entity="doc" id={page.id} reloadKey={page} /> },
+            ]}
+            side={
+              <>
+                <RelatedList
+                  title="Subpages"
+                  items={home.docs.filter((d) => d.parentId === page.id).map((d) => ({ id: d.id, label: `${d.icon ?? "📄"} ${d.title}`, to: `/docs/${d.id}` }))}
+                  empty="No subpages."
+                  action={
+                    home.canEdit ? (
+                      <button type="button" className="text-[12px] text-cyan hover:underline" onClick={() => newPage(page.id)}>
+                        + Subpage
+                      </button>
+                    ) : undefined
+                  }
+                />
+                <RelatedList title="Linked from" items={page.backlinks.map((b) => ({ id: b.id, label: b.title, to: `/docs/${b.id}` }))} empty="No other page links here yet." />
+              </>
+            }
+          />
         )}
       </article>
     </div>

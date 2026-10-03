@@ -13,6 +13,88 @@ import { shiftWeek } from "@/services/time";
 const h1 = (h: number) => (h ? h.toFixed(1) : "—");
 const catColor = (c: string) => `var(--${CATEGORY_COLOR[c] ?? "text-2"})`;
 const STATUS_TONE: Record<Timesheet["status"], string> = { draft: "var(--text-3)", submitted: "var(--amber)", approved: "var(--mint)" };
+const STATUS_LABEL: Record<Timesheet["status"], string> = { draft: "Draft · not submitted", submitted: "Waiting for approval", approved: "Approved" };
+
+/** Fix an entry: wrong day, wrong hours, wrong category or a missing note. Locked weeks can't be edited. */
+const EntryEditModal = ({ entry, onClose, onSaved }: { entry: TimeEntryView; onClose: () => void; onSaved: () => void }) => {
+  const toast = useToast();
+  const [f, setF] = useState({ date: entry.date, hours: String(+(entry.minutes / 60).toFixed(2)), category: entry.category, billable: entry.billable, note: entry.note ?? "" });
+  return (
+    <Modal open onClose={onClose} title={`Edit entry · ${entry.label}`}>
+      <form
+        className="grid grid-cols-2 gap-4 text-[13px]"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          try {
+            await data.updateTimeEntry(entry.id, { date: f.date, minutes: Math.round(Number(f.hours) * 60), category: f.category, billable: f.billable, note: f.note.trim() || null });
+            toast("Entry saved", "good");
+            onClose();
+            onSaved();
+          } catch (err) {
+            toast((err as Error).message, "error");
+          }
+        }}
+      >
+        <label className="flex flex-col gap-2">
+          <span className="field-label">Day</span>
+          <input type="date" className="input h-10" required value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} />
+        </label>
+        <label className="flex flex-col gap-2">
+          <span className="field-label">Hours</span>
+          <input type="number" min={0.25} step={0.25} className="input h-10" required value={f.hours} onChange={(e) => setF({ ...f, hours: e.target.value })} />
+        </label>
+        <label className="flex flex-col gap-2">
+          <span className="field-label">Category</span>
+          <select className="input h-10" value={f.category} onChange={(e) => setF({ ...f, category: e.target.value })}>
+            {[...new Set([f.category, ...TIME_CATEGORIES])].map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex items-center gap-2 self-end pb-2.5">
+          <input type="checkbox" checked={f.billable} onChange={(e) => setF({ ...f, billable: e.target.checked })} />
+          Billable
+        </label>
+        <label className="col-span-2 flex flex-col gap-2">
+          <span className="field-label">Note</span>
+          <input className="input h-10" value={f.note} onChange={(e) => setF({ ...f, note: e.target.value })} placeholder="What it was for" />
+        </label>
+        <button type="submit" className="btn-primary col-span-2 h-11" disabled={!(Number(f.hours) > 0)}>
+          Save entry
+        </button>
+      </form>
+    </Modal>
+  );
+};
+
+/** Admin reopens a submitted or approved week; the person sees the reason on their timesheet. */
+const ReopenModal = ({ open, onClose, onReopen }: { open: boolean; onClose: () => void; onReopen: (comment: string) => void }) => {
+  const [comment, setComment] = useState("");
+  return (
+    <Modal open={open} onClose={onClose} title="Reopen this week">
+      <form
+        className="flex flex-col gap-4 text-[13px]"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onReopen(comment.trim());
+          setComment("");
+          onClose();
+        }}
+      >
+        <span className="text-text-2">The week goes back to draft so it can be fixed and submitted again. If it was approved, its billable hours come off the next invoice until it's approved again.</span>
+        <label className="flex flex-col gap-2">
+          <span className="field-label">Why (the person sees this)</span>
+          <textarea autoFocus className="input h-auto min-h-20 py-2" value={comment} onChange={(e) => setComment(e.target.value)} placeholder="e.g. Tuesday's 9 h on Onboarding looks like a typo" />
+        </label>
+        <button type="submit" className="btn-primary" disabled={!comment.trim()}>
+          Reopen week
+        </button>
+      </form>
+    </Modal>
+  );
+};
 
 type Targets = Awaited<ReturnType<typeof data.timeTargets>>;
 const targetOptions = (t: Targets) => [
@@ -257,6 +339,8 @@ const MyWeekPage = () => {
   const [adding, setAdding] = useState(false);
   const [starting, setStarting] = useState(false);
   const [showEntries, setShowEntries] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<TimeEntryView | null>(null);
+  const [reopening, setReopening] = useState(false);
   const week = params.get("week") ?? undefined;
   const userId = params.get("user") ?? undefined;
 
@@ -451,10 +535,20 @@ const MyWeekPage = () => {
                 {entries.map((e) => (
                   <div key={e.id} className="flex items-center gap-3 border-b border-line-soft px-3.5 py-2 text-[12px] last:border-b-0">
                     <span className="w-24 font-mono text-text-2">{e.date}</span>
-                    <span className="min-w-0 flex-1 truncate">{e.label}</span>
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <span className="truncate">{e.label}</span>
+                      {e.note ? <span className="truncate text-[11px] text-text-3">{e.note}</span> : null}
+                    </span>
+                    <span className="hidden text-text-3 sm:inline">
+                      {e.category}
+                      {e.billable ? " · billable" : ""}
+                    </span>
                     <span className="text-text-3">{e.source === "timer" ? "Timer" : "Manual"}</span>
                     <span className="w-16 text-right font-mono">{(e.minutes / 60).toFixed(2)} h</span>
-                    <button type="button" disabled={e.locked} className="btn-ghost h-7 text-[12px] disabled:opacity-40" onClick={() => act(() => data.deleteManualEntry(e.id), "Entry removed")}>
+                    <button type="button" disabled={e.locked || !w.canEdit} className="btn-ghost h-7 text-[12px] disabled:opacity-40" onClick={() => setEditingEntry(e)}>
+                      Edit
+                    </button>
+                    <button type="button" disabled={e.locked || !w.canEdit} className="btn-ghost h-7 text-[12px] disabled:opacity-40" onClick={() => act(() => data.deleteManualEntry(e.id), "Entry removed")}>
                       Remove
                     </button>
                   </div>
@@ -509,8 +603,8 @@ const MyWeekPage = () => {
 
           <div className="flex items-center justify-between text-[12px]">
             <span className="label-caps">Timesheet</span>
-            <span className=" " style={{ color: STATUS_TONE[ts.status] }}>
-              {ts.status}
+            <span className="font-medium" style={{ color: STATUS_TONE[ts.status] }}>
+              {STATUS_LABEL[ts.status]}
             </span>
           </div>
           {ts.comment && ts.status === "draft" ? <p className="m-0 border border-amber-line px-3 py-2 text-[12px] text-amber">Reopened: {ts.comment}</p> : null}
@@ -541,10 +635,7 @@ const MyWeekPage = () => {
             <button
               type="button"
               className="btn-ghost h-9 text-[12px]"
-              onClick={() => {
-                const comment = window.prompt("Why reopen this week? The person sees your comment.");
-                if (comment?.trim()) act(() => data.reopenWeek(w.userId, w.week, comment), "Week reopened");
-              }}
+              onClick={() => setReopening(true)}
             >
               Reopen week
             </button>
@@ -553,6 +644,8 @@ const MyWeekPage = () => {
         </aside>
       </div>
       <ManualEntryModal open={adding} onClose={() => setAdding(false)} week={w} userId={w.userId} onSaved={load} />
+      {editingEntry ? <EntryEditModal entry={editingEntry} onClose={() => setEditingEntry(null)} onSaved={load} /> : null}
+      <ReopenModal open={reopening} onClose={() => setReopening(false)} onReopen={(comment) => act(() => data.reopenWeek(w.userId, w.week, comment), "Week reopened")} />
     </div>
   );
 };

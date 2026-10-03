@@ -15,6 +15,8 @@ export interface TicketMessage {
   text: string;
   /** Internal notes are never sent to the client. */
   internal: boolean;
+  /** Replies: the client contact it was emailed to (null = no email on file, so it wasn't sent). */
+  emailedTo?: string | null;
 }
 
 export interface Ticket {
@@ -49,5 +51,8 @@ export interface SupportApi {
   createTicket(input: { clientId: string; subject: string; body: string; category: TicketCategory; priority: TicketPriority; channel: TicketChannel }): Promise<Ticket>;
   /** A reply to the client counts as the first response and waits on them; an internal note changes nothing. */
   replyTicket(id: string, input: { text: string; internal: boolean }): Promise<void>;
-  updateTicket(id: string, patch: { status?: TicketStatus; assigneeId?: string | null; priority?: TicketPriority }): Promise<void>;
+  updateTicket(
+    id: string,
+    patch: { status?: TicketStatus; assigneeId?: string | null; priority?: TicketPriority; subject?: string; category?: TicketCategory; channel?: TicketChannel; clientId?: string },
+  ): Promise<void>;
 }

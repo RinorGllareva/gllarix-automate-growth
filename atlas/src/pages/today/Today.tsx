@@ -5,6 +5,7 @@ import { usePageChrome } from "@/components/shell/PageChrome";
 import { useToast } from "@/components/ui/overlay";
 import { EmptyState, KpiCard, SkeletonRows, TierBadge } from "@/components/ui/primitives";
 import { QUEUE } from "@/config/queue";
+import { KPI_TARGETS } from "@/config/targets";
 import { data, ROLE_LABEL, type QueueRow, type QueueView, type TeamMemberToday, type TodayStats, type User } from "@/data";
 import { count } from "@/lib/format";
 import { QUEUE_UPDATED, queueUpdated } from "@/lib/events";
@@ -46,7 +47,10 @@ const stepText = (row: QueueRow) => {
   return row.step;
 };
 
-const UpNext = ({ rows, onOpen }: { rows: QueueRow[]; onOpen: (row: QueueRow) => void }) => {
+/** Targets come from the KPI definitions (People › KPIs per role), so Today, Reports and KPIs agree. */
+const target = (key: (typeof KPI_TARGETS)[number]["key"]) => KPI_TARGETS.find((t) => t.key === key)!;
+
+const UpNext = ({ rows, onOpen, onRebuild, building }: { rows: QueueRow[]; onOpen: (row: QueueRow) => void; onRebuild?: () => void; building?: boolean }) => {
   const open = rows.filter((r) => r.status === "open");
   const first = open.find((r) => r.windowName) ?? open[0];
   const cols = "sm:grid-cols-[52px_minmax(0,1.6fr)_minmax(0,1fr)_56px_minmax(0,1.6fr)_110px]";
@@ -90,7 +94,21 @@ const UpNext = ({ rows, onOpen }: { rows: QueueRow[]; onOpen: (row: QueueRow) =>
         </>
       ) : (
         <div className="p-5">
-          <EmptyState title="No calls due. Build tomorrow's list or check Tasks." />
+          <EmptyState
+            title="No calls due right now."
+            action={
+              <span className="flex flex-wrap justify-center gap-2">
+                {onRebuild ? (
+                  <button type="button" className="btn-primary" disabled={building} onClick={onRebuild}>
+                    {building ? "Building…" : "Rebuild the queue"}
+                  </button>
+                ) : null}
+                <Link to="/tasks/my-work" className="btn-outline">
+                  Open my tasks
+                </Link>
+              </span>
+            }
+          />
         </div>
       )}
     </section>
@@ -292,7 +310,7 @@ const Today = () => {
   const done = view?.done ?? 0;
   const teamDials = team.reduce((n, m) => n + m.dials, 0);
   const teamConv = team.reduce((n, m) => n + m.conversations, 0);
-  const convOnTrack = stats.conversations >= 6;
+  const convOnTrack = stats.conversations >= target("conversations_per_day").min;
   // Without a queue of your own (admins), every card shows the team so the numbers match the rows below.
   const booked = hasQueue ? stats.meetingsBookedWeek : team.reduce((n, m) => n + m.meetingsBookedWeek, 0);
   const approved = hasQueue ? stats.approvedWeek : team.reduce((n, m) => n + m.approvedWeek, 0);
@@ -337,16 +355,22 @@ const Today = () => {
           index="02"
           title="Conversations"
           value={count(hasQueue ? stats.conversations : teamConv)}
-          caption={hasQueue ? `Target 6–10 · ${convOnTrack ? "on track" : "below"}` : "Team · today"}
+          caption={hasQueue ? `Target ${target("conversations_per_day").text} · ${convOnTrack ? "on track" : "below"}` : "Team · today"}
           tone={hasQueue && convOnTrack ? "mint" : "text"}
         />
-        <KpiCard index="03" title="Meetings booked" value={count(booked)} caption={hasQueue ? "This week · target 4+" : `Team · this week · target ${4 * Math.max(1, team.length)}+`} tone="cyan" />
+        <KpiCard
+          index="03"
+          title="Meetings booked"
+          value={count(booked)}
+          caption={hasQueue ? `This week · target ${target("meetings_booked").text}` : `Team · this week · target ${target("meetings_booked").min * Math.max(1, team.length)}+`}
+          tone="cyan"
+        />
         <KpiCard index="04" title="Approved" value={count(approved)} caption={`Of ${booked} booked · ${approvedPct}%`} tone="lavender" />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         {hasQueue && view ? (
-          <UpNext rows={view.rows} onOpen={(r) => navigate(r.channel === "call" ? `/call/${r.leadId}` : `/leads/${r.leadId}`)} />
+          <UpNext rows={view.rows} onOpen={(r) => navigate(r.channel === "call" ? `/call/${r.leadId}` : `/leads/${r.leadId}`)} onRebuild={build} building={building} />
         ) : (
           <TeamToday team={team} />
         )}

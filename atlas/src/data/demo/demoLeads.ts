@@ -10,9 +10,6 @@ import type { NightlyRun, ScoreHistoryEntry } from "../leadTypes";
 import { planOutcome } from "@/services/outcomes";
 import { buildQueue, queueDateFor, shiftFor, whyNow } from "@/services/queue";
 import {
-  COMM_MIN,
-  COMM_MONTHS,
-  COMM_PCT,
   DEPOSIT_SHARE,
   DISCOUNT_HARD_MAX,
   DISCOUNT_SELF_MAX,
@@ -99,7 +96,7 @@ import { createDemoGrowth } from "./demoGrowth";
 import { createDemoOps } from "./demoOps";
 import { INBOUND_RESPONSE_TARGET_MIN } from "@/config/operations";
 import type { InboundApi, InboundChannel, InboundRequest, OpsApi, Sop } from "../opsTypes";
-import type { GrowthApi } from "../growthTypes";
+import type { Competitor, Experiment, GrowthApi, MarketingChannel } from "../growthTypes";
 import type { RecordFile, RecordsApi } from "../recordTypes";
 import { createDemoRecords } from "./demoRecords";
 import type { SupportApi, Ticket } from "../supportTypes";
@@ -110,7 +107,15 @@ import type { Doc, DocsApi } from "../docTypes";
 import { createDemoDocs } from "./demoDocs";
 import type { AgentApi, AgentRun, AgentSettings } from "../aiTypes";
 import { createDemoAgent } from "./demoAgent";
-import type { PeopleApi } from "../peopleTypes";
+import type { TrashApi } from "../trashTypes";
+import { createDemoTrash, type Stored as TrashStored } from "./demoTrash";
+import type { EditsApi } from "../editTypes";
+import type { CommissionRules, CompanyProfile, PlanScenario, SettingsApi } from "../settingsTypes";
+import { createDemoSettings } from "./demoSettings";
+import type { AtlasEvent, CustomValues, EntityImportJob, FieldDef, FieldEntity, FoundationsApi, PageView, Webhook } from "../foundationTypes";
+import { createDemoFoundations } from "./demoFoundations";
+import { createDemoEdits } from "./demoEdits";
+import type { Candidate, Opening, PeopleApi, Trainee } from "../peopleTypes";
 import type { TeamApi } from "../coachTypes";
 import type { TimeApi } from "../timeTypes";
 import type { AdvisorApi } from "../advisorTypes";
@@ -130,7 +135,7 @@ const CHANNEL = "atlas-demo-leads";
 
 type ClientsExtra = ReturnType<typeof emptyClientsState> & ReturnType<typeof emptySourcesState> & ReturnType<typeof emptyTasksState> & ReturnType<typeof emptyCapacityState> & ReturnType<typeof emptyPlannerState> & ReturnType<typeof emptyCoachingState> & ReturnType<typeof emptyTimeState> & ReturnType<typeof emptyAdvisorState> & ReturnType<typeof emptyCalendarState>;
 
-interface LeadStore extends LeadSeed, ClientsExtra {
+export interface LeadStore extends LeadSeed, ClientsExtra {
   imports: ImportJob[];
   queues: DailyQueue[];
   /** Unsaved call notes per "userId:leadId", so notes survive switching leads. */
@@ -165,8 +170,25 @@ interface LeadStore extends LeadSeed, ClientsExtra {
   docs?: Doc[];
   agent?: AgentSettings;
   agentRuns?: AgentRun[];
+  trash?: TrashStored[];
+  // Created on first use by their modules (Growth, People).
+  marketingChannels?: MarketingChannel[];
+  experiments?: Experiment[];
+  competitors?: Competitor[];
+  openings?: Opening[];
+  candidates?: Candidate[];
+  trainees?: Trainee[];
   notionReadOnly?: { at: string; by: string } | null;
   opsChecks?: Record<string, { at: string; by: string }>;
+  companyProfile?: CompanyProfile;
+  commissionRules?: CommissionRules;
+  planScenarios?: PlanScenario[];
+  fieldDefs?: FieldDef[];
+  customValues?: Partial<Record<FieldEntity, Record<string, CustomValues>>>;
+  pageViews?: PageView[];
+  webhooks?: Webhook[];
+  entityImports?: EntityImportJob[];
+  importMappings?: Record<string, Record<string, string | null>>;
 }
 
 interface Deps {
@@ -178,6 +200,10 @@ interface Deps {
   /** Persist to IndexedDB (off in tests). */
   persist?: boolean;
   aiProvider?: import("@/services/aiProvider").AIProvider;
+  /** Settings › Users: keep the changed user list (the demo auth store owns it). */
+  saveUsers?: (list: User[]) => void;
+  /** The events table (the demo auth store keeps it, newest first). */
+  readEvents?: () => AtlasEvent[];
 }
 
 const uid = (p: string) => `${p}-${Math.random().toString(36).slice(2, 10)}`;
@@ -188,9 +214,9 @@ const csvEscape = (v: unknown) => {
 };
 
 
-type DemoLeadsApi = LeadsApi & QueueApi & SalesApi & EmailApi & DealsApi & ClientsApi & LeadSourcesApi & TasksApi & CapacityApi & PlannerApi & AutomationsApi & TeamApi & TimeApi & AdvisorApi & CalendarApi & PeopleApi & GrowthApi & InboundApi & OpsApi & RecordsApi & SupportApi & ContractsApi & DocsApi & AgentApi;
+type DemoLeadsApi = LeadsApi & QueueApi & SalesApi & EmailApi & DealsApi & ClientsApi & LeadSourcesApi & TasksApi & CapacityApi & PlannerApi & AutomationsApi & TeamApi & TimeApi & AdvisorApi & CalendarApi & PeopleApi & GrowthApi & InboundApi & OpsApi & RecordsApi & SupportApi & ContractsApi & DocsApi & AgentApi & TrashApi & EditsApi & SettingsApi & FoundationsApi;
 
-export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.now, persist = true, aiProvider }: Deps): DemoLeadsApi => {
+export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.now, persist = true, aiProvider, saveUsers = () => undefined, readEvents = () => [] }: Deps): DemoLeadsApi => {
   let store: LeadStore | null = null;
   let loading: Promise<LeadStore> | null = null;
   const channel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel(CHANNEL) : null;
@@ -712,13 +738,14 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
     activity(s, { leadId: lead.id, userId: null, type: "stage_change", title: `Deal · ${DEAL_STAGE_LABEL[before]} → Won`, detail: `Deposit paid · ${formatMoney(obj.amount_total / 100, quote.selection.market)} (Stripe test mode)`, disposition: null, durationS: null });
     // Setup commission: 10% of setup, minimum 100, on cash collected; earnable after the 30-day clawback window.
     const owner = users.find((u) => u.id === deal.ownerId);
+    const rules = settingsMod.rulesOf(s);
     if (owner && (owner.role === "bdr" || owner.role === "closer") && !s.commissions.some((c) => c.dealId === deal.id && c.type === "setup_commission")) {
       const setupMajor = quote.setupMinor / 100;
       s.commissions.push({
         id: uid("cm"), userId: owner.id, meetingId: null, dealId: deal.id, type: "setup_commission",
-        amountMinor: Math.round(Math.max(COMM_MIN, setupMajor * COMM_PCT) * 100), currency: quote.currency, status: "pending",
+        amountMinor: Math.round(Math.max(rules.setupMin, setupMajor * rules.pct) * 100), currency: quote.currency, status: "pending",
         period: at.slice(0, 7), earnableAt: new Date(new Date(at).getTime() + 30 * 86_400_000).toISOString(),
-        note: `10% of setup (min ${COMM_MIN}); recurring 10% × ${COMM_MONTHS} months is added as monthly fees are collected (M7)`, createdAt: at,
+        note: `${Math.round(rules.pct * 100)}% of setup (min ${rules.setupMin}); recurring ${Math.round(rules.pct * 100)}% × ${rules.months} months is added as monthly fees are collected (M7)`, createdAt: at,
       });
     }
     users.filter((u) => u.role === "admin" && u.active).forEach((u) => notify({ userId: u.id, type: "payment_paid", text: `Deposit paid · ${s.companies.find((c) => c.id === lead.companyId)?.name} · ${formatMoney(obj.amount_total / 100, quote.selection.market)}`, href: `/deals/${deal.id}` }));
@@ -828,12 +855,11 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
   const calendarMod = createDemoCalendar<LeadStore>({ load, save, viewer, now, users, uid, audit, notify });
   const peopleMod = createDemoPeople<LeadStore>({ load, save, viewer, now, users, uid, audit, notify });
   const growthMod = createDemoGrowth<LeadStore>({ load, save, viewer, now, uid, audit });
+  const trashMod = createDemoTrash<LeadStore>({ load, save, viewer, now, users, uid, audit });
   const supportMod = createDemoSupport<LeadStore>({ load, save, viewer, now, users, uid, audit, notify });
   const docsMod = createDemoDocs<LeadStore>({ load, save, viewer, now, users, uid, audit });
-  const recordsMod = createDemoRecords<LeadStore>({
-    load, save, viewer, now, users, uid, audit,
-    activity: (s, a) => activity(s, a),
-    canSee: (s, user, entity, id) => {
+  /** Who can open a lead, deal, client or ticket: files, custom fields and record timelines all use it. */
+  const canSeeRecord = (s: LeadStore, user: User, entity: "lead" | "deal" | "client" | "ticket", id: string) => {
       if (entity === "lead") {
         const lead = s.leads.find((l) => l.id === id);
         return !!lead && canSeeLead(user, lead);
@@ -842,17 +868,46 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
         const d = s.deals.find((x) => x.id === id);
         return !!d && canSeeDeal(user, d);
       }
+      if (entity === "ticket") return (user.role === "admin" || user.role === "implementer") && !!s.tickets?.some((t) => t.id === id);
       const c = s.clients.find((x) => x.id === id);
       if (!c) return false;
       if (user.role === "admin" || user.role === "implementer" || user.role === "viewer") return true;
       return (user.role === "bdr" || user.role === "closer") && s.deals.find((d) => d.id === c.dealId)?.ownerId === user.id;
+  };
+  const recordsMod = createDemoRecords<LeadStore>({
+    load, save, viewer, now, users, uid, audit,
+    activity: (s, a) => activity(s, a),
+    canSee: canSeeRecord,
+  });
+  const foundationsMod = createDemoFoundations<LeadStore>({
+    load, save, viewer, now, users, uid, audit, readEvents,
+    canSeeRecord,
+    canOpen: (entity, id) => {
+      const read = entity === "task" ? () => self.getTask(id) : entity === "meeting" ? () => self.getMeeting(id) : entity === "doc" ? () => self.getDoc(id) : null;
+      return read ? read().then(() => true, () => false) : Promise.resolve(false);
     },
+    createTask: (input) => self.createTask(input),
+    addCandidate: (input) => self.addCandidate(input),
   });
   const contractsMod = createDemoContracts<LeadStore>({
     load, save, viewer, now, users, uid, audit, notify,
     canSeeDeal: (user, d) => canSeeDeal(user, d),
     activity: (s, a) => activity(s, a),
     attachSystemFile: (s, entity, id, f, by) => recordsMod.attachSystemFile(s, entity, id, f, by),
+  });
+
+  const settingsMod = createDemoSettings<LeadStore>({ load, save, viewer, users, saveUsers, audit, notify });
+  const editsMod = createDemoEdits({
+    load, save, viewer, now, users, uid, audit, notify,
+    activity: (s, a) => activity(s, a),
+    rescoreLead: (s, lead) => rescoreLead(s, lead),
+    canSeeLead: (u, lead) => canSeeLead(u, lead),
+    canSeeDeal: (u, d) => canSeeDeal(u, d),
+    canSeeMeeting: (u, m) => canSeeMeeting(u, m),
+    queueEmail: (s, lead, opts) => queueEmail(s, lead, opts),
+    trashRecord: (s, c, id, e, label, by) => trashMod.trashRecord(s, c, id, e, label, by),
+    docsOf: (s) => docsMod.docsOf(s),
+    applyInvoicePaid: (s, e) => clientsMod.applyInvoicePaid(s, e),
   });
 
   // ---- Inbound (Sell › Inbound): website forms, the demo line, referrals, booking-page bookings.
@@ -951,6 +1006,7 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
       const sorted = [...answered].sort((a, b) => a - b);
       return {
         requests: [...all].sort((a, b) => b.receivedAt.localeCompare(a.receivedAt)).map((r) => ({ ...r, assigneeName: r.assignedTo ? (users.find((u) => u.id === r.assignedTo)?.name ?? null) : null })),
+        people: users.filter((u) => u.active && (u.role === "admin" || u.role === "bdr" || u.role === "closer")).map((u) => ({ id: u.id, name: u.name })),
         kpis: {
           open: all.filter((r) => r.status === "new").length,
           withinTarget: answered.length ? answered.filter((m) => m <= INBOUND_RESPONSE_TARGET_MIN).length / answered.length : null,
@@ -994,6 +1050,7 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
       r.firstResponseAt ??= iso();
       r.assignedTo ??= user.id;
       if (r.status === "new") r.status = "contacted";
+      if (note?.trim()) r.replyNote = note.trim();
       if (r.leadId) activity(s, { leadId: r.leadId, userId: user.id, type: "note", title: "Replied to the inbound request", detail: note?.trim() || null, disposition: null, durationS: null });
       audit(user.id, "inbound.respond", "inbound", id);
       await save();
@@ -1026,12 +1083,37 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
       const s = await load();
       const r = inboundTarget(s, id, user);
       if (r.status === "converted") throw new Error("It's already a lead; close it from the lead.");
+      if (r.status !== "not_fit" && r.status !== "spam") r.dismissedFrom = r.status;
       r.status = reason;
       audit(user.id, "inbound.dismiss", "inbound", id, null, { reason });
       await save();
     },
+
+    async undoDismissInbound(id) {
+      const user = await viewer();
+      const s = await load();
+      const r = inboundTarget(s, id, user);
+      if (r.status !== "not_fit" && r.status !== "spam") return;
+      r.status = r.dismissedFrom ?? (r.firstResponseAt ? "contacted" : "new");
+      r.dismissedFrom = null;
+      audit(user.id, "inbound.undismiss", "inbound", id, null, { status: r.status });
+      await save();
+    },
+
+    async assignInbound(id, userId) {
+      const user = await viewer();
+      if (user.role !== "admin") throw new AccessError(403, "Founders reassign inbound requests.");
+      const s = await load();
+      const r = inboundTarget(s, id, user);
+      if (userId && !users.some((u) => u.id === userId && u.active && (u.role === "admin" || u.role === "bdr" || u.role === "closer"))) throw new Error("Give it to a founder or a seller.");
+      const before = r.assignedTo;
+      r.assignedTo = userId;
+      if (userId && userId !== user.id) notify({ userId, type: "task", text: `${user.name.split(" ")[0]} gave you an inbound request: ${r.company || r.name}`, href: "/inbound" });
+      audit(user.id, "inbound.assign", "inbound", id, { assignedTo: before }, { assignedTo: userId });
+      await save();
+    },
   };
-  const opsMod = createDemoOps<LeadStore>({ load, save, viewer, now, uid, audit });
+  const opsMod = createDemoOps<LeadStore>({ load, save, viewer, now, uid, audit, users });
 
 
   // ---- M8: lead sources, list build, enrichment (demoSources.ts).
@@ -1041,6 +1123,8 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
   });
 
   const self: DemoLeadsApi = {
+    ...foundationsMod.api,
+    ...settingsMod.api,
     ...clientsMod.api,
     ...sourcesMod.api,
     ...tasksMod.api,
@@ -1058,6 +1142,8 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
     ...contractsMod.api,
     ...docsMod.api,
     ...agentMod.api,
+    ...trashMod.api,
+    ...editsMod.api,
     ...inboundApi,
     ...opsMod.api,
     async automationLedger(days = 30) {
@@ -1098,7 +1184,14 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
           const hit =
             c.name.toLowerCase().includes(needle) ||
             (c.domain ?? "").includes(needle) ||
-            (digits.length >= 4 && phoneDigits(c.phone ?? "").includes(digits));
+            (digits.length >= 4 && phoneDigits(c.phone ?? "").includes(digits)) ||
+            // Contact names, emails and direct lines too: people remember "Ana from Tampa", not the company.
+            s.contacts.some(
+              (ct) =>
+                ct.companyId === c.id &&
+                (`${ct.firstName} ${ct.lastName}`.toLowerCase().includes(needle) || (ct.email ?? "").includes(needle) || (digits.length >= 4 && phoneDigits(ct.phone ?? "").includes(digits))),
+            ) ||
+            (l.tags ?? []).some((t) => needle.replace(/^#/, "") === t);
           if (!hit) return false;
         }
         return true;
@@ -2023,7 +2116,7 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
         if (deal) Object.assign(deal, { stage: "qualified", stageChangedAt: at, updatedAt: at });
       }
       lead.updatedAt = at;
-      audit(user.id, "meeting.mark", "meeting", null, before, { id, attended: patch.attended });
+      audit(user.id, "meeting.mark", "meeting", id, before, { id, attended: patch.attended });
       await save();
     },
 
@@ -2041,8 +2134,8 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
       Object.assign(m, { approved: true, checks: { ...checks }, approvedBy: user.id, decidedAt: at, rejectReason: null });
       const existing = s.commissions.find((c) => c.meetingId === m.id && c.type === "meeting_bonus");
       if (existing) Object.assign(existing, { status: "pending" });
-      else s.commissions.push(meetingBonus(m, monthOf(m.scheduledAt, "UTC"), uid("cm"), at));
-      audit(user.id, "meeting.approve", "meeting", null, before, { id, approved: true, checks });
+      else s.commissions.push({ ...meetingBonus(m, monthOf(m.scheduledAt, "UTC"), uid("cm"), at), amountMinor: settingsMod.rulesOf(s).meetingBonusMinor });
+      audit(user.id, "meeting.approve", "meeting", id, before, { id, approved: true, checks });
       await save();
     },
 
@@ -2057,7 +2150,7 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
       const before = { approved: m.approved };
       Object.assign(m, { approved: false, approvedBy: user.id, decidedAt: iso(), rejectReason: reason.trim() });
       s.commissions.filter((c) => c.meetingId === m.id).forEach((c) => Object.assign(c, { status: "void" }));
-      audit(user.id, "meeting.reject", "meeting", null, before, { id, approved: false, reason: reason.trim() });
+      audit(user.id, "meeting.reject", "meeting", id, before, { id, approved: false, reason: reason.trim() });
       await save();
     },
 
@@ -2078,7 +2171,7 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
       const s = await load();
       const thisMonth = localDateKey(now(), user.timezone).slice(0, 7);
       return s.deals
-        .filter((d) => d.stage !== "lost")
+        .filter((d) => d.stage !== "lost" || q.includeLost)
         .filter((d) => user.role === "admin" || user.role === "viewer" || d.ownerId === user.id)
         .filter((d) => q.brand === "both" || d.brand === q.brand)
         .filter((d) => q.ownerId === "all" || d.ownerId === q.ownerId)
@@ -2151,7 +2244,8 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
       if (user.role === "admin" && ensureDailyReports(s)) await save();
       // BDRs see only their own funnel; viewers see team totals.
       const personId = user.role === "admin" ? (input.personId ?? "team") : user.role === "viewer" ? "team" : user.id;
-      const key = input.key ?? currentPeriodKey(input.kind, now(), user.timezone);
+      if (input.kind === "range" && !input.key) throw new Error("Pick a start and an end date.");
+      const key = input.key ?? currentPeriodKey(input.kind as "week" | "month", now(), user.timezone);
       return computeReport({
         now: now(),
         tz: user.timezone,
@@ -2201,8 +2295,38 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
       const existing = templateFor(s, t.key);
       if (!existing) throw new AccessError(404);
       const before = { subject: existing.subject, body: existing.body };
-      Object.assign(existing, { subject: t.subject, body: t.body, updatedAt: iso(), updatedBy: user.id });
+      Object.assign(existing, { subject: t.subject, body: t.body, ...(t.name?.trim() && existing.custom ? { name: t.name.trim() } : {}), updatedAt: iso(), updatedBy: user.id });
       audit(user.id, "template.update", "template", null, before, { key: t.key, subject: t.subject, body: t.body });
+      await save();
+    },
+
+    async createTemplate(t) {
+      const user = await viewer();
+      requireAdmin(user);
+      if (!t.name.trim()) throw new Error("Give the template a name.");
+      const errors = validateTemplate(t.subject, t.body);
+      if (errors.length) throw new Error(errors.join(" "));
+      const s = await load();
+      const base = t.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 32) || "template";
+      let key = base;
+      for (let n = 2; templateFor(s, key); n++) key = `${base}_${n}`;
+      s.templates.push({ key, name: t.name.trim(), channel: t.channel, list: t.list, transactional: false, subject: t.subject, body: t.body, updatedAt: iso(), updatedBy: user.id, custom: true });
+      audit(user.id, "template.create", "template", null, null, { key, copyOf: t.copyOf ?? null });
+      await save();
+      return key;
+    },
+
+    async deleteTemplate(key) {
+      const user = await viewer();
+      requireAdmin(user);
+      const s = await load();
+      const t = templateFor(s, key);
+      if (!t) throw new AccessError(404);
+      if (!t.custom) throw new Error("Built-in templates are sent by Atlas itself: edit the text instead of deleting it.");
+      if (Object.values(QUEUE.cadences).some((steps) => steps.some((x) => x.template === key))) throw new Error("A cadence step still uses this template.");
+      if (s.outbox.some((e) => e.templateKey === key && e.status === "queued")) throw new Error("Emails using this template are still queued.");
+      s.templates = s.templates.filter((x) => x.key !== key);
+      audit(user.id, "template.delete", "template", null, { key, name: t.name }, null);
       await save();
     },
 
@@ -2429,7 +2553,7 @@ export const createDemoLeads = ({ currentUser, users, audit, notify, now = Date.
       users
         .filter((u) => (u.role === "admin" || u.id === owner.id) && u.active)
         .forEach((u) => notify({ userId: u.id, type: "meeting_booked", text: `Booked via ${owner.name.split(" ")[0]}'s booking page · ${company!.name}`, href: `/leads/${lead!.id}` }));
-      audit(null, "booking.create", "meeting", null, null, { meetingId: meeting.id, leadId: lead.id, slug: input.slug });
+      audit(null, "booking.create", "meeting", meeting.id, null, { meetingId: meeting.id, leadId: lead.id, slug: input.slug });
       await save();
       return { meetingAt: input.start, ownerName: owner.name.split(" ")[0], timezone: owner.timezone };
     },

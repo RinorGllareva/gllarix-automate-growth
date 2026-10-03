@@ -64,6 +64,8 @@ export interface PipelineQuery {
   ownerId: string | "all";
   /** Show every won deal, not only this month's. */
   allWon: boolean;
+  /** Add a Lost column (reopen by dragging a card out of it). */
+  includeLost?: boolean;
 }
 
 export interface MoveDealInput {
@@ -156,7 +158,7 @@ export interface GateProgress {
 }
 
 export interface WeeklyReport {
-  period: { kind: "week" | "month"; key: string; start: string; end: string; label: string };
+  period: { kind: "week" | "month" | "range"; key: string; start: string; end: string; label: string };
   personId: string | "team";
   funnel: FunnelStep[];
   kpis: KpiRow[];

@@ -1,5 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
-import type { AuditEntry, DataSource, LeadsApi, Notification, DealsApi, ClientsApi, LeadSourcesApi, TasksApi, CapacityApi, PlannerApi, AutomationsApi, TeamApi, TimeApi, AdvisorApi, CalendarApi, PeopleApi, GrowthApi, InboundApi, OpsApi, RecordsApi, SupportApi, ContractsApi, DocsApi, AgentApi, EmailApi, QueueApi, SalesApi, SignInResult, User } from "./types";
+import type { SettingsApi } from "./settingsTypes";
+import type { FoundationsApi } from "./foundationTypes";
+import type { AuditEntry, DataSource, LeadsApi, Notification, DealsApi, ClientsApi, LeadSourcesApi, TasksApi, CapacityApi, PlannerApi, AutomationsApi, TeamApi, TimeApi, AdvisorApi, CalendarApi, PeopleApi, GrowthApi, InboundApi, OpsApi, RecordsApi, SupportApi, ContractsApi, DocsApi, AgentApi, TrashApi, EditsApi, EmailApi, QueueApi, SalesApi, SignInResult, User } from "./types";
 
 /** Lead methods in Supabase mode land once the M1 migration is applied to the project (see docs/SCREENS_STATUS.md). */
 const notWiredYet = (): Promise<never> =>
@@ -62,6 +64,8 @@ const SALES_NOT_WIRED: SalesApi = {
 const EMAIL_NOT_WIRED: EmailApi = {
   listTemplates: notWiredYet,
   saveTemplate: notWiredYet,
+  createTemplate: notWiredYet,
+  deleteTemplate: notWiredYet,
   previewTemplate: notWiredYet,
   composeEmail: notWiredYet,
   outbox: notWiredYet,
@@ -104,6 +108,9 @@ const TEAM_NOT_WIRED: TeamApi = {
   getCallReview: notWiredYet,
   humanCheck: notWiredYet,
   disputeReview: notWiredYet,
+  editScorecardComment: notWiredYet,
+  deleteScorecardComment: notWiredYet,
+  resolveDispute: notWiredYet,
   addScorecardComment: notWiredYet,
   updateAgenda: notWiredYet,
   prepareOneOnOnes: notWiredYet,
@@ -118,6 +125,7 @@ const TIME_NOT_WIRED: TimeApi = {
   addManualEntry: notWiredYet,
   listWeekEntries: notWiredYet,
   deleteManualEntry: notWiredYet,
+  updateTimeEntry: notWiredYet,
   startTimerOn: notWiredYet,
   runningTimer: notWiredYet,
   stopRunningTimer: notWiredYet,
@@ -136,6 +144,8 @@ const TIME_NOT_WIRED: TimeApi = {
 const ADVISOR_NOT_WIRED: AdvisorApi = {
   advisorHome: notWiredYet,
   getAdvisorThread: notWiredYet,
+  renameAdvisorThread: notWiredYet,
+  deleteAdvisorThread: notWiredYet,
   askAdvisor: notWiredYet,
   acceptAdvisorAction: notWiredYet,
   dismissAdvisorAction: notWiredYet,
@@ -198,6 +208,8 @@ const INBOUND_OPS_NOT_WIRED: InboundApi & OpsApi = {
   convertInbound: notWiredYet,
   dismissInbound: notWiredYet,
   opsHome: notWiredYet,
+  undoDismissInbound: notWiredYet,
+  assignInbound: notWiredYet,
   automationLedger: notWiredYet,
   updateSop: notWiredYet,
   setOpsCheck: notWiredYet,
@@ -249,6 +261,84 @@ const AGENT_NOT_WIRED: AgentApi = {
   runAgentShadow: notWiredYet,
 };
 
+const TRASH_NOT_WIRED: TrashApi = {
+  listTrash: notWiredYet,
+  restoreFromTrash: notWiredYet,
+  purgeTrash: notWiredYet,
+};
+
+const FOUNDATIONS_NOT_WIRED: FoundationsApi = {
+  listEvents: notWiredYet,
+  recordEvents: notWiredYet,
+  listWebhooks: notWiredYet,
+  saveWebhook: notWiredYet,
+  deleteWebhook: notWiredYet,
+  listFieldDefs: notWiredYet,
+  saveFieldDef: notWiredYet,
+  deleteFieldDef: notWiredYet,
+  moveFieldDef: notWiredYet,
+  customValues: notWiredYet,
+  setCustomValue: notWiredYet,
+  listPageViews: notWiredYet,
+  savePageView: notWiredYet,
+  deletePageView: notWiredYet,
+  runEntityImport: notWiredYet,
+  listEntityImports: notWiredYet,
+  undoEntityImport: notWiredYet,
+  getImportMapping: notWiredYet,
+  saveImportMapping: notWiredYet,
+};
+
+const SETTINGS_NOT_WIRED: SettingsApi = {
+  inviteUser: notWiredYet,
+  updateUser: notWiredYet,
+  deactivateUser: notWiredYet,
+  reactivateUser: notWiredYet,
+  getCompanyProfile: notWiredYet,
+  saveCompanyProfile: notWiredYet,
+  getCommissionRules: notWiredYet,
+  saveCommissionRules: notWiredYet,
+  listPlanScenarios: notWiredYet,
+  savePlanScenario: notWiredYet,
+  deletePlanScenario: notWiredYet,
+};
+
+const EDITS_NOT_WIRED: EditsApi = {
+  sendInvoiceReminder: notWiredYet,
+  markInvoicePaid: notWiredYet,
+  updateExpense: notWiredYet,
+  deleteExpense: notWiredYet,
+  updateCashSnapshot: notWiredYet,
+  deleteCashSnapshot: notWiredYet,
+  decideSpend: notWiredYet,
+  setCommissionStatus: notWiredYet,
+  createLead: notWiredYet,
+  updateCompany: notWiredYet,
+  archiveLead: notWiredYet,
+  deleteContact: notWiredYet,
+  updateNote: notWiredYet,
+  deleteNote: notWiredYet,
+  rescheduleMeeting: notWiredYet,
+  cancelMeeting: notWiredYet,
+  updateDeal: notWiredYet,
+  deleteDeal: notWiredYet,
+  deleteCompetitor: notWiredYet,
+  addChannel: notWiredYet,
+  deleteChannel: notWiredYet,
+  deleteExperiment: notWiredYet,
+  addSop: notWiredYet,
+  deleteSop: notWiredYet,
+  deleteCandidate: notWiredYet,
+  deleteOpening: notWiredYet,
+  updateProgram: notWiredYet,
+  cancelProgram: notWiredYet,
+  removeBlockScore: notWiredYet,
+  listArchivedDocs: notWiredYet,
+  restoreDoc: notWiredYet,
+  searchDocs: notWiredYet,
+  moveDoc: notWiredYet,
+};
+
 const PLANNER_NOT_WIRED: PlannerApi = {
   createPlan: notWiredYet,
   getPlan: notWiredYet,
@@ -296,6 +386,7 @@ const TASKS_NOT_WIRED: TasksApi = {
   bulkUpdateTasks: notWiredYet,
   deleteTask: notWiredYet,
   restoreTask: notWiredYet,
+  listDeletedTasks: notWiredYet,
   addChecklistItem: notWiredYet,
   updateChecklistItem: notWiredYet,
   deleteChecklistItem: notWiredYet,
@@ -345,6 +436,7 @@ const CLIENTS_NOT_WIRED: ClientsApi = {
   publicClientReport: notWiredYet,
   completeClientTask: notWiredYet,
   exportClientUsage: notWiredYet,
+  updateClientAccount: notWiredYet,
 };
 
 interface UserRow {
@@ -387,6 +479,10 @@ export const createSupabaseSource = (url: string, publishableKey: string): DataS
     ...CONTRACTS_NOT_WIRED,
     ...DOCS_NOT_WIRED,
     ...AGENT_NOT_WIRED,
+    ...TRASH_NOT_WIRED,
+    ...EDITS_NOT_WIRED,
+    ...SETTINGS_NOT_WIRED,
+    ...FOUNDATIONS_NOT_WIRED,
     ...QUEUE_NOT_WIRED,
     ...SALES_NOT_WIRED,
     ...EMAIL_NOT_WIRED,

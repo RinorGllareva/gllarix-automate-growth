@@ -135,6 +135,8 @@ export const createDemoPeople = <S extends PeopleStore>(ctx: Ctx<S>) => {
       const s = await ready();
       const c = s.candidates.find((x) => x.id === id);
       if (!c) throw new AccessError(404);
+      if (patch.name !== undefined && !patch.name.trim()) throw new Error("A candidate needs a name.");
+      if (patch.openingId && !s.openings.some((o) => o.id === patch.openingId)) throw new AccessError(404);
       if (patch.scores) for (const [k, v] of Object.entries(patch.scores)) if (v !== undefined && (!Number.isInteger(v) || v < 1 || v > 5 || !SCORECARD.some((x) => x.key === k))) throw new Error("Scores are 1–5.");
       if (patch.status && patch.status !== c.status) {
         // Moving forward skips no step: SOP 8 says every hire goes through the screen, the roleplay and the paid trial.

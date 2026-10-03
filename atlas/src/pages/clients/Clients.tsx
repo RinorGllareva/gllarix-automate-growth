@@ -1,12 +1,18 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { Link, Route, Routes, useParams, useSearchParams } from "react-router-dom";
+import { Link, Route, Routes, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useUser } from "@/auth/AuthContext";
 import { usePageChrome } from "@/components/shell/PageChrome";
 import { Modal, useToast } from "@/components/ui/overlay";
 import { BrandChip, EmptyState, SkeletonRows } from "@/components/ui/primitives";
 import { ONBOARDING_STEPS, STATUS_REASONS } from "@/config/clients";
 import { data, type ClientCard, type ClientDetail, type ClientsOverview, type TicketRow } from "@/data";
+import { DataTable } from "@/components/DataTable";
 import RecordFiles from "@/components/RecordFiles";
+import { CustomFieldsPanel } from "@/components/CustomFields";
+import { ActivityTimeline, InlineSelect, NextStepCard, PropertyRow, RecordPage } from "@/components/record/Record";
+import { RowMenu } from "@/components/ui/actions";
+import { runJob } from "@/lib/jobs";
+import { askAboutHref } from "@/lib/askAbout";
 import { canAccess } from "@/lib/nav";
 import NewTicket from "@/pages/support/NewTicket";
 import { TicketList } from "@/pages/support/Support";
@@ -21,12 +27,13 @@ const mrrText = (mrr: ClientsOverview["mrr"]) =>
   mrr ? (Object.entries(mrr) as ["USD" | "EUR", number][]).map(([c, v]) => money(v, c, false)).join(" + ") || "$0" : null;
 
 /** A client card (10_CLIENTS_AND_USAGE.md): name · status · plan · progress bar · mono line. The selected card is ice. */
-const Card = ({ card, selected }: { card: ClientCard; selected: boolean }) => (
-  <Link
-    to={card.href}
-    aria-current={selected ? "true" : undefined}
-    className={`flex flex-col gap-2 border p-4 ${selected ? "border-ice bg-ice text-ice-ink" : "border-line bg-surface hover:border-line-strong"}`}
-  >
+const Card = ({ card, selected }: { card: ClientCard; selected: boolean }) => {
+  const user = useUser();
+  // Proposal cards open the deal; roles without Deals see the card without a link (no Forbidden page).
+  const linked = card.status !== "proposal" || canAccess(user.role, "deals");
+  const cls = `flex flex-col gap-2 border p-4 ${selected ? "border-ice bg-ice text-ice-ink" : "border-line bg-surface hover:border-line-strong"}`;
+  const body = (
+    <>
     <span className="flex items-center justify-between gap-3">
       <span className="truncate text-[15px]">{card.companyName}</span>
       <span className={`shrink-0 text-[12px] font-medium ${selected ? "" : card.status === "churned" ? "text-text-3" : card.status === "paused" ? "text-amber" : "text-text-2"}`}>{STATUS_LABEL[card.status]}</span>
@@ -36,8 +43,117 @@ const Card = ({ card, selected }: { card: ClientCard; selected: boolean }) => (
       <span className={`block h-[3px] ${selected ? "bg-ice-ink" : card.over ? "bg-amber" : "bg-cyan"}`} style={{ width: `${Math.round(card.progress * 100)}%` }} />
     </span>
     <span className="num truncate font-mono text-[11px] opacity-80">{card.line}</span>
-  </Link>
-);
+    </>
+  );
+  return linked ? (
+    <Link to={card.href} aria-current={selected ? "true" : undefined} className={cls}>
+      {body}
+    </Link>
+  ) : (
+    <div className={cls} title="Waiting for the deposit">
+      {body}
+    </div>
+  );
+};
+
+/** Contact (founders and the implementer), owner and plan (founders). */
+const AccountModal = ({ d, onClose, onSaved }: { d: ClientDetail; onClose: () => void; onSaved: () => void }) => {
+  const user = useUser();
+  const toast = useToast();
+  const admin = user.role === "admin";
+  const sub = d.finance?.subscription ?? null;
+  const [contact, setContact] = useState(d.contact ?? { firstName: "", lastName: "", title: null, email: null, phone: null });
+  const [ownerId, setOwnerId] = useState(d.deal.ownerId ?? "");
+  const [people, setPeople] = useState<{ id: string; name: string }[]>([]);
+  const [plan, setPlan] = useState(sub ? { monthly: String(sub.monthlyMinor / 100), included: String(sub.includedMinutes), overage: String(sub.overageRateMinor / 100) } : null);
+  useEffect(() => {
+    if (admin) data.listUsers().then((u) => setPeople(u.filter((x) => x.active && x.role !== "viewer").map((x) => ({ id: x.id, name: x.name }))), () => setPeople([]));
+  }, [admin]);
+  return (
+    <Modal open onClose={onClose} title={`Account · ${d.companyName}`} width={600}>
+      <form
+        className="flex flex-col gap-5 text-[13px]"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          try {
+            const planPatch =
+              admin && plan && sub
+                ? { monthlyMinor: Math.round(Number(plan.monthly) * 100), includedMinutes: Math.round(Number(plan.included)), overageRateMinor: Math.round(Number(plan.overage) * 100) }
+                : undefined;
+            const planChanged = planPatch && sub && (planPatch.monthlyMinor !== sub.monthlyMinor || planPatch.includedMinutes !== sub.includedMinutes || planPatch.overageRateMinor !== sub.overageRateMinor);
+            await data.updateClientAccount(d.client.id, {
+              contact,
+              ...(admin && ownerId && ownerId !== d.deal.ownerId ? { ownerId } : {}),
+              ...(planChanged ? { plan: planPatch } : {}),
+            });
+            toast(planChanged ? "Saved · the new plan applies from the next invoice" : "Saved", "good");
+            onClose();
+            onSaved();
+          } catch (err) {
+            toast((err as Error).message, "error");
+          }
+        }}
+      >
+        <fieldset className="grid gap-3 border-0 p-0 sm:grid-cols-2">
+          <legend className="mb-2 text-[14px] font-semibold">Main contact</legend>
+          <label className="flex flex-col gap-1.5">
+            <span className="field-label">First name</span>
+            <input className="input" required value={contact.firstName} onChange={(e) => setContact({ ...contact, firstName: e.target.value })} />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="field-label">Last name</span>
+            <input className="input" value={contact.lastName} onChange={(e) => setContact({ ...contact, lastName: e.target.value })} />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="field-label">Role</span>
+            <input className="input" value={contact.title ?? ""} onChange={(e) => setContact({ ...contact, title: e.target.value || null })} placeholder="Owner, office manager…" />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="field-label">Phone</span>
+            <input className="input" value={contact.phone ?? ""} onChange={(e) => setContact({ ...contact, phone: e.target.value || null })} />
+          </label>
+          <label className="flex flex-col gap-1.5 sm:col-span-2">
+            <span className="field-label">Email (reports and support replies go here)</span>
+            <input className="input" type="email" value={contact.email ?? ""} onChange={(e) => setContact({ ...contact, email: e.target.value || null })} />
+          </label>
+        </fieldset>
+        {admin ? (
+          <label className="flex flex-col gap-1.5">
+            <span className="field-label">Account owner</span>
+            <select className="input" value={ownerId} onChange={(e) => setOwnerId(e.target.value)}>
+              {(people.some((p) => p.id === ownerId) ? people : [{ id: ownerId, name: d.ownerName ?? "Current owner" }, ...people]).map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        {admin && plan && sub ? (
+          <fieldset className="grid gap-3 border-0 p-0 sm:grid-cols-3">
+            <legend className="mb-1 text-[14px] font-semibold">Plan</legend>
+            <span className="text-[12px] text-text-3 sm:col-span-3">Upgrades and downgrades apply from the next invoice. This month stays on the current terms.</span>
+            <label className="flex flex-col gap-1.5">
+              <span className="field-label">Monthly ({sub.currency})</span>
+              <input className="input" type="number" min={0} step={1} value={plan.monthly} onChange={(e) => setPlan({ ...plan, monthly: e.target.value })} />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="field-label">Included minutes</span>
+              <input className="input" type="number" min={0} step={50} value={plan.included} onChange={(e) => setPlan({ ...plan, included: e.target.value })} />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="field-label">Per extra minute</span>
+              <input className="input" type="number" min={0} step={0.01} value={plan.overage} onChange={(e) => setPlan({ ...plan, overage: e.target.value })} />
+            </label>
+          </fieldset>
+        ) : null}
+        <button type="submit" className="btn-primary" disabled={!contact.firstName.trim()}>
+          Save
+        </button>
+      </form>
+    </Modal>
+  );
+};
 
 /** Minutes per day for the month; bars turn amber from the day cumulative use passes the included minutes. */
 const UsageChart = ({ d }: { d: ClientDetail }) => {
@@ -226,7 +342,9 @@ const ClientTickets = ({ clientId }: { clientId: string }) => {
 const ClientMain = ({ d, onChange, setPeriod }: { d: ClientDetail; onChange: () => void; setPeriod: (p: string) => void }) => {
   const toast = useToast();
   const user = useUser();
+  const navigate = useNavigate();
   const [statusTo, setStatusTo] = useState<"paused" | "live" | "churned" | null>(null);
+  const [editing, setEditing] = useState(false);
   const f = d.finance;
   const fmt = (minor: number) => (f ? money(minor, f.currency) : "—");
   const sub = f?.subscription ?? null;
@@ -250,55 +368,79 @@ const ClientMain = ({ d, onChange, setPeriod }: { d: ClientDetail; onChange: () 
     }
   };
 
+  // The one thing to do on this client now: the next onboarding step, or what the health score flags.
+  const nextOnboarding = ONBOARDING_STEPS.find((st) => !d.onboarding.find((x) => x.key === st.key)?.done);
+  const step =
+    d.client.status === "onboarding"
+      ? nextOnboarding
+        ? `Onboarding: ${nextOnboarding.label}.`
+        : "Every onboarding step is done: go live."
+      : d.health && d.health.risk !== "low"
+        ? `Churn risk ${RISK[d.health.risk].label.toLowerCase()}: ${d.health.reason}. Call them this week.`
+        : null;
+
   return (
     <section aria-label={`${d.companyName} usage`} className="flex min-w-0 flex-col gap-4">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex min-w-0 flex-col gap-1.5">
-          <span className="label-caps flex flex-wrap items-center gap-2">
-            {d.companyName} ·
-            {d.periods.length > 1 ? (
-              <select aria-label="Month" className="border-0 bg-transparent p-0 text-[12px] font-medium text-label" value={d.period} onChange={(e) => setPeriod(e.target.value)}>
-                {d.periods.map((p) => (
-                  <option key={p} value={p}>
-                    {monthLabel(p, "long")}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <span>{monthLabel(d.period)}</span>
-            )}
-          </span>
-          <span className="text-[26px] font-light">{headline}</span>
-          <span className="flex flex-wrap items-center gap-2 text-[12px] text-text-2">
+      <RecordPage
+        sideFrom="2xl"
+        breadcrumb={[{ label: "Clients", to: "/clients" }, { label: d.companyName }]}
+        status={
+          <>
             <BrandChip brand={d.deal.brand} />
-            {d.plan}
-            {d.ownerName ? ` · sold by ${d.ownerName}` : ""}
-          </span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {d.can.status && d.client.status === "live" ? (
-            <button type="button" className="btn-ghost h-10 text-[11px]" onClick={() => setStatusTo("paused")}>
-              Pause
-            </button>
-          ) : null}
-          {d.can.status && d.client.status === "paused" ? (
-            <button type="button" className="btn-ghost h-10 text-[11px]" onClick={() => setStatusTo("live")}>
-              Resume
-            </button>
-          ) : null}
-          {d.can.status ? (
-            <button type="button" className="btn-ghost h-10 text-[11px] text-coral" onClick={() => setStatusTo("churned")}>
-              Cancel
-            </button>
-          ) : null}
-          {d.can.report && d.client.status !== "onboarding" ? (
-            <button type="button" className="btn-outline h-10 text-[11px]" onClick={sendReport}>
-              Send monthly report ↗
-            </button>
-          ) : null}
-        </div>
-      </div>
-
+            <span className="chip border-line-strong text-text-2">{STATUS_LABEL[d.client.status]}</span>
+            {d.health ? <span className={`text-[13px] ${RISK[d.health.risk].cls}`}>{RISK[d.health.risk].label} churn risk</span> : null}
+          </>
+        }
+        title={d.companyName}
+        actions={
+          <>
+            {d.can.report && d.client.status !== "onboarding" ? (
+              <button type="button" className="btn-outline h-9" onClick={sendReport}>
+                Send monthly report
+              </button>
+            ) : null}
+            {user.role === "admin" || user.role === "implementer" ? (
+              <button type="button" className="btn-outline h-9" onClick={() => setEditing(true)}>
+                Edit account
+              </button>
+            ) : null}
+            <RowMenu
+              label="More client actions"
+              items={[
+                { label: "Ask the AI co-founder about this client", hidden: !canAccess(user.role, "advisor"), onSelect: () => navigate(askAboutHref(`How is ${d.companyName} doing? Look at usage, health, open tickets and invoices, and tell me what to do this month.`)) },
+                { label: "Pause", hidden: !(d.can.status && d.client.status === "live"), onSelect: () => setStatusTo("paused") },
+                { label: "Resume", hidden: !(d.can.status && d.client.status === "paused"), onSelect: () => setStatusTo("live") },
+                { label: "Cancel the client", danger: true, hidden: !d.can.status, onSelect: () => setStatusTo("churned") },
+              ]}
+            />
+          </>
+        }
+        properties={
+          <PropertyRow
+            items={[
+              { label: "Status", value: headline },
+              { label: "Plan", value: d.plan },
+              { label: "Sold by", value: d.ownerName ?? "—" },
+              { label: "Contact", value: d.contactName ? `${d.contactName}${d.contactEmail ? ` · ${d.contactEmail}` : ""}` : <span className="text-text-3">No contact yet</span> },
+              {
+                label: "Month",
+                hidden: d.client.status === "onboarding",
+                value:
+                  d.periods.length > 1 ? (
+                    <InlineSelect label="Month" value={d.period} options={d.periods.map((p) => ({ value: p, label: monthLabel(p, "long") }))} onChange={setPeriod} />
+                  ) : (
+                    monthLabel(d.period, "long")
+                  ),
+              },
+            ]}
+          />
+        }
+        tabs={[
+          {
+            id: "overview",
+            label: "Overview",
+            content: (
+              <div className="flex min-w-0 flex-col gap-4">
       {d.client.status === "onboarding" ? (
         <>
           <Onboarding d={d} onChange={onChange} large />
@@ -398,13 +540,63 @@ const ClientMain = ({ d, onChange, setPeriod }: { d: ClientDetail; onChange: () 
         </>
       )}
 
-      {canAccess(user.role, "support") && d.client.status !== "onboarding" ? <ClientTickets clientId={d.client.id} /> : null}
-
-      <div className="flex flex-col gap-2">
-        <span className="text-[15px] font-semibold">Files</span>
-        <RecordFiles entity="client" id={d.client.id} hint="Signed contracts, onboarding notes, call flows, logos" />
-      </div>
-
+              </div>
+            ),
+          },
+          ...(canAccess(user.role, "support") && d.client.status !== "onboarding" ? [{ id: "support", label: "Support", content: <ClientTickets clientId={d.client.id} /> }] : []),
+          ...(f?.invoices.length || d.reports.length
+            ? [
+                {
+                  id: "billing",
+                  label: "Invoices and reports",
+                  content: (
+                    <>
+      {f?.invoices.length || d.reports.length ? (
+        <div className="grid gap-3 lg:grid-cols-2">
+          {f?.invoices.length ? (
+            <section aria-label="Invoices" className="flex flex-col overflow-hidden rounded-xl border border-line">
+              <span className="label-caps border-b border-line px-[18px] py-3">Invoices · Stripe test mode</span>
+              {f.invoices.slice(0, 8).map((i) => (
+                <div key={i.id} className="flex justify-between gap-3 border-b border-line-soft px-[18px] py-2 text-[13px] last:border-b-0">
+                  <span className="text-text-2">
+                    {shortDate(i.issuedAt)} · {i.period === "go-live" ? "go-live" : monthLabel(i.period, "short")}
+                  </span>
+                  <span className="flex gap-3">
+                    <span className="num font-mono">{fmt(i.totalMinor)}</span>
+                    <span className={i.status === "paid" ? "text-mint" : "text-amber"}>{i.status}</span>
+                  </span>
+                </div>
+              ))}
+            </section>
+          ) : null}
+          {d.reports.length ? (
+            <section aria-label="Monthly reports" className="flex flex-col overflow-hidden rounded-xl border border-line">
+              <span className="label-caps border-b border-line px-[18px] py-3">Reports sent</span>
+              {d.reports.slice(0, 8).map((r) => (
+                <div key={r.id} className="flex justify-between gap-3 border-b border-line-soft px-[18px] py-2 text-[13px] last:border-b-0">
+                  <span className="text-text-2">
+                    {monthLabel(r.period)} · {r.sentBy ? "by hand" : "month-end job"}
+                  </span>
+                  <a href={`/r/${r.token}`} target="_blank" rel="noopener">
+                    Open ↗
+                  </a>
+                </div>
+              ))}
+            </section>
+          ) : null}
+        </div>
+      ) : null}
+                    </>
+                  ),
+                },
+              ]
+            : []),
+          {
+            id: "tasks",
+            label: "Tasks",
+            count: d.tasks.filter((t) => !t.doneAt).length || undefined,
+            content: d.tasks.length ? (
+              <>
       {d.tasks.length ? (
         <section aria-label="Client tasks" className="flex flex-col overflow-hidden rounded-xl border border-line">
           <span className="label-caps border-b border-line px-[18px] py-3">Tasks</span>
@@ -441,42 +633,22 @@ const ClientMain = ({ d, onChange, setPeriod }: { d: ClientDetail; onChange: () 
           ))}
         </section>
       ) : null}
-
-      {f?.invoices.length || d.reports.length ? (
-        <div className="grid gap-3 lg:grid-cols-2">
-          {f?.invoices.length ? (
-            <section aria-label="Invoices" className="flex flex-col overflow-hidden rounded-xl border border-line">
-              <span className="label-caps border-b border-line px-[18px] py-3">Invoices · Stripe test mode</span>
-              {f.invoices.slice(0, 8).map((i) => (
-                <div key={i.id} className="flex justify-between gap-3 border-b border-line-soft px-[18px] py-2 text-[13px] last:border-b-0">
-                  <span className="text-text-2">
-                    {shortDate(i.issuedAt)} · {i.period === "go-live" ? "go-live" : monthLabel(i.period, "short")}
-                  </span>
-                  <span className="flex gap-3">
-                    <span className="num font-mono">{fmt(i.totalMinor)}</span>
-                    <span className={i.status === "paid" ? "text-mint" : "text-amber"}>{i.status}</span>
-                  </span>
-                </div>
-              ))}
-            </section>
-          ) : null}
-          {d.reports.length ? (
-            <section aria-label="Monthly reports" className="flex flex-col overflow-hidden rounded-xl border border-line">
-              <span className="label-caps border-b border-line px-[18px] py-3">Reports sent</span>
-              {d.reports.slice(0, 8).map((r) => (
-                <div key={r.id} className="flex justify-between gap-3 border-b border-line-soft px-[18px] py-2 text-[13px] last:border-b-0">
-                  <span className="text-text-2">
-                    {monthLabel(r.period)} · {r.sentBy ? "by hand" : "month-end job"}
-                  </span>
-                  <a href={`/r/${r.token}`} target="_blank" rel="noopener">
-                    Open ↗
-                  </a>
-                </div>
-              ))}
-            </section>
-          ) : null}
-        </div>
-      ) : null}
+              </>
+            ) : (
+              <EmptyState title="No client tasks. Onboarding and automations add them here." />
+            ),
+          },
+          { id: "files", label: "Files", content: <RecordFiles entity="client" id={d.client.id} hint="Signed contracts, onboarding notes, call flows, logos" /> },
+          { id: "activity", label: "Activity", content: <ActivityTimeline entity="client" id={d.client.id} reloadKey={d} /> },
+        ]}
+        side={
+          <>
+            {step ? <NextStepCard text={step} /> : null}
+            <CustomFieldsPanel entity="client" id={d.client.id} canEdit={user.role === "admin" || user.role === "implementer"} title="Client fields" />
+          </>
+        }
+      />
+      {editing ? <AccountModal d={d} onClose={() => setEditing(false)} onSaved={onChange} /> : null}
 
       <StatusModal
         d={d}
@@ -494,6 +666,8 @@ const ClientMain = ({ d, onChange, setPeriod }: { d: ClientDetail; onChange: () 
 /** /clients and /clients/:id (10_CLIENTS_AND_USAGE.md, mockup Clients.dc.html). */
 const ClientsPage = () => {
   const { id } = useParams();
+  const user = useUser();
+  const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const onlyOnboarding = params.get("status") === "onboarding";
   const [overview, setOverview] = useState<ClientsOverview | null>(null);
@@ -501,12 +675,16 @@ const ClientsPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState<string | undefined>(undefined);
 
-  const cards = overview?.cards.filter((c) => !onlyOnboarding || c.status === "onboarding") ?? [];
+  const [q, setQ] = useState("");
+  const [asTable, setAsTable] = useState(false);
+  const needle = q.trim().toLowerCase();
+  const cards = overview?.cards.filter((c) => (!onlyOnboarding || c.status === "onboarding") && (!needle || `${c.companyName} ${c.plan}`.toLowerCase().includes(needle))) ?? [];
   const selectedId = id ?? cards.find((c) => c.status !== "proposal")?.id ?? null;
 
   const loadOverview = useCallback(async () => {
     try {
-      await data.runBillingJobs();
+      // Billing (usage import, invoices) runs as a job at most every 10 minutes, not on every visit.
+      await runJob("billing", 10 * 60_000, () => data.runBillingJobs());
       setOverview(await data.clientsOverview());
     } catch (e) {
       setError((e as Error).message);
@@ -556,12 +734,33 @@ const ClientsPage = () => {
     <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
       <section aria-label="Clients" className="flex min-w-0 flex-col gap-3">
         <h1 className="page-title m-0 mb-1.5">Clients</h1>
+        <div className="flex items-center gap-2">
+          <input type="search" className="input h-9 min-w-0 flex-1" placeholder="Find a client" aria-label="Find a client" value={q} onChange={(e) => setQ(e.target.value)} />
+          <button type="button" className="btn-ghost h-9 text-[12px]" aria-pressed={asTable} onClick={() => setAsTable((x) => !x)}>
+            {asTable ? "Cards" : "Table"}
+          </button>
+        </div>
         {onlyOnboarding ? (
           <button type="button" className="btn-ghost self-start text-[11px]" onClick={() => setParams({})}>
             Onboarding only · show all
           </button>
         ) : null}
-        {cards.length ? cards.map((c) => <Card key={c.id} card={c} selected={c.id === selectedId} />) : <EmptyState title={onlyOnboarding ? "Nobody is onboarding right now." : "No clients yet. A paid deposit turns a won deal into a client."} />}
+        {cards.length && asTable ? (
+          <DataTable<ClientCard>
+            id="clients"
+            label="Clients"
+            variant="plain"
+            rows={cards}
+            rowKey={(c) => c.id}
+            onOpen={(c) => (c.status !== "proposal" || canAccess(user.role, "deals") ? navigate(c.href) : undefined)}
+            focusedKey={selectedId ?? undefined}
+            columns={[
+              { key: "name", header: "Client", width: "minmax(0,1.4fr)", sortValue: (c) => c.companyName, render: (c) => <span className="block truncate">{c.companyName}</span> },
+              { key: "status", header: "Status", width: "92px", sortValue: (c) => c.status, render: (c) => <span className="text-[12px] text-text-2">{STATUS_LABEL[c.status]}</span> },
+              { key: "use", header: "Use", width: "56px", align: "right", sortValue: (c) => c.progress, render: (c) => <span className={`num text-[12px] ${c.over ? "text-amber" : ""}`}>{Math.round(c.progress * 100)}%</span> },
+            ]}
+          />
+        ) : cards.length ? cards.map((c) => <Card key={c.id} card={c} selected={c.id === selectedId} />) : needle ? <EmptyState title="No client matches." /> : <EmptyState title={onlyOnboarding ? "Nobody is onboarding right now." : "No clients yet. A paid deposit turns a won deal into a client."} />}
         {sideOnboarding ? <Onboarding d={sideOnboarding} onChange={refresh} /> : null}
       </section>
       {detail && detail.client.id === selectedId ? (

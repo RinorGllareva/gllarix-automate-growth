@@ -15,6 +15,8 @@ export interface Doc {
   createdAt: string;
   updatedAt: string;
   archived: boolean;
+  /** Position among its siblings (moveDoc); unset pages sort by title after ordered ones. */
+  order?: number;
 }
 
 export interface DocRow extends Omit<Doc, "body"> {

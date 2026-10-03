@@ -57,6 +57,8 @@ export const PAGE_JOBS: Record<string, Partial<Record<Role, PageJob>>> = {
   reports: {
     admin: { job: "Check the week against the targets and the €10k plan", outcome: "Pick the one number to fix next week" },
     viewer: { job: "Read the monthly numbers for the books", outcome: "Export the month" },
+    bdr: { job: "See your own funnel: dials to meetings to wins", outcome: "Find the step that leaks and fix it this week" },
+    closer: { job: "See your own funnel from held meetings to won deals", outcome: "Know your close rate and what to change" },
   },
   tasks: {
     admin: { job: "Plan and track the company's work", outcome: "Everyone knows their next task" },
@@ -90,7 +92,11 @@ export const PAGE_JOBS: Record<string, Partial<Record<Role, PageJob>>> = {
   },
   plan: { admin: { job: "Test a hire, a price or a slower month before deciding", outcome: "Decide with the cash curve in front of you" } },
   roi: { admin: { job: "Decide if a spend, a tool or a build is worth it", outcome: "Log it with a stop rule, or don't buy it" } },
-  prices: { admin: { job: "Keep the price book every quote uses up to date", outcome: "Quotes always use current prices" } },
+  prices: {
+    admin: { job: "Keep the price book every quote uses up to date", outcome: "Quotes always use current prices" },
+    bdr: { job: "Answer \"how much?\" on a call with the real price", outcome: "Say the same number the quote will show" },
+    closer: { job: "Price an offer and turn it into a quote", outcome: "Say the same number the quote will show" },
+  },
   commissions: {
     admin: { job: "Check what each person earned before the 5th", outcome: "Approve the payout statements" },
     bdr: { job: "See what you've earned and when it's paid", outcome: "No surprises on payday" },

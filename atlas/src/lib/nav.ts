@@ -88,8 +88,8 @@ export const NAV_ITEMS: NavItem[] = [
 const ACCESS: Record<Role, PageId[] | "all"> = {
   admin: "all",
   // Market and competitors has no job for sellers: channel rules are enforced on every call and send anyway.
-  bdr: ["today", "call", "leads", "pipeline", "meetings", "deals", "tasks", "team", "time", "advisor", "commissions", "training", "marketing", "inbound", "ops", "docs", "tracker"],
-  closer: ["today", "call", "leads", "pipeline", "meetings", "deals", "tasks", "team", "time", "advisor", "commissions", "training", "marketing", "inbound", "ops", "docs", "tracker"],
+  bdr: ["today", "call", "leads", "pipeline", "meetings", "deals", "reports", "tasks", "team", "time", "advisor", "commissions", "training", "marketing", "inbound", "ops", "docs", "tracker", "prices"],
+  closer: ["today", "call", "leads", "pipeline", "meetings", "deals", "reports", "tasks", "team", "time", "advisor", "commissions", "training", "marketing", "inbound", "ops", "docs", "tracker", "prices"],
   // The viewer is the accountant: the books (finance, payments, payouts), the pipeline value and the monthly report.
   viewer: ["reports", "pipeline", "finance", "payments", "commissions", "docs"],
   implementer: ["clients", "support", "tasks", "time", "ops", "docs"],

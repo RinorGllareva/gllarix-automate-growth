@@ -17,12 +17,16 @@ const nextHue = (at: string | null) => {
 import { countryLabel, industryLabel, LIST_LABEL, OPEN_STAGES, STAGE_CHIP, STAGE_LABEL, STAGES, type ListType } from "@/config/leads";
 import { data, PAGE_SIZE, type LeadPage, type LeadQuery, type LeadRow, type SortKey, type Source, type User } from "@/data";
 import { DataTable } from "@/components/DataTable";
+import { useCustomColumns } from "@/components/CustomFields";
+import { NewLeadModal } from "@/components/LeadForms";
 import { count, downloadText, localTime, nextActionText, since } from "@/lib/format";
 import { CLEARED_QUERY, parseLeadQuery, serializeLeadQuery } from "@/lib/leadQuery";
 import { QUEUE } from "@/config/queue";
 
 const summarize = (selected: string[], labels: Record<string, string>, all: string) =>
   !selected.length ? all : selected.length <= 2 ? selected.map((v) => labels[v] ?? v).join(", ") : `${selected.length} selected`;
+
+const leadId = (r: LeadRow) => r.lead.id;
 
 const LeadsList = () => {
   const user = useUser();
@@ -32,6 +36,7 @@ const LeadsList = () => {
   const query = useMemo(() => parseLeadQuery(params), [params]);
 
   const [page, setPage] = useState<LeadPage | null>(null);
+  const custom = useCustomColumns<LeadRow>("lead", page?.rows ?? null, leadId);
   const [error, setError] = useState<string | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [facets, setFacets] = useState<{ countries: string[]; sources: Source[] }>({ countries: [], sources: [] });
@@ -39,6 +44,7 @@ const LeadsList = () => {
   const [assignOpen, setAssignOpen] = useState(false);
   const [cadenceOpen, setCadenceOpen] = useState(false);
   const [search, setSearch] = useState(query.q);
+  const [creating, setCreating] = useState(false);
   const lastClicked = useRef<number | null>(null);
 
   const setQuery = useCallback(
@@ -122,6 +128,9 @@ const LeadsList = () => {
         <h1 className="page-title m-0">Leads</h1>
         <div className="flex flex-wrap items-center gap-2">
           {selected.size ? <span className="mr-2 text-[12px] text-text-2">{count(selected.size)} selected</span> : null}
+          <button type="button" className="btn-primary h-9" onClick={() => setCreating(true)}>
+            + New lead
+          </button>
           {isAdmin ? (
             <button type="button" className="btn-outline h-9 text-[11px]" disabled={!selected.size} onClick={() => setAssignOpen(true)}>
               Assign
@@ -344,6 +353,7 @@ const LeadsList = () => {
             ),
           },
           { key: "last", header: "Last", width: "48px", sortable: true, hideable: true, render: (r) => <span className="num text-text-3">{since(r.lead.lastTouchAt)}</span> },
+          ...custom.columns,
         ]}
         empty={
           error ? (
@@ -404,6 +414,7 @@ const LeadsList = () => {
         }
       />
 
+      <NewLeadModal open={creating} onClose={() => setCreating(false)} />
       <CadenceModal
         open={cadenceOpen}
         count={selected.size}

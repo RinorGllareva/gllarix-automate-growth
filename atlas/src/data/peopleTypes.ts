@@ -139,7 +139,7 @@ export interface PeopleApi {
   hiringBoard(): Promise<{ openings: Opening[]; candidates: Candidate[] }>;
   saveOpening(input: Partial<Opening> & { role: string }): Promise<Opening>;
   addCandidate(input: { openingId: string; name: string; email?: string | null; source: Candidate["source"]; voiceNoteUrl?: string | null; notes?: string }): Promise<Candidate>;
-  updateCandidate(id: string, patch: Partial<Pick<Candidate, "status" | "scores" | "redFlags" | "notes" | "voiceNoteUrl" | "email">>): Promise<Candidate>;
+  updateCandidate(id: string, patch: Partial<Pick<Candidate, "status" | "scores" | "redFlags" | "notes" | "voiceNoteUrl" | "email" | "name" | "source" | "openingId">>): Promise<Candidate>;
   /** Hired → starts the 10-day program (and fills the opening). */
   startTraining(input: { candidateId?: string; userId?: string; name?: string; role: string; startDate: string }): Promise<Trainee>;
   /** Admins see everyone; anyone else sees their own program. */

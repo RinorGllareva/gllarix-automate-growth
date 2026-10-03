@@ -61,7 +61,11 @@ export const MobileTabBar = () => {
         ))}
         {rest.length ? (
           <button type="button" aria-expanded={more} onClick={() => setMore((x) => !x)} className={tab(rest.some((n) => n.id === current))}>
-            <Icon d="M5 12h.01M12 12h.01M19 12h.01" size={20} />
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <circle cx="5" cy="12" r="1.7" />
+              <circle cx="12" cy="12" r="1.7" />
+              <circle cx="19" cy="12" r="1.7" />
+            </svg>
             More
           </button>
         ) : null}

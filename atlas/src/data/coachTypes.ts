@@ -138,6 +138,12 @@ export interface TeamApi {
   /** The rep disputes a score: marks it for a human re-check and notifies the co-founder. */
   disputeReview(id: string, note: string): Promise<void>;
   addScorecardComment(userId: string, body: string): Promise<void>;
+  /** The author edits their comment (disputes are fixed records: resolve them instead). */
+  editScorecardComment(id: string, body: string): Promise<void>;
+  /** The author, or an admin, deletes a comment. */
+  deleteScorecardComment(id: string): Promise<void>;
+  /** Admin (not the rep): keep the AI score and close the dispute with a note the rep sees. A new human score also closes it (humanCheck). */
+  resolveDispute(reviewId: string, note: string): Promise<void>;
   updateAgenda(userId: string, week: string, points: AgendaPoint[]): Promise<void>;
   /** Generates every person's weekly 1:1 agenda. */
   prepareOneOnOnes(week?: string): Promise<number>;

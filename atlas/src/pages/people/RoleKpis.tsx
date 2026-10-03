@@ -14,10 +14,24 @@ const DIAG = {
   rep: { hue: "coral", icon: "M12 8v5M12 16h.01" },
 } as const;
 
+/** Where a KPI's numbers come from: the records behind it (founders can open every page linked here). */
+const drillFor = (label: string, personId: string | undefined): string | null => {
+  const l = label.toLowerCase();
+  if (l.includes("queue")) return "/call";
+  if (l.includes("meeting") || l.includes("show rate") || l.includes("approved")) return "/meetings";
+  if (l.includes("close rate") || l.includes("won")) return "/pipeline";
+  if (l.includes("cash")) return "/payments";
+  if (l.includes("setup") || l.includes("go-live") || l.includes("churn")) return "/clients";
+  if (l.includes("month-end")) return "/finance";
+  if (personId && (l.includes("dial") || l.includes("conversation") || l.includes("contact") || l.includes("crm") || l.includes("follow-up"))) return `/team/${personId}`;
+  return null;
+};
+
 /** People › KPIs per role: every role's targets from the people plan, with what Atlas measures this week. Founders only. */
 const RoleKpis = () => {
   const me = useUser();
-  const [week, setWeek] = useState<"this" | "last">("this");
+  // 0 = this week, -1 = last week, and so on.
+  const [week, setWeek] = useState(0);
   const [blocks, setBlocks] = useState<RoleBlock[] | null>(null);
   const [label, setLabel] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +40,7 @@ const RoleKpis = () => {
   useEffect(() => {
     let alive = true;
     const today = new Date().toISOString().slice(0, 10);
-    const key = isoWeekKey(week === "this" ? today : shiftDateKey(today, -7));
+    const key = isoWeekKey(shiftDateKey(today, week * 7));
     (async () => {
       try {
         const [users, team, payments, clients, deals] = await Promise.all([data.listUsers(), data.teamToday(), data.listPayments(), data.listClients(), data.listDeals()]);
@@ -36,7 +50,7 @@ const RoleKpis = () => {
         if (!alive) return;
         setLabel(reps[0]?.period.label ?? key);
         const wonAt = Object.fromEntries(deals.map((d) => [d.deal.id, d.deal.wonAt]));
-        setBlocks(roleKpis({ users, reports, today: week === "this" ? team : [], payments, clients, wonAt, now: Date.now() }));
+        setBlocks(roleKpis({ users, reports, today: week === 0 ? team : [], payments, clients, wonAt, now: Date.now() }));
       } catch (e) {
         if (alive) setError((e as Error).message);
       }
@@ -58,17 +72,19 @@ const RoleKpis = () => {
             What each role is measured on, from the people plan, and where it stands. Reviewed in the monthly 1:1. Bonuses never come from AI scores.
           </p>
         </div>
-        <div role="radiogroup" aria-label="Week" className="flex rounded-lg bg-inset p-0.5">
-          {(
-            [
-              ["this", "This week"],
-              ["last", "Last week"],
-            ] as const
-          ).map(([k, l]) => (
-            <button key={k} type="button" role="radio" aria-checked={week === k} onClick={() => (setBlocks(null), setWeek(k))} className={`h-8 rounded-md px-3 text-[13px] ${week === k ? "bg-surface-2 text-text shadow-card" : "text-text-2 hover:text-text"}`}>
-              {l}
+        <div role="group" aria-label="Week" className="flex items-center gap-1.5">
+          <button type="button" className="btn-outline h-8 px-2.5" aria-label="Previous week" onClick={() => (setBlocks(null), setWeek(week - 1))}>
+            ←
+          </button>
+          <span className="min-w-[96px] text-center text-[13px]">{week === 0 ? "This week" : week === -1 ? "Last week" : `${-week} weeks ago`}</span>
+          <button type="button" className="btn-outline h-8 px-2.5" aria-label="Next week" disabled={week >= 0} onClick={() => (setBlocks(null), setWeek(week + 1))}>
+            →
+          </button>
+          {week !== 0 ? (
+            <button type="button" className="btn-ghost h-8 text-[12px]" onClick={() => (setBlocks(null), setWeek(0))}>
+              This week
             </button>
-          ))}
+          ) : null}
         </div>
       </div>
       <span className="-mt-3 text-[12px] text-text-3">{label}</span>
@@ -85,10 +101,10 @@ const RoleKpis = () => {
                   {b.people.length ? (
                     <span className="flex flex-wrap items-center gap-2 text-[13px] text-text-2">
                       {b.people.map((p) => (
-                        <span key={p.id} className="flex items-center gap-1.5">
+                        <Link key={p.id} to={`/team/${p.id}`} className="flex items-center gap-1.5 hover:text-cyan" title={`Open ${p.name}'s scorecard`}>
                           <Avatar id={p.id} name={p.name} size={20} />
                           {p.name}
-                        </span>
+                        </Link>
                       ))}
                     </span>
                   ) : (
@@ -123,10 +139,18 @@ const RoleKpis = () => {
                   <span className="text-right">Now</span>
                   <span className="text-right">Status</span>
                 </div>
-                {b.lines.map((l) => (
+                {b.lines.map((l) => {
+                  const href = b.people.length ? drillFor(l.label, b.people[0]?.id) : null;
+                  return (
                   <div key={l.label} className="grid grid-cols-[minmax(0,1fr)_92px_76px_92px] items-center gap-3 border-b border-line-soft px-4 py-2.5 text-[13px] last:border-b-0">
                     <span className="flex min-w-0 flex-col">
-                      <span>{l.label}</span>
+                      {href ? (
+                        <Link to={href} className="hover:text-cyan" title="Open the records behind this number">
+                          {l.label} <span aria-hidden="true" className="text-text-3">↗</span>
+                        </Link>
+                      ) : (
+                        <span>{l.label}</span>
+                      )}
                       <span className="truncate text-[12px] text-text-3" title={l.how}>
                         {l.how}
                       </span>
@@ -135,7 +159,8 @@ const RoleKpis = () => {
                     <span className={`num text-right ${l.value === null ? "text-text-3" : ""}`}>{l.value ?? "—"}</span>
                     <span className="flex justify-end">{l.status ? <StatusChip status={l.status} /> : <span className="text-[12px] text-text-3">{l.value === null ? "Not measured" : "Tracked"}</span>}</span>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
           );

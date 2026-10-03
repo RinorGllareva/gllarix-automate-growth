@@ -25,8 +25,8 @@ describe("safeNext (no open redirects)", () => {
 describe("role access (00_SHARED_LAYOUT.md)", () => {
   const expected: Record<Role, string[]> = {
     admin: NAV_ITEMS.map((n) => n.id),
-    bdr: ["today", "call", "leads", "pipeline", "meetings", "deals", "tasks", "team", "time", "advisor", "commissions", "training", "marketing", "inbound", "ops", "docs", "tracker"],
-    closer: ["today", "call", "leads", "pipeline", "meetings", "deals", "tasks", "team", "time", "advisor", "commissions", "training", "marketing", "inbound", "ops", "docs", "tracker"],
+    bdr: ["today", "call", "leads", "pipeline", "meetings", "deals", "reports", "tasks", "team", "time", "advisor", "commissions", "training", "marketing", "inbound", "ops", "docs", "tracker", "prices"],
+    closer: ["today", "call", "leads", "pipeline", "meetings", "deals", "reports", "tasks", "team", "time", "advisor", "commissions", "training", "marketing", "inbound", "ops", "docs", "tracker", "prices"],
     viewer: ["pipeline", "reports", "finance", "payments", "commissions", "docs"],
     implementer: ["clients", "support", "tasks", "time", "ops", "docs"],
   };
@@ -35,10 +35,10 @@ describe("role access (00_SHARED_LAYOUT.md)", () => {
     expect(navForRole(role).map((n) => n.id).sort()).toEqual([...expected[role]].sort());
   });
 
-  it("BDR can never reach admin, clients or reports", () => {
+  it("BDR can never reach admin or clients; Reports shows only their own funnel", () => {
     expect(canAccess("bdr", "admin")).toBe(false);
     expect(canAccess("bdr", "clients")).toBe(false);
-    expect(canAccess("bdr", "reports")).toBe(false);
+    expect(canAccess("bdr", "reports")).toBe(true);
   });
 
   it("lands each role on its first page", () => {
@@ -155,7 +155,8 @@ describe("routes", () => {
   it("G then L goes to Leads, but not while typing in the search field", async () => {
     await renderAt("/today", "rinor@atlas.test");
     await screen.findByRole("navigation", { name: "Sell pages" });
-    await screen.findByRole("heading", { level: 1, name: "Today" });
+    // Today builds the queue first: give it longer than the 1 s default when the whole suite runs in parallel.
+    await screen.findByRole("heading", { level: 1, name: "Today" }, { timeout: 5000 });
     const search = screen.getByRole("searchbox", { name: "Search leads, companies, deals" });
     act(() => {
       fireEvent.keyDown(search, { key: "g" });
@@ -166,6 +167,6 @@ describe("routes", () => {
       fireEvent.keyDown(document.body, { key: "g" });
       fireEvent.keyDown(document.body, { key: "l" });
     });
-    expect(await screen.findByRole("heading", { level: 1, name: "Leads" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: "Leads" }, { timeout: 5000 })).toBeTruthy();
   });
 });

@@ -45,6 +45,10 @@ const Inbound = () => {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState("open");
   const [now, setNow] = useState(Date.now());
+  const [q, setQ] = useState("");
+  const [channel, setChannel] = useState<InboundChannel | "">("");
+  const [owner, setOwner] = useState("");
+  const [replying, setReplying] = useState<{ id: string; who: string; note: string } | null>(null);
   const [sim, setSim] = useState<{ name: string; company: string; email: string; brand: "gllarix" | "arcadian"; channel: InboundChannel; message: string } | null>(null);
   usePageChrome({ context: "Sell · inbound" });
 
@@ -68,7 +72,27 @@ const Inbound = () => {
     }
   };
   const f = FILTERS.find((x) => x.key === filter)!;
-  const rows = home.requests.filter((r) => f.match(r.status));
+  const needle = q.trim().toLowerCase();
+  const matches = (r: InboundHome["requests"][number]) =>
+    (!needle || `${r.name} ${r.company} ${r.email ?? ""} ${r.phone ?? ""} ${r.message}`.toLowerCase().includes(needle)) &&
+    (!channel || r.channel === channel) &&
+    (!owner || (owner === "none" ? !r.assignedTo : r.assignedTo === owner));
+  const rows = home.requests.filter((r) => f.match(r.status) && matches(r));
+  const dismiss = async (r: InboundHome["requests"][number], reason: "not_fit" | "spam") => {
+    try {
+      await data.dismissInbound(r.id, reason);
+      await load();
+      toast(reason === "spam" ? "Marked as spam" : "Marked not a fit", "info", {
+        label: "Undo",
+        run: async () => {
+          await data.undoDismissInbound(r.id).catch((e: Error) => toast(e.message, "error"));
+          await load();
+        },
+      });
+    } catch (e) {
+      toast((e as Error).message, "error");
+    }
+  };
   const { kpis, targetMinutes } = home;
 
   return (
@@ -94,15 +118,35 @@ const Inbound = () => {
         <KpiCard title="Became leads" value={String(kpis.converted30d)} caption={`Of ${kpis.received30d} received in 30 days`} tone="cyan" />
       </div>
 
-      <div className="flex flex-wrap items-center gap-1 rounded-lg bg-inset p-0.5 self-start">
+      <div className="flex flex-wrap items-center gap-2">
+      <div className="mr-auto flex flex-wrap items-center gap-1 self-start rounded-lg bg-inset p-0.5">
         {FILTERS.map((x) => {
-          const n = home.requests.filter((r) => x.match(r.status)).length;
+          const n = home.requests.filter((r) => x.match(r.status) && matches(r)).length;
           return (
             <button key={x.key} type="button" onClick={() => setFilter(x.key)} className={`h-8 rounded-md px-3 text-[13px] ${filter === x.key ? "bg-surface-2 text-text shadow-card" : "text-text-2 hover:text-text"}`}>
               {x.label} <span className="text-text-3">{n}</span>
             </button>
           );
         })}
+      </div>
+        <input type="search" className="input h-9 w-48" placeholder="Name, company, message" aria-label="Search requests" value={q} onChange={(e) => setQ(e.target.value)} />
+        <select className="input h-9 w-auto" aria-label="Channel" value={channel} onChange={(e) => setChannel(e.target.value as InboundChannel | "")}>
+          <option value="">Every channel</option>
+          {(Object.keys(CHANNEL) as InboundChannel[]).map((c) => (
+            <option key={c} value={c}>
+              {CHANNEL[c].label}
+            </option>
+          ))}
+        </select>
+        <select className="input h-9 w-auto" aria-label="Owner" value={owner} onChange={(e) => setOwner(e.target.value)}>
+          <option value="">Every owner</option>
+          <option value="none">Nobody yet</option>
+          {home.people.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <section aria-label="Inbound requests" className="card flex flex-col">
@@ -136,10 +180,20 @@ const Inbound = () => {
                       {r.phone ? ` · ${r.phone}` : ""}
                       {r.referredBy ? ` · referred by ${r.referredBy}` : ""}
                     </span>
-                    <span className="text-[13px]">“{r.message}”</span>
+                    <span className="whitespace-pre-wrap text-[13px]">“{r.message}”</span>
+                    {r.replyNote ? <span className="text-[12px] text-text-2">Reply: {r.replyNote}</span> : null}
                   </div>
                   <div className="flex shrink-0 flex-wrap items-center gap-2 lg:w-[300px] lg:justify-end">
-                    {r.assigneeName ? (
+                    {me.role === "admin" && r.status !== "converted" ? (
+                      <select className="input h-8 w-auto text-[12px]" aria-label={`Owner of ${r.company || r.name}`} value={r.assignedTo ?? ""} onChange={(e) => run(() => data.assignInbound(r.id, e.target.value || null), "Reassigned")}>
+                        <option value="">Nobody</option>
+                        {home.people.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name.split(" ")[0]}
+                          </option>
+                        ))}
+                      </select>
+                    ) : r.assigneeName ? (
                       <span className="flex items-center gap-1.5 text-[12px] text-text-2">
                         <Avatar id={r.assignedTo} name={r.assigneeName} size={20} />
                         {r.assigneeName.split(" ")[0]}
@@ -157,7 +211,7 @@ const Inbound = () => {
                     {home.canAct && (r.status === "new" || r.status === "contacted") ? (
                       <>
                         {r.status === "new" ? (
-                          <button type="button" className="btn-outline h-8" onClick={() => run(() => data.respondInbound(r.id), "Reply logged: the clock stopped")}>
+                          <button type="button" className="btn-outline h-8" onClick={() => setReplying({ id: r.id, who: r.company || r.name, note: "" })}>
                             Mark replied
                           </button>
                         ) : null}
@@ -174,22 +228,50 @@ const Inbound = () => {
                         >
                           Make it a lead
                         </button>
-                        <button type="button" className="h-8 px-1 text-[12px] text-text-3 hover:text-text" onClick={() => run(() => data.dismissInbound(r.id, "not_fit"), "Marked not a fit")}>
+                        <button type="button" className="h-8 px-1 text-[12px] text-text-3 hover:text-text" onClick={() => dismiss(r, "not_fit")}>
                           Not a fit
                         </button>
-                        <button type="button" className="h-8 px-1 text-[12px] text-text-3 hover:text-coral" onClick={() => run(() => data.dismissInbound(r.id, "spam"), "Marked as spam")}>
+                        <button type="button" className="h-8 px-1 text-[12px] text-text-3 hover:text-coral" onClick={() => dismiss(r, "spam")}>
                           Spam
                         </button>
                       </>
+                    ) : null}
+                    {home.canAct && (r.status === "not_fit" || r.status === "spam") ? (
+                      <button type="button" className="btn-ghost h-8 text-[12px]" onClick={() => run(() => data.undoDismissInbound(r.id), "Back in the inbox")}>
+                        Undo dismiss
+                      </button>
                     ) : null}
                   </div>
                 </div>
               );
             })
         ) : (
-          <p className="m-0 px-5 py-8 text-[13px] text-text-3">{filter === "open" ? "Nothing waiting. New website forms, demo-line calls and referrals land here." : "Nothing here."}</p>
+          <p className="m-0 px-5 py-8 text-[13px] text-text-3">{needle || channel || owner ? "No request matches these filters." : filter === "open" ? "Nothing waiting. New website forms, demo-line calls and referrals land here." : "Nothing here."}</p>
         )}
       </section>
+
+      <Modal open={!!replying} onClose={() => setReplying(null)} title={replying ? `Replied to ${replying.who}` : ""}>
+        {replying ? (
+          <form
+            className="flex flex-col gap-4 text-[13px]"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const x = replying;
+              setReplying(null);
+              await run(() => data.respondInbound(x.id, x.note), "Reply logged: the clock stopped");
+            }}
+          >
+            <span className="text-text-2">Log the first reply (call, email or WhatsApp). The speed-to-lead clock stops now.</span>
+            <label className="flex flex-col gap-2">
+              <span className="field-label">What you said or promised (optional)</span>
+              <textarea autoFocus className="input min-h-[80px] py-2" value={replying.note} onChange={(e) => setReplying({ ...replying, note: e.target.value })} placeholder="e.g. Called, left a voicemail, sent the demo line number" />
+            </label>
+            <button type="submit" className="btn-primary">
+              Log reply
+            </button>
+          </form>
+        ) : null}
+      </Modal>
 
       <Modal open={!!sim} onClose={() => setSim(null)} title="Test inbound request">
         {sim ? (

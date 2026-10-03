@@ -293,11 +293,25 @@ const TaskDetailView = ({ id, panel = false, onChanged }: { id: string; panel?: 
 
         {/* Property row: the few that matter at a glance. */}
         <div className="flex flex-wrap items-start gap-x-8 gap-y-3">
-          <Prop label="Team">
-            <span className="flex h-7 items-center gap-1.5 text-[13px]">{where ? where.space.name : "—"}</span>
+          <Prop label="List">
+            <select
+              aria-label="Move to list"
+              className="h-7 max-w-[220px] cursor-pointer truncate rounded-md border-0 bg-transparent px-0 text-[13px] text-text hover:bg-surface-2"
+              value={t.listId}
+              onChange={(e) => patch({ listId: e.target.value })}
+            >
+              {home.spaces.flatMap((x) =>
+                x.lists.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {x.space.name} / {l.name}
+                  </option>
+                )),
+              )}
+              {home.spaces.some((x) => x.lists.some((l) => l.id === t.listId)) ? null : <option value={t.listId}>{where.space.name}</option>}
+            </select>
           </Prop>
           <Prop label="Owner">
-            <span className="flex h-7 items-center gap-1.5 text-[13px]">
+            <button type="button" title="Change owners" className="flex h-7 items-center gap-1.5 rounded-md text-left text-[13px] hover:bg-surface-2" onClick={() => setDetails(true)}>
               {d.assignees?.length ? (
                 <>
                   <span className="flex -space-x-1.5">
@@ -310,7 +324,7 @@ const TaskDetailView = ({ id, panel = false, onChanged }: { id: string; panel?: 
               ) : (
                 <span className="text-text-3">Nobody</span>
               )}
-            </span>
+            </button>
           </Prop>
           <Prop label="Status">
             <span className="relative flex h-7 items-center">
@@ -337,7 +351,10 @@ const TaskDetailView = ({ id, panel = false, onChanged }: { id: string; panel?: 
             </span>
           </Prop>
           <Prop label="Due">
-            <span className={`flex h-7 items-center font-mono text-[13px] ${overdue ? "text-coral" : ""}`}>{t.dueAt ? dueLabel(t.dueAt) : <span className="text-text-3">—</span>}</span>
+            <span className={`relative flex h-7 items-center font-mono text-[13px] ${overdue ? "text-coral" : ""}`}>
+              {t.dueAt ? dueLabel(t.dueAt) : <span className="text-text-3">Set date</span>}
+              <input type="date" aria-label="Due" className="absolute inset-0 cursor-pointer opacity-0" value={t.dueAt ?? ""} onChange={(e) => patch({ dueAt: e.target.value || null })} />
+            </span>
           </Prop>
           <Prop label="Category">
             <span className="relative flex h-7 items-center">
@@ -758,6 +775,9 @@ const TaskDetailView = ({ id, panel = false, onChanged }: { id: string; panel?: 
               <StatusBox status={w.task.status} label={w.task.title} />
               <button type="button" className="min-w-0 flex-1 truncate text-left hover:text-text" onClick={() => openTask(w.task.id)}>
                 {w.task.title}
+              </button>
+              <button type="button" aria-label={`Stop waiting on ${w.task.title}`} title="Remove this dependency" className="shrink-0 px-1 text-text-3 hover:text-coral" onClick={() => run(() => data.removeDependency(w.depId), `No longer waiting on "${w.task.title}"`)}>
+                ×
               </button>
             </span>
           ))}

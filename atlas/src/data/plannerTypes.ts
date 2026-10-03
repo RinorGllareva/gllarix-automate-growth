@@ -1,8 +1,8 @@
 import type { OwnerKey } from "@/config/ai";
-import type { Action, Automation, AutomationRun, Condition, Goal, GoalKpi, TaskTemplate, TriggerType } from "@/services/automations";
+import type { Action, Automation, AutomationRun, Condition, Goal, GoalKpi, TaskTemplate, TemplateItem, TriggerType } from "@/services/automations";
 import type { DraftRow, DraftSchedule, PlanChangeJson, PlannerMode, PlannerSettings } from "@/services/planner";
 
-export type { Action, Automation, AutomationRun, Condition, DraftRow, Goal, GoalKpi, PlanChangeJson, PlannerMode, PlannerSettings, TaskTemplate, TriggerType };
+export type { Action, Automation, AutomationRun, Condition, DraftRow, Goal, GoalKpi, PlanChangeJson, PlannerMode, PlannerSettings, TaskTemplate, TemplateItem, TriggerType };
 
 /** A planner run (the `plans` log). Drafts are kept here; tasks are written only on Accept. */
 export interface PlanRecord {

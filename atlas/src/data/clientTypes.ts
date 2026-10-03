@@ -167,6 +167,8 @@ export interface ClientDetail {
   companyName: string;
   contactName: string | null;
   contactEmail: string | null;
+  /** The main contact, for editing. */
+  contact: { firstName: string; lastName: string; title: string | null; email: string | null; phone: string | null } | null;
   deal: Pick<Deal, "id" | "brand" | "items" | "pilot" | "ownerId">;
   ownerName: string | null;
   plan: string;
@@ -224,6 +226,18 @@ export interface ClientsApi {
   setOnboardingStep(clientId: string, key: OnboardingKey, done: boolean): Promise<void>;
   /** Pause (billing stops from the next period), resume, or cancel (final invoice, number release + export tasks). */
   setClientStatus(clientId: string, status: "live" | "paused" | "churned", reason: string): Promise<void>;
+  /**
+   * Contact (founders and the implementer); owner and plan (founders). A plan change applies from the next invoice:
+   * the current month is billed on the old terms.
+   */
+  updateClientAccount(
+    clientId: string,
+    patch: {
+      contact?: { firstName: string; lastName: string; title: string | null; email: string | null; phone: string | null };
+      ownerId?: string;
+      plan?: { monthlyMinor: number; includedMinutes: number; overageRateMinor: number };
+    },
+  ): Promise<void>;
   sendClientReport(clientId: string, period: string): Promise<ClientReport>;
   publicClientReport(token: string): Promise<PublicClientReport | null>;
   completeClientTask(taskId: string): Promise<void>;

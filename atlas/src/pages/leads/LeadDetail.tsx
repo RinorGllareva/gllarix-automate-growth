@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useUser } from "@/auth/AuthContext";
 import { usePageChrome } from "@/components/shell/PageChrome";
 import { Modal, useToast } from "@/components/ui/overlay";
@@ -8,12 +8,18 @@ import { COUNTRY_RULES } from "@/config/countryRules";
 import { countryLabel, industryLabel, LIST_LABEL, STAGE_LABEL, STAGES, type Stage } from "@/config/leads";
 import { SCORING, SIGNAL_LABEL } from "@/config/scoring";
 import { AccessError, data, type Activity, type ActivityType, type Contact, type ContactInput, type LeadDetail as Detail, type User, type DealRow, DEAL_STAGE_LABEL } from "@/data";
-import { localTime, tableDate, timelineDate } from "@/lib/format";
+import { localTime, nextActionText, tableDate, timelineDate } from "@/lib/format";
 import { Forbidden } from "@/pages/StatusPages";
 import EmailCompose from "@/components/EmailCompose";
 import LinkedTasks from "@/components/LinkedTasks";
 import OfferPrices from "@/components/OfferPrices";
 import RecordFiles from "@/components/RecordFiles";
+import { CompanyEditModal } from "@/components/LeadForms";
+import { RowMenu, useDeleteWithUndo, useRun } from "@/components/ui/actions";
+import { askAboutHref } from "@/lib/askAbout";
+import { CustomFieldsPanel } from "@/components/CustomFields";
+import { ActivityTimeline, InlineSelect, NextStepCard, PropertyRow, RecordPage } from "@/components/record/Record";
+import { canAccess } from "@/lib/nav";
 
 /** Deals tab: this lead's deals, linking into the deal builder. */
 const LeadDeals = ({ leadId }: { leadId: string }) => {
@@ -48,8 +54,6 @@ const LeadDeals = ({ leadId }: { leadId: string }) => {
   );
 };
 
-const TABS = ["timeline", "contacts", "signals", "deals", "tasks", "files"] as const;
-type Tab = (typeof TABS)[number];
 
 const DOT: Record<ActivityType, string> = {
   call: "bg-cyan",
@@ -69,6 +73,8 @@ const TYPE_FILTERS: { label: string; types: ActivityType[] }[] = [
   { label: "All", types: [] },
   { label: "Calls", types: ["call"] },
   { label: "Notes", types: ["note"] },
+  { label: "Emails", types: ["email"] },
+  { label: "Meetings", types: ["meeting"] },
   { label: "Changes", types: ["stage_change", "owner_change", "score_change"] },
   { label: "Created", types: ["created"] },
 ];
@@ -80,7 +86,50 @@ const SideCard = ({ title, children, surface }: { title: string; children: React
   </section>
 );
 
-const Timeline = ({ detail, users, tz, onNote }: { detail: Detail; users: User[]; tz: string; onNote: (text: string) => Promise<void> }) => {
+/** A note row: your own notes can be edited for 15 minutes and deleted any time; founders can do both. */
+const NoteActions = ({ a, me, onChanged }: { a: Activity; me: User; onChanged: () => void }) => {
+  const run = useRun();
+  const remove = useDeleteWithUndo();
+  const [editing, setEditing] = useState<string | null>(null);
+  const own = a.userId === me.id;
+  const fresh = Date.now() - new Date(a.at).getTime() < 15 * 60_000;
+  const canEdit = me.role === "admin" || (own && fresh);
+  const canDelete = me.role === "admin" || own;
+  if (editing !== null)
+    return (
+      <form
+        className="flex flex-col gap-2"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (await run(() => data.updateNote(a.id, editing), "Note saved")) {
+            setEditing(null);
+            onChanged();
+          }
+        }}
+      >
+        <textarea aria-label="Edit note" className="input h-auto min-h-[60px] py-2" value={editing} onChange={(e) => setEditing(e.target.value)} autoFocus />
+        <span className="flex gap-2">
+          <button type="submit" className="btn-primary h-8 text-[12px]">
+            Save
+          </button>
+          <button type="button" className="btn-ghost h-8 text-[12px]" onClick={() => setEditing(null)}>
+            Cancel
+          </button>
+        </span>
+      </form>
+    );
+  return (
+    <RowMenu
+      label="Note actions"
+      items={[
+        { label: "Edit", hidden: !canEdit, onSelect: () => setEditing(a.detail ?? a.title) },
+        { label: "Delete", danger: true, hidden: !canDelete, onSelect: () => remove("Note", () => data.deleteNote(a.id), onChanged) },
+      ]}
+    />
+  );
+};
+
+const Timeline = ({ detail, users, tz, onNote, me, onChanged }: { detail: Detail; users: User[]; tz: string; onNote: (text: string) => Promise<void>; me: User; onChanged: () => void }) => {
   const [filter, setFilter] = useState(0);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
@@ -120,7 +169,7 @@ const Timeline = ({ detail, users, tz, onNote }: { detail: Detail; users: User[]
                 type="button"
                 aria-pressed={filter === i}
                 onClick={() => setFilter(i)}
-                className={`h-7 border px-2.5 text-[12px] ${filter === i ? "border-ice bg-ice text-ice-ink" : "border-line-strong text-text-2 hover:text-text"}`}
+                className={`h-7 rounded-full border px-2.5 text-[12px] ${filter === i ? "border-ice bg-ice text-ice-ink" : "border-line-strong text-text-2 hover:text-text"}`}
               >
                 {f.label}
               </button>
@@ -133,9 +182,9 @@ const Timeline = ({ detail, users, tz, onNote }: { detail: Detail; users: User[]
       </form>
       {items.length ? (
         items.map((a) => (
-          <div key={a.id} className="grid grid-cols-[70px_18px_1fr] gap-3 border-b border-line-soft py-3">
+          <div key={a.id} className="grid grid-cols-[70px_18px_1fr_auto] gap-3 border-b border-line-soft py-3">
             <span className="font-mono text-[12px] text-text-3">{timelineDate(a.at, tz)}</span>
-            <span className={`mt-[5px] h-2 w-2 ${DOT[a.type]}`} aria-hidden="true" />
+            <span className={`mt-[5px] h-2 w-2 rounded-full ${DOT[a.type]}`} aria-hidden="true" />
             <div className="flex min-w-0 flex-col gap-1">
               <span className="text-[14px]">{a.title}</span>
               {a.detail || who(a) ? (
@@ -144,6 +193,7 @@ const Timeline = ({ detail, users, tz, onNote }: { detail: Detail; users: User[]
                 </span>
               ) : null}
             </div>
+            {a.type === "note" ? <NoteActions a={a} me={me} onChanged={onChanged} /> : <span />}
           </div>
         ))
       ) : (
@@ -255,6 +305,7 @@ const LeadTags = ({ detail, canEdit, onChanged }: { detail: Detail; canEdit: boo
 
 const Contacts = ({ detail, onChanged, canEdit }: { detail: Detail; onChanged: () => void; canEdit: boolean }) => {
   const [editing, setEditing] = useState<Contact | null | false>(false);
+  const remove = useDeleteWithUndo();
   const toast = useToast();
   const act = async (fn: () => Promise<void>, msg: string) => {
     try {
@@ -289,7 +340,7 @@ const Contacts = ({ detail, onChanged, canEdit }: { detail: Detail; onChanged: (
         {form}
       </div>
     );
-  const cols = "grid-cols-[1.2fr_1.2fr_1.6fr_1.1fr_90px_190px]";
+  const cols = "grid-cols-[1.2fr_1.2fr_1.6fr_1.1fr_90px_250px]";
   return (
     <div className="flex flex-col gap-3">
       {add}
@@ -329,6 +380,11 @@ const Contacts = ({ detail, onChanged, canEdit }: { detail: Detail; onChanged: (
               {canEdit ? (
                 <button type="button" className="btn-ghost" onClick={() => setEditing(c)}>
                   Edit
+                </button>
+              ) : null}
+              {canEdit ? (
+                <button type="button" className="btn-ghost text-coral" onClick={() => remove(`${c.firstName} ${c.lastName}`.trim(), () => data.deleteContact(c.id), onChanged)}>
+                  Delete
                 </button>
               ) : null}
               {!primary ? (
@@ -477,12 +533,13 @@ const LeadDetailPage = () => {
   const { id = "" } = useParams();
   const user = useUser();
   const toast = useToast();
-  const [params, setParams] = useSearchParams();
-  const tab: Tab = (TABS as readonly string[]).includes(params.get("tab") ?? "") ? (params.get("tab") as Tab) : "timeline";
   const [detail, setDetail] = useState<Detail | null>(null);
   const [error, setError] = useState<AccessError | Error | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [composing, setComposing] = useState(false);
+  const [editingCompany, setEditingCompany] = useState(false);
+  const remove = useDeleteWithUndo();
+  const navigate = useNavigate();
 
   const [dealCount, setDealCount] = useState<number | undefined>(undefined);
   const load = useCallback(() => {
@@ -536,210 +593,195 @@ const LeadDetailPage = () => {
     }
   };
 
-  const tabCount: Partial<Record<Tab, number>> = { contacts: detail.contacts.length, signals: detail.signals.length, deals: dealCount };
+  const next = nextActionText(lead.nextActionType, lead.nextActionAt, user.timezone);
+
+  const score = (
+    <section aria-label="Score" className="card flex flex-col gap-2.5 p-4">
+      <div className="flex items-baseline justify-between">
+        <span className="text-[12px] font-medium text-text-3">Score · {lead.listType === "trades" ? "trades" : "developer"} model</span>
+        <span className={`font-mono text-[22px] ${lead.tier === "A" ? "text-mint" : lead.tier === "B" ? "text-cyan" : lead.tier === "C" ? "text-lavender" : "text-text-3"}`}>
+          {lead.tier} {lead.score}
+        </span>
+      </div>
+      {lead.scoreBreakdown.length ? (
+        lead.scoreBreakdown.map((l) => (
+          <div key={l.ruleId} className="flex justify-between border-b border-line-soft py-1.5 text-[13px]">
+            <span className="text-text-2">{l.label}</span>
+            <span className={`num ${l.points < 0 ? "text-coral" : "text-mint"}`}>
+              {l.points > 0 ? "+" : ""}
+              {l.points}
+            </span>
+          </div>
+        ))
+      ) : (
+        <span className="text-[13px] text-text-2">No scoring rule fired yet.</span>
+      )}
+      {lead.excluded ? <span className="text-[12px] text-coral">Excluded from every queue: on the opt-out list.</span> : null}
+      <span className="text-[11px] text-text-3">
+        Model {lead.scoreModelVersion} · rescored {timelineDate(lead.scoredAt, user.timezone).toLowerCase()}
+      </span>
+      {detail.scoreHistory?.length ? (
+        <div className="flex flex-col gap-1 border-t border-line-soft pt-2.5">
+          <span className="text-[12px] font-medium text-text-3">History</span>
+          {detail.scoreHistory.slice(0, 5).map((h) => (
+            <div key={h.id} className="flex justify-between text-[12px]">
+              <span className="text-text-2">
+                {h.prevTier ? `${h.prevTier} ${h.prevScore} → ` : ""}
+                {h.tier} {h.score}
+                <span className="text-text-3"> · {h.reason}</span>
+              </span>
+              <span className="text-text-3">{timelineDate(h.at, user.timezone).toLowerCase()}</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
 
   return (
-    <div className="flex flex-col gap-[22px]">
-      <div className="flex flex-wrap items-end justify-between gap-6">
-        <div className="flex min-w-0 flex-col gap-2.5">
-          <div className="flex flex-wrap gap-2">
+    <>
+      <RecordPage
+        breadcrumb={[{ label: "Leads", to: "/leads" }, { label: company.name }]}
+        status={
+          <>
             {company.brandInterest.map((b) => (
               <BrandChip key={b} brand={b} />
             ))}
             <span className="chip border-line-strong text-text-2">List · {LIST_LABEL[lead.listType]}</span>
             {lead.suppressed ? <span className="chip border-coral text-coral">Opt-out · never queued</span> : null}
-          </div>
-          <h1 className="page-title m-0 leading-tight">{company.name}</h1>
-          <LeadTags detail={detail} canEdit={canEditLead} onChanged={load} />
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-text-2">
-            <span>{industryLabel(company.industry)}</span>·
-            <span>
-              {[company.city, company.region].filter(Boolean).join(", ")}, {countryLabel(company.country)}
-            </span>
-            ·<span>
-              local <span className="num text-text">{localTime(company.timezone)}</span>
-            </span>
-            ·
-            <label className="inline-flex items-center gap-1.5">
-              owner
-              {isAdmin ? (
-                <select
-                  aria-label="Owner"
-                  value={lead.ownerId ?? "none"}
-                  onChange={(e) => update({ ownerId: e.target.value === "none" ? null : e.target.value }, "Owner changed")}
-                  className="h-7 border border-line-strong bg-bg px-1.5 text-[13px] text-text"
-                >
-                  {owners.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name}
-                    </option>
-                  ))}
-                  <option value="none">Unassigned</option>
-                </select>
-              ) : (
-                <span className="text-text">{detail.ownerName ?? "Unassigned"}</span>
-              )}
-            </label>
-            ·
-            <label className="inline-flex items-center gap-1.5">
-              stage
-              <select
-                aria-label="Stage"
-                value={lead.stage}
-                onChange={(e) => update({ stage: e.target.value as Stage }, "Stage changed")}
-                className="h-7 border border-line-strong bg-bg px-1.5 text-[13px] text-text"
-              >
-                {STAGES.map((s) => (
-                  <option key={s} value={s}>
-                    {STAGE_LABEL[s]}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Link to={`/call/${lead.id}`} className="btn-outline h-10 text-[11px]">
-            Call
-          </Link>
-          <button type="button" className="btn-outline h-10 text-[11px]" onClick={() => setComposing(true)}>
-            Email
-          </button>
-          <Link to={`/call/${lead.id}?book=1`} className="btn-outline h-10 text-[11px]">
-            Book meeting
-          </Link>
-        </div>
-      </div>
-
-      <EmailCompose open={composing} leadId={lead.id} listType={lead.listType} companyName={company.name} onClose={() => setComposing(false)} onQueued={load} />
-
-      <div role="tablist" aria-label="Lead sections" className="flex gap-7 overflow-x-auto border-b border-line text-[13px]">
-        {TABS.map((t) => (
-          <button
-            key={t}
-            role="tab"
-            type="button"
-            aria-selected={tab === t}
-            onClick={() => setParams(t === "timeline" ? {} : { tab: t }, { replace: true })}
-            className={`-mb-px whitespace-nowrap border-b pb-3 capitalize ${tab === t ? "border-ice text-text" : "border-transparent text-text-3 hover:text-text-2"}`}
-          >
-            {t}
-            {tabCount[t] !== undefined ? ` · ${tabCount[t]}` : ""}
-          </button>
-        ))}
-      </div>
-
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px] 2xl:grid-cols-[minmax(0,1fr)_340px_300px]">
-        <div role="tabpanel" aria-label={tab} className="min-w-0">
-          {tab === "timeline" ? (
-            <Timeline
-              detail={detail}
-              users={users}
-              tz={user.timezone}
-              onNote={async (text) => {
-                await data.addNote(lead.id, text);
-                load();
-              }}
-            />
-          ) : tab === "contacts" ? (
-            <Contacts detail={detail} onChanged={load} canEdit={canEditLead} />
-          ) : tab === "signals" ? (
-            <Signals detail={detail} onChanged={load} />
-          ) : tab === "deals" ? (
-            <LeadDeals leadId={id} />
-          ) : tab === "tasks" ? (
-            <LinkedTasks type="lead" id={id} spaceHint="Sales" />
-          ) : (
-            <RecordFiles entity="lead" id={lead.id} />
-          )}
-        </div>
-
-        <section aria-label="Score" className="flex flex-col gap-2.5 self-start border border-line rounded-lg bg-surface px-5 py-[18px]">
-          <div className="flex items-baseline justify-between">
-            <span className="label-caps">Score · {lead.listType === "trades" ? "trades" : "developer"} model</span>
-            <span className={`font-mono text-[26px] ${lead.tier === "A" ? "text-mint" : lead.tier === "B" ? "text-cyan" : lead.tier === "C" ? "text-lavender" : "text-text-3"}`}>
-              {lead.tier} {lead.score}
-            </span>
-          </div>
-          {lead.scoreBreakdown.length ? (
-            lead.scoreBreakdown.map((l) => (
-              <div key={l.ruleId} className="flex justify-between border-b border-line-soft py-1.5 text-[13px]">
-                <span className="text-text-2">{l.label}</span>
-                <span className={`num ${l.points < 0 ? "text-coral" : "text-mint"}`}>
-                  {l.points > 0 ? "+" : ""}
-                  {l.points}
-                </span>
-              </div>
-            ))
-          ) : (
-            <span className="text-[13px] text-text-2">No scoring rule fired yet.</span>
-          )}
-          {lead.excluded ? <span className="text-[12px] text-coral">Excluded from every queue: on the opt-out list.</span> : null}
-          <span className="text-[11px] text-text-3">
-            Model {lead.scoreModelVersion} · rescored {timelineDate(lead.scoredAt, user.timezone).toLowerCase()}
-          </span>
-          {detail.scoreHistory?.length ? (
-            <div className="flex flex-col gap-1 border-t border-line-soft pt-2.5">
-              <span className="label-caps">History</span>
-              {detail.scoreHistory.slice(0, 5).map((h) => (
-                <div key={h.id} className="flex justify-between text-[12px]">
-                  <span className="text-text-2">
-                    {h.prevTier ? `${h.prevTier} ${h.prevScore} → ` : ""}
-                    {h.tier} {h.score}
-                    <span className="text-text-3"> · {h.reason}</span>
-                  </span>
-                  <span className="text-text-3">{timelineDate(h.at, user.timezone).toLowerCase()}</span>
-                </div>
-              ))}
-            </div>
-          ) : null}
-        </section>
-
-        <div className="flex flex-col gap-4 xl:col-span-2 xl:grid xl:grid-cols-3 2xl:col-span-1 2xl:flex">
-          <SideCard title="Contacts">
-            {detail.contacts.slice(0, 2).map((c) => (
-              <div key={c.id} className="flex flex-col gap-0.5">
-                <span className="text-[14px]">
-                  {c.firstName} {c.lastName}
-                </span>
-                <span className="text-[12px] text-text-2">
-                  {c.title ?? "—"} · {c.emailStatus === "valid" ? "email verified" : c.email ? "email not verified" : "phone only"}
-                </span>
-              </div>
-            ))}
-            {!detail.contacts.length ? <span className="text-[12px] text-text-2">No contacts yet.</span> : null}
-          </SideCard>
-          <SideCard title={`Compliance now · ${countryLabel(company.country)}`}>
-            {detail.compliance
-              ? (["call", "email", "sms"] as const).map((ch) => {
-                  const r = detail.compliance![ch];
-                  return (
-                    <div key={ch} className="flex flex-col gap-0.5">
-                      <span className={`text-[12px] ${r.allowed ? "text-mint" : "text-coral"}`}>
-                        {r.allowed ? "✓" : "✗"} {ch === "sms" ? "Text" : ch === "call" ? "Call" : "Email"} {r.allowed ? "allowed" : "blocked"}
-                      </span>
-                      <span className="text-[11px] text-text-3">{r.reasons.join(" · ")}</span>
-                    </div>
-                  );
-                })
-              : null}
-            {rule ? <span className="text-[12px] text-text-2">{rule.notes}</span> : <span className="text-[12px] text-text-2">No rule for this market yet.</span>}
-            {rule && !rule.verified ? <span className="text-[12px] text-amber">Rules for this market aren't confirmed by counsel yet.</span> : null}
-            <span className="text-[12px] text-text-2">Lawful basis: {lead.lawfulBasis}</span>
-            <span className="text-[12px] text-text-2">Source: {detail.source?.name ?? "—"}</span>
-            {lead.erasedAt ? <span className="text-[12px] text-coral">Personal data erased {timelineDate(lead.erasedAt, user.timezone).toLowerCase()}.</span> : null}
-            {user.role === "admin" ? <GdprActions leadId={lead.id} erased={!!lead.erasedAt} onDone={load} /> : null}
-          </SideCard>
-          <SideCard title="Suggested offer" surface>
-            <OfferPrices listType={lead.listType} country={company.country} />
-            <Link to={`/deals/new?lead=${lead.id}`} className="btn-outline h-9 justify-between text-[11px]">
-              <span>Create quote</span>
-              <span aria-hidden="true">→</span>
+          </>
+        }
+        title={company.name}
+        actions={
+          <>
+            <Link to={`/call/${lead.id}`} className="btn-primary h-9">
+              Call
             </Link>
-          </SideCard>
-        </div>
-      </div>
-    </div>
+            <button type="button" className="btn-outline h-9" onClick={() => setComposing(true)}>
+              Email
+            </button>
+            <Link to={`/call/${lead.id}?book=1`} className="btn-outline h-9">
+              Book meeting
+            </Link>
+            <RowMenu
+              label="More lead actions"
+              items={[
+                { label: "Create deal", hidden: !canEditLead, onSelect: () => navigate(`/deals/new?lead=${lead.id}`) },
+                { label: "Edit company", hidden: !canEditLead, onSelect: () => setEditingCompany(true) },
+                { label: "Ask the AI co-founder about this lead", hidden: !canAccess(user.role, "advisor"), onSelect: () => navigate(askAboutHref(`What's the best next step with ${company.name}? Look at the lead's history, score and open deals.`)) },
+                { label: "Archive lead", danger: true, hidden: !isAdmin, onSelect: () => remove(company.name, () => data.archiveLead(lead.id), () => navigate("/leads")) },
+              ]}
+            />
+          </>
+        }
+        properties={
+          <div className="flex flex-col gap-3">
+            <LeadTags detail={detail} canEdit={canEditLead} onChanged={load} />
+            <PropertyRow
+              items={[
+                {
+                  label: "Stage",
+                  value: canEditLead ? (
+                    <InlineSelect<Stage> label="Stage" value={lead.stage} options={STAGES.map((st) => ({ value: st, label: STAGE_LABEL[st] }))} onChange={(v) => update({ stage: v }, "Stage changed")} />
+                  ) : (
+                    STAGE_LABEL[lead.stage]
+                  ),
+                },
+                {
+                  label: "Owner",
+                  value: isAdmin ? (
+                    <InlineSelect
+                      label="Owner"
+                      value={lead.ownerId ?? "none"}
+                      options={[...owners.map((u) => ({ value: u.id, label: u.name })), { value: "none", label: "Unassigned" }]}
+                      onChange={(v) => update({ ownerId: v === "none" ? null : v }, "Owner changed")}
+                    />
+                  ) : (
+                    (detail.ownerName ?? "Unassigned")
+                  ),
+                },
+                { label: "Score", value: <span className="font-mono">{lead.tier} {lead.score}</span> },
+                { label: "Next", value: <span className={/overdue/.test(next) ? "text-coral" : ""}>{next}</span> },
+                { label: "Industry", value: industryLabel(company.industry) },
+                { label: "Location", value: `${[company.city, company.region].filter(Boolean).join(", ")}${company.city || company.region ? ", " : ""}${countryLabel(company.country)}` },
+                { label: "Local time", value: <span className="num">{localTime(company.timezone)}</span> },
+              ]}
+            />
+          </div>
+        }
+        tabs={[
+          {
+            id: "timeline",
+            label: "Activity",
+            content: (
+              <Timeline
+                detail={detail}
+                users={users}
+                tz={user.timezone}
+                me={user}
+                onChanged={load}
+                onNote={async (text) => {
+                  await data.addNote(lead.id, text);
+                  load();
+                }}
+              />
+            ),
+          },
+          { id: "contacts", label: "Contacts", count: detail.contacts.length, content: <Contacts detail={detail} onChanged={load} canEdit={canEditLead} /> },
+          { id: "signals", label: "Signals", count: detail.signals.length, content: <Signals detail={detail} onChanged={load} /> },
+          { id: "deals", label: "Deals", count: dealCount, content: <LeadDeals leadId={id} /> },
+          { id: "tasks", label: "Tasks", content: <LinkedTasks type="lead" id={id} spaceHint="Sales" /> },
+          { id: "files", label: "Files", content: <RecordFiles entity="lead" id={lead.id} /> },
+          { id: "changes", label: "Changes", content: <ActivityTimeline entity="lead" id={lead.id} reloadKey={detail} /> },
+        ]}
+        side={
+          <>
+            {next !== "—" ? (
+              <NextStepCard
+                text={next.charAt(0).toUpperCase() + next.slice(1)}
+                action={
+                  <Link to={`/call/${lead.id}`} className="btn-outline h-8 self-start text-[12px]">
+                    Open in the call workspace
+                  </Link>
+                }
+              />
+            ) : null}
+            {score}
+            <CustomFieldsPanel entity="lead" id={lead.id} canEdit={canEditLead} />
+            <SideCard title={`Compliance now · ${countryLabel(company.country)}`}>
+              {detail.compliance
+                ? (["call", "email", "sms"] as const).map((ch) => {
+                    const r = detail.compliance![ch];
+                    return (
+                      <div key={ch} className="flex flex-col gap-0.5">
+                        <span className={`text-[12px] ${r.allowed ? "text-mint" : "text-coral"}`}>
+                          {r.allowed ? "✓" : "✗"} {ch === "sms" ? "Text" : ch === "call" ? "Call" : "Email"} {r.allowed ? "allowed" : "blocked"}
+                        </span>
+                        <span className="text-[11px] text-text-3">{r.reasons.join(" · ")}</span>
+                      </div>
+                    );
+                  })
+                : null}
+              {rule ? <span className="text-[12px] text-text-2">{rule.notes}</span> : <span className="text-[12px] text-text-2">No rule for this market yet.</span>}
+              {rule && !rule.verified ? <span className="text-[12px] text-amber">Rules for this market aren't confirmed by counsel yet.</span> : null}
+              <span className="text-[12px] text-text-2">Lawful basis: {lead.lawfulBasis}</span>
+              <span className="text-[12px] text-text-2">Source: {detail.source?.name ?? "—"}</span>
+              {lead.erasedAt ? <span className="text-[12px] text-coral">Personal data erased {timelineDate(lead.erasedAt, user.timezone).toLowerCase()}.</span> : null}
+              {user.role === "admin" ? <GdprActions leadId={lead.id} erased={!!lead.erasedAt} onDone={load} /> : null}
+            </SideCard>
+            <SideCard title="Suggested offer" surface>
+              <OfferPrices listType={lead.listType} country={company.country} />
+              <Link to={`/deals/new?lead=${lead.id}`} className="btn-outline h-9 justify-between text-[11px]">
+                <span>Create quote</span>
+                <span aria-hidden="true">→</span>
+              </Link>
+            </SideCard>
+          </>
+        }
+      />
+      {editingCompany ? <CompanyEditModal leadId={lead.id} company={company} onClose={() => setEditingCompany(false)} onSaved={load} /> : null}
+      <EmailCompose open={composing} leadId={lead.id} listType={lead.listType} companyName={company.name} onClose={() => setComposing(false)} onQueued={load} />
+    </>
   );
 };
 

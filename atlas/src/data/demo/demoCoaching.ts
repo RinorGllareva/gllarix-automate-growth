@@ -453,6 +453,49 @@ export const createDemoCoaching = <S extends CoachStore>(ctx: Ctx<S>) => {
       await save();
     },
 
+    async editScorecardComment(id, body) {
+      const user = await viewer();
+      const s = await load();
+      const c = s.scorecardComments.find((x) => x.id === id);
+      if (!c) throw new AccessError(404);
+      if (c.authorId !== user.id) throw new AccessError(403, "Only the author edits a comment.");
+      if (c.kind === "dispute") throw new Error("A dispute can't be edited: a founder resolves it.");
+      if (!body.trim()) throw new Error("Write a comment first.");
+      c.body = body.trim();
+      await save();
+    },
+
+    async deleteScorecardComment(id) {
+      const user = await viewer();
+      const s = await load();
+      const c = s.scorecardComments.find((x) => x.id === id);
+      if (!c) throw new AccessError(404);
+      if (c.authorId !== user.id && user.role !== "admin") throw new AccessError(403, "Only the author or a founder deletes a comment.");
+      if (c.kind === "dispute") throw new Error("A dispute stays on the record: resolve it instead.");
+      s.scorecardComments = s.scorecardComments.filter((x) => x.id !== id);
+      audit(user.id, "scorecard.comment_delete", "scorecard_comment", id, { body: c.body }, null);
+      await save();
+    },
+
+    async resolveDispute(reviewId, note) {
+      const user = await viewer();
+      if (user.role !== "admin") throw new AccessError(403);
+      const s = await load();
+      const r = s.callReviews.find((x) => x.id === reviewId);
+      if (!r?.disputed) throw new AccessError(404);
+      if (r.userId === user.id) throw new AccessError(403, "Someone else resolves disputes on your own calls.");
+      if (r.disputed.resolvedAt) throw new Error("This dispute is already resolved.");
+      if (!note.trim()) throw new Error("Say why the score stands.");
+      const rep = r.userId;
+      if (!rep) throw new Error("This call has no person to tell.");
+      r.disputed.resolvedAt = iso();
+      r.humanRequested = null;
+      s.scorecardComments.push({ id: uid("sc"), userId: rep, authorId: user.id, body: `Dispute on ${r.companyName} resolved, score kept: ${note.trim()}`, reviewId: r.id, kind: "comment", at: iso() });
+      notify({ userId: rep, type: "mention", text: `${user.name.split(" ")[0]} resolved your dispute on ${r.companyName}`, href: `/team/calls/${r.id}` });
+      audit(user.id, "call_review.dispute_resolve", "call_review", r.id, null, { note: note.trim() });
+      await save();
+    },
+
     async updateAgenda(userId, week, points) {
       const user = await viewer();
       if (user.role !== "admin") throw new AccessError(403, "Admins edit the agenda before the 1:1.");

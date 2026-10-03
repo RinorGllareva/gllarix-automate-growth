@@ -33,6 +33,9 @@ export const TEMPLATE_VARIABLES = [
   { key: "report.after_hours", hint: "After-hours calls captured" },
   { key: "report.booked", hint: "Jobs booked" },
   { key: "report.missed", hint: "Missed calls" },
+  { key: "invoice.total", hint: "Invoice total with currency" },
+  { key: "invoice.due", hint: "Invoice due date" },
+  { key: "invoice.period", hint: "What the invoice covers, e.g. September" },
   { key: "footer_address", hint: "Postal address (CAN-SPAM)" },
   { key: "unsubscribe_url", hint: "One-click unsubscribe link (required)" },
 ] as const;
@@ -149,6 +152,17 @@ export const DEFAULT_TEMPLATES: TemplateDef[] = [
     subject: "Your {{report.period}} results · {{company.name}}",
     body:
       "Hi {{contact.first_name}},\n\nHere's what your AI receptionist did in {{report.period}}:\n\n· Calls answered: {{report.calls}}\n· After-hours calls captured: {{report.after_hours}}\n· Jobs booked: {{report.booked}}\n· Missed: {{report.missed}}\n\nThe full report (save it as a PDF): {{report_url}}\n\n{{bdr.name}}" +
+      FOOTER,
+  },
+  {
+    key: "invoice_reminder",
+    name: "Invoice reminder",
+    channel: "email",
+    list: "any",
+    transactional: true,
+    subject: "Reminder: invoice for {{invoice.period}} · {{company.name}}",
+    body:
+      "Hi {{contact.first_name}},\n\nA friendly reminder that the invoice for {{invoice.period}} ({{invoice.total}}) was due on {{invoice.due}}. If it's already on its way, thank you and please ignore this.\n\nIf anything is unclear on the invoice, just reply and we'll sort it out.\n\n{{bdr.name}}" +
       FOOTER,
   },
   {

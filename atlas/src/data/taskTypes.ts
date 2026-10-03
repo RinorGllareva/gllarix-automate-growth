@@ -211,7 +211,8 @@ export interface TaskDetail {
   checklist: ChecklistItem[];
   comments: (TaskComment & { userName: string })[];
   attachments: TaskAttachment[];
-  waitingOn: TaskRow[];
+  /** `depId` removes the dependency (removeDependency). */
+  waitingOn: (TaskRow & { depId: string })[];
   blocks: TaskRow[];
   time: (TimeEntry & { userName: string })[];
   spentMinutes: number;
@@ -274,6 +275,8 @@ export interface TasksApi {
   bulkUpdateTasks(ids: string[], patch: TaskPatch | { delete: true }): Promise<number>;
   deleteTask(id: string): Promise<void>;
   restoreTask(id: string): Promise<void>;
+  /** Admin. Tasks in the trash (top-level ones; subtasks come back with their parent), newest first. */
+  listDeletedTasks(): Promise<{ id: string; title: string; listName: string; deletedAt: string; daysLeft: number }[]>;
   addChecklistItem(taskId: string, text: string): Promise<void>;
   updateChecklistItem(id: string, patch: { text?: string; done?: boolean }): Promise<void>;
   deleteChecklistItem(id: string): Promise<void>;

@@ -23,11 +23,11 @@ describe("apps", () => {
     expect(appsForRole("implementer").map((a) => a.id)).toEqual(["sell", "work"]);
     expect(appsForRole("viewer").map((a) => a.id)).toEqual(["sell", "work", "money", "people"]);
     const bdrMoney = APPS.find((a) => a.id === "money")!;
-    expect(appsForRole("bdr").some((a) => a.id === "money")).toBe(false);
+    // Sellers get one Money page: the price calculator.
+    expect(appEntriesFor(bdrMoney, "bdr").filter((e) => !e.soon).map((e) => e.page)).toEqual(["prices"]);
     // Visible entries are openable or explicitly "soon".
     for (const role of ["admin", "bdr", "viewer", "implementer"] as const)
       for (const app of appsForRole(role)) for (const e of appEntriesFor(app, role)) expect(e.soon || (e.page && canAccess(role, e.page))).toBeTruthy();
-    expect(appEntriesFor(bdrMoney, "bdr").every((e) => e.soon)).toBe(true);
     expect(canAccess("bdr", "commissions")).toBe(true);
     expect(canAccess("bdr", "finance")).toBe(false);
   });

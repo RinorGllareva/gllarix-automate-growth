@@ -141,6 +141,8 @@ export interface TimeApi {
   addManualEntry(input: { date: string; minutes: number; link: TimeLink | null; category: string; billable: boolean; note?: string; userId?: string }): Promise<void>;
   listWeekEntries(q: { week: string; userId?: string }): Promise<TimeEntryView[]>;
   deleteManualEntry(id: string): Promise<void>;
+  /** Your own entries (founders: anyone's), until the week is submitted. */
+  updateTimeEntry(id: string, patch: { minutes?: number; date?: string; category?: string; billable?: boolean; note?: string | null }): Promise<void>;
   /** Start a timer on a task, client, project, lead or deal (stops any running one). */
   startTimerOn(link: TimeLink, category?: string): Promise<void>;
   runningTimer(): Promise<MyWeek["timer"]>;

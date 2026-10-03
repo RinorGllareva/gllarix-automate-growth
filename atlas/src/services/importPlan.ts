@@ -37,16 +37,17 @@ export const MAX_ROWS = 50_000;
 export const MAX_BYTES = 20 * 1024 * 1024;
 
 const SYNONYMS: Record<ImportField, string[]> = {
-  companyName: ["company", "company name", "business", "business name", "name", "account", "organisation", "organization", "title"],
-  phone: ["phone", "phone number", "telephone", "tel", "main phone", "business phone", "international phone number", "formatted phone number"],
-  website: ["website", "domain", "url", "web", "site", "homepage"],
-  email: ["email", "e-mail", "email address", "contact email"],
-  contactName: ["contact", "contact name", "owner", "owner name", "full name", "person"],
-  contactTitle: ["role", "title", "job title", "position", "contact title"],
-  city: ["city", "town", "locality"],
-  region: ["state", "region", "province", "county", "canton", "emirate"],
-  country: ["country", "country code"],
-  industry: ["industry", "category", "type", "trade", "vertical"],
+  // Plain names first, then HubSpot ("Company name", "Website URL"), Pipedrive ("Organization - Name"), Apollo ("Company Phone") and Notion exports.
+  companyName: ["company", "company name", "business", "business name", "name", "account", "organisation", "organization", "title", "organization name", "account name", "associated company"],
+  phone: ["phone", "phone number", "telephone", "tel", "main phone", "business phone", "international phone number", "formatted phone number", "company phone", "organization phone", "person phone", "corporate phone", "mobile phone number"],
+  website: ["website", "domain", "url", "web", "site", "homepage", "website url", "company domain name", "organization website", "company website"],
+  email: ["email", "e-mail", "email address", "contact email", "person email", "work email"],
+  contactName: ["contact", "contact name", "owner", "owner name", "full name", "person", "person name", "first name"],
+  contactTitle: ["role", "title", "job title", "position", "contact title", "person job title"],
+  city: ["city", "town", "locality", "company city", "organization city"],
+  region: ["state", "region", "province", "county", "canton", "emirate", "company state", "state/region", "organization state"],
+  country: ["country", "country code", "company country", "country/region", "organization country"],
+  industry: ["industry", "category", "type", "trade", "vertical", "industry type"],
   reviewsCount: ["reviews", "review count", "reviews count", "user ratings total", "number of reviews"],
   rating: ["rating", "stars", "average rating"],
   notes: ["notes", "note", "comments", "description"],

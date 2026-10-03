@@ -22,7 +22,11 @@ import type { SupportApi } from "./supportTypes";
 import type { ContractsApi } from "./contractTypes";
 import type { DocsApi } from "./docTypes";
 import type { AgentApi } from "./aiTypes";
-import type { BookingInput, BookingPage, Branding, EmailMessage, EmailTemplate, InboxUsage, SenderRun, UnsubscribeResult } from "./emailTypes";
+import type { TrashApi } from "./trashTypes";
+import type { EditsApi } from "./editTypes";
+import type { SettingsApi } from "./settingsTypes";
+import type { FoundationsApi } from "./foundationTypes";
+import type { BookingInput, BookingPage, Branding, EmailMessage, EmailTemplate, NewTemplateInput, InboxUsage, SenderRun, UnsubscribeResult } from "./emailTypes";
 import type { Commission, DailyBdrReport, DealRow, MeetingRow, MeetingsWeek, MoveDealInput, PipelineQuery, WeeklyReport } from "./salesTypes";
 
 export * from "./leadTypes";
@@ -47,6 +51,10 @@ export * from "./supportTypes";
 export * from "./contractTypes";
 export * from "./docTypes";
 export * from "./aiTypes";
+export * from "./trashTypes";
+export * from "./editTypes";
+export * from "./settingsTypes";
+export * from "./foundationTypes";
 
 export type Role ="admin" | "bdr" | "closer" | "implementer" | "viewer";
 
@@ -204,7 +212,8 @@ export interface SalesApi {
   closeMonth(month: string): Promise<void>;
   pipeline(query: PipelineQuery): Promise<DealRow[]>;
   moveDeal(id: string, input: MoveDealInput): Promise<void>;
-  report(input: { kind: "week" | "month"; key?: string; personId?: string | "team" }): Promise<WeeklyReport>;
+  /** kind "range": key is "YYYY-MM-DD..YYYY-MM-DD" (both days included). */
+  report(input: { kind: "week" | "month" | "range"; key?: string; personId?: string | "team" }): Promise<WeeklyReport>;
   /** Latest end-of-shift report for a BDR (default: yourself, or the first BDR for admins). */
   dailyReport(userId?: string, date?: string): Promise<DailyBdrReport | null>;
   listCommissions(): Promise<Commission[]>;
@@ -213,7 +222,11 @@ export interface SalesApi {
 export interface EmailApi {
   listTemplates(): Promise<EmailTemplate[]>;
   /** Admin. Rejected without {{unsubscribe_url}} or with unknown variables. */
-  saveTemplate(t: { key: string; subject: string; body: string }): Promise<void>;
+  saveTemplate(t: { key: string; subject: string; body: string; name?: string }): Promise<void>;
+  /** Admin. A new template, or a copy of one (`copyOf`), always cold outreach. Returns its key. */
+  createTemplate(t: NewTemplateInput & { copyOf?: string }): Promise<string>;
+  /** Admin. Only templates made in Atlas, and only when no cadence step or queued email uses them. */
+  deleteTemplate(key: string): Promise<void>;
   /** Render a template for a real lead (or the first visible one). */
   previewTemplate(key: string, leadId?: string): Promise<{ subject: string; body: string; problems: string[]; leadName: string | null }>;
   /** Queue an email to a lead now (compliance runs when the sender picks it up). */
@@ -269,7 +282,7 @@ export interface DealsApi {
 }
 
 /** Everything the UI needs from a backend. The demo source and the Supabase source both implement it. */
-export interface DataSource extends LeadsApi, QueueApi, SalesApi, EmailApi, DealsApi, ClientsApi, LeadSourcesApi, TasksApi, CapacityApi, PlannerApi, AutomationsApi, TeamApi, TimeApi, AdvisorApi, CalendarApi, PeopleApi, GrowthApi, InboundApi, OpsApi, RecordsApi, SupportApi, ContractsApi, DocsApi, AgentApi {
+export interface DataSource extends LeadsApi, QueueApi, SalesApi, EmailApi, DealsApi, ClientsApi, LeadSourcesApi, TasksApi, CapacityApi, PlannerApi, AutomationsApi, TeamApi, TimeApi, AdvisorApi, CalendarApi, PeopleApi, GrowthApi, InboundApi, OpsApi, RecordsApi, SupportApi, ContractsApi, DocsApi, AgentApi, TrashApi, EditsApi, SettingsApi, FoundationsApi {
   readonly kind: "demo" | "supabase";
   signInWithPassword(email: string, password: string): Promise<SignInResult>;
   sendMagicLink(email: string): Promise<void>;

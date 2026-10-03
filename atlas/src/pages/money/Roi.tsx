@@ -4,7 +4,7 @@ import { Legend, LineChart } from "@/components/charts";
 import { useToast } from "@/components/ui/overlay";
 import { EmptyState, Icon, Pill, SkeletonRows } from "@/components/ui/primitives";
 import { USD_PER_EUR } from "@/config/targets";
-import { data, type ClientsOverview, type DealRow, type Decision, type Expense, type WeeklyReport } from "@/data";
+import { data, type ClientsOverview, type DealRow, type Decision, type DecisionVerdict, type Expense, type WeeklyReport } from "@/data";
 import { tableDate } from "@/lib/format";
 import { eurWhole } from "@/services/money";
 import { investmentOrder, PLAN_UNIT, roiCheck, SPEND_TYPES, SPLITS, unitEconomics, type GainKind, type SpendType } from "@/services/roi";
@@ -349,14 +349,15 @@ const Roi = () => {
                 <div key={d.id} className="flex flex-col gap-1 border-b border-line-soft py-2.5 text-[13px] last:border-b-0">
                   <span className="flex items-center justify-between gap-3">
                     <span className="font-medium">{d.title.replace(/^Spend: /, "")}</span>
-                    <Pill hue={d.status.startsWith("approved") || d.status.startsWith("confirmed") ? "mint" : "amber"} dot className="capitalize">
+                    <Pill hue={d.status === "rejected" || d.status === "stopped" ? "text-3" : d.status === "proposed" || d.status.startsWith("proposed") ? "amber" : "mint"} dot className="capitalize">
                       {d.status}
                     </Pill>
                   </span>
-                  <span className="text-[12px] text-text-2">{d.reason}</span>
+                  <span className="whitespace-pre-line text-[12px] text-text-2">{d.reason}</span>
                   <span className="text-[12px] text-text-3">
                     {d.expectedImpact} · review {tableDate(`${d.reviewDate}T12:00:00Z`)} · {d.owner}
                   </span>
+                  <SpendActions decision={d} onChanged={loadSpends} />
                 </div>
               ))}
             </div>
@@ -401,3 +402,62 @@ const Roi = () => {
 };
 
 export default Roi;
+
+/**
+ * Two founders decide: the one who didn't propose the spend agrees or rejects it. Once it's running, keep or stop it
+ * at the review date. Each step needs one line of why (except agreeing).
+ */
+const SpendActions = ({ decision: d, onChanged }: { decision: Decision; onChanged: () => void }) => {
+  const toast = useToast();
+  const [note, setNote] = useState("");
+  const [open, setOpen] = useState<DecisionVerdict | null>(null);
+  const proposed = d.status.startsWith("proposed");
+  const running = d.status === "agreed";
+  if (!proposed && !running) return null;
+  const choices: { v: DecisionVerdict; label: string; danger?: boolean }[] = proposed
+    ? [
+        { v: "agreed", label: "Agree" },
+        { v: "rejected", label: "Reject", danger: true },
+      ]
+    : [
+        { v: "kept", label: "Keep it" },
+        { v: "stopped", label: "Stop it", danger: true },
+      ];
+  return (
+    <div className="flex flex-col gap-2 pt-1">
+      {open ? (
+        <form
+          className="flex flex-wrap items-center gap-2"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            try {
+              await data.decideSpend(d.id, open, note);
+              toast(`Spend ${open}`, "good");
+              setOpen(null);
+              setNote("");
+              onChanged();
+            } catch (err) {
+              toast((err as Error).message, "error");
+            }
+          }}
+        >
+          <input className="input h-8 min-w-[220px] flex-1" autoFocus aria-label="Why" placeholder={open === "agreed" ? "Note (optional)" : "Why, in one line"} value={note} onChange={(e) => setNote(e.target.value)} />
+          <button type="submit" className="btn-primary h-8 text-[12px]">
+            Confirm
+          </button>
+          <button type="button" className="btn-ghost h-8 text-[12px]" onClick={() => setOpen(null)}>
+            Cancel
+          </button>
+        </form>
+      ) : (
+        <span className="flex gap-2">
+          {choices.map((c) => (
+            <button key={c.v} type="button" className={c.danger ? "btn-ghost h-8 text-[12px] text-coral" : "btn-outline h-8 text-[12px]"} onClick={() => setOpen(c.v)}>
+              {c.label}
+            </button>
+          ))}
+        </span>
+      )}
+    </div>
+  );
+};

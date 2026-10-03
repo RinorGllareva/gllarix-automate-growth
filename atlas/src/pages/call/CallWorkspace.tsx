@@ -15,6 +15,8 @@ import { KPI_TARGETS, MEETING_BONUS_MINOR } from "@/config/targets";
 import { InboundWaiting } from "@/pages/today/RoleCards";
 import { isTypingTarget } from "@/lib/hotkeys";
 import { Forbidden } from "@/pages/StatusPages";
+import { CompanyEditModal } from "@/components/LeadForms";
+import type { ContactInput } from "@/data";
 import EmailCompose from "@/components/EmailCompose";
 import { queueUpdated } from "@/lib/events";
 import { addBusinessDays, localDateKey, localHHMM, parseWindow, zonedToUtc, zoneAbbr } from "@/services/time";
@@ -146,6 +148,66 @@ const Finished = ({ onPull }: { onPull: () => void }) => {
   );
 };
 
+/** Fix the contact mid-call: wrong name, a direct line, the email they just gave. */
+const ContactEditModal = ({ leadId, contact, onClose, onSaved }: { leadId: string; contact: CallContext["detail"]["contact"]; onClose: () => void; onSaved: () => void }) => {
+  const toast = useToast();
+  const [f, setF] = useState<ContactInput>({
+    id: contact?.id,
+    firstName: contact?.firstName ?? "",
+    lastName: contact?.lastName ?? "",
+    title: contact?.title ?? null,
+    email: contact?.email ?? null,
+    phone: contact?.phone ?? null,
+    isDecisionMaker: contact?.isDecisionMaker ?? false,
+  });
+  return (
+    <Modal open onClose={onClose} title={contact ? "Edit contact" : "Add the person you're talking to"}>
+      <form
+        className="grid gap-3 text-[13px] sm:grid-cols-2"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          try {
+            await data.saveContact(leadId, f);
+            toast("Contact saved", "good");
+            onClose();
+            onSaved();
+          } catch (err) {
+            toast((err as Error).message, "error");
+          }
+        }}
+      >
+        <label className="flex flex-col gap-1.5">
+          <span className="field-label">First name</span>
+          <input autoFocus className="input" required value={f.firstName} onChange={(e) => setF({ ...f, firstName: e.target.value })} />
+        </label>
+        <label className="flex flex-col gap-1.5">
+          <span className="field-label">Last name</span>
+          <input className="input" value={f.lastName} onChange={(e) => setF({ ...f, lastName: e.target.value })} />
+        </label>
+        <label className="flex flex-col gap-1.5">
+          <span className="field-label">Role</span>
+          <input className="input" value={f.title ?? ""} onChange={(e) => setF({ ...f, title: e.target.value || null })} placeholder="Owner, office manager…" />
+        </label>
+        <label className="flex flex-col gap-1.5">
+          <span className="field-label">Direct phone</span>
+          <input className="input" value={f.phone ?? ""} onChange={(e) => setF({ ...f, phone: e.target.value || null })} />
+        </label>
+        <label className="flex flex-col gap-1.5 sm:col-span-2">
+          <span className="field-label">Email</span>
+          <input className="input" type="email" value={f.email ?? ""} onChange={(e) => setF({ ...f, email: e.target.value || null })} />
+        </label>
+        <label className="flex items-center gap-2 sm:col-span-2">
+          <input type="checkbox" checked={f.isDecisionMaker} onChange={(e) => setF({ ...f, isDecisionMaker: e.target.checked })} />
+          Decides on the purchase
+        </label>
+        <button type="submit" className="btn-primary sm:col-span-2" disabled={!f.firstName.trim()}>
+          Save contact
+        </button>
+      </form>
+    </Modal>
+  );
+};
+
 const CallWorkspace = () => {
   const { leadId } = useParams();
   const [params] = useSearchParams();
@@ -178,6 +240,8 @@ const CallWorkspace = () => {
   notesRef.current = notes;
   const notesEl = useRef<HTMLTextAreaElement>(null);
 
+  const [editing, setEditing] = useState<"company" | "contact" | null>(null);
+  const [allHistory, setAllHistory] = useState(false);
   const load = useCallback(() => {
     setError(null);
     data
@@ -413,6 +477,7 @@ const CallWorkspace = () => {
   const script = SCRIPTS[lead.listType];
   const why = lead.scoreBreakdown.filter((l) => l.points > 0);
   const contactName = contact ? `${contact.firstName} ${contact.lastName}`.trim() : "";
+  const activities = ctx.detail.activities;
 
   return (
     <div className="-mx-10 -my-8 grid min-h-[calc(100vh-72px)] xl:grid-cols-[330px_minmax(0,1fr)_300px]">
@@ -427,10 +492,13 @@ const CallWorkspace = () => {
               {LIST_LABEL[lead.listType]} · {industryLabel(company.industry)}
             </span>
           </div>
-          <h1 className="m-0 text-[30px] font-light leading-tight tracking-[-0.01em]">
+          <h1 className="m-0 flex items-start justify-between gap-2 text-[30px] font-light leading-tight tracking-[-0.01em]">
             <Link to={`/leads/${lead.id}`} className="hover:text-cyan">
               {company.name}
             </Link>
+            <button type="button" className="btn-ghost mt-1 h-7 shrink-0 px-2 text-[12px] font-normal tracking-normal" onClick={() => setEditing("company")} title="Fix the company details">
+              Edit
+            </button>
           </h1>
           <div className="text-[13px] text-text-2">
             {[company.city, company.region].filter(Boolean).join(", ")} · local time <span className="num text-text">{company.timezone ? localHHMM(Date.now(), company.timezone) : "—"}</span>
@@ -453,8 +521,13 @@ const CallWorkspace = () => {
               {contact?.phoneInvalid ? "Marked invalid" : contact?.phone ? "Direct line" : "Main line"}
               {contact?.phoneVerified ? " · verified" : ""}
             </span>
+            <button type="button" className="self-start text-[12px] text-cyan hover:underline" onClick={() => setEditing("contact")}>
+              {contact ? "Edit contact" : "+ Add contact"}
+            </button>
           </div>
         </div>
+        {editing === "company" ? <CompanyEditModal leadId={lead.id} company={company} onClose={() => setEditing(null)} onSaved={load} /> : null}
+        {editing === "contact" ? <ContactEditModal leadId={lead.id} contact={contact} onClose={() => setEditing(null)} onSaved={load} /> : null}
 
         <div className="flex flex-col gap-2">
           <span className="label-caps">Why this score</span>
@@ -640,14 +713,26 @@ const CallWorkspace = () => {
         </div>
 
         <div className="flex flex-col gap-3">
-          <span className="label-caps">History</span>
-          {ctx.detail.activities.slice(0, 5).map((a) => (
-            <div key={a.id} className="flex gap-3 text-[13px]">
-              <span className="w-12 shrink-0 font-mono text-text-3">{timelineDate(a.at, user.timezone)}</span>
-              <span className="text-text-2">{a.title}</span>
-            </div>
-          ))}
-          {!ctx.detail.activities.length ? <span className="text-[13px] text-text-2">No history yet.</span> : null}
+          <span className="flex items-center justify-between">
+            <span className="label-caps">History · {activities.length}</span>
+            {activities.length > 5 ? (
+              <button type="button" className="text-[12px] text-cyan hover:underline" aria-expanded={allHistory} onClick={() => setAllHistory((x) => !x)}>
+                {allHistory ? "Latest 5" : "Show all"}
+              </button>
+            ) : null}
+          </span>
+          <div className={`flex flex-col gap-3 ${allHistory ? "max-h-96 overflow-y-auto pr-1" : ""}`}>
+            {(allHistory ? activities : activities.slice(0, 5)).map((a) => (
+              <div key={a.id} className="flex gap-3 text-[13px]">
+                <span className="w-12 shrink-0 font-mono text-text-3">{timelineDate(a.at, user.timezone)}</span>
+                <span className="flex min-w-0 flex-col">
+                  <span className="text-text-2">{a.title}</span>
+                  {allHistory && a.detail ? <span className="whitespace-pre-wrap text-[12px] text-text-3">{a.detail}</span> : null}
+                </span>
+              </div>
+            ))}
+          </div>
+          {!activities.length ? <span className="text-[13px] text-text-2">No history yet.</span> : null}
         </div>
 
         <div className="mt-auto flex flex-col gap-1.5 border-t border-line pt-3.5 text-[12px] text-text-3">

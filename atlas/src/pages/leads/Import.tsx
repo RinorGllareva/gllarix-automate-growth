@@ -1,7 +1,7 @@
-import Papa from "papaparse";
 import { useEffect, useMemo, useState, type DragEvent } from "react";
 import { Link } from "react-router-dom";
 import { useUser } from "@/auth/AuthContext";
+import { parseTable } from "@/services/fileParse";
 import { usePageChrome } from "@/components/shell/PageChrome";
 import { useToast } from "@/components/ui/overlay";
 import { EmptyState } from "@/components/ui/primitives";
@@ -110,23 +110,24 @@ const Import = () => {
     if (!file) return;
     if (file.size > MAX_BYTES) return setParseError("That file is over 20 MB. Split it and import the parts.");
     const started = performance.now();
-    Papa.parse<Record<string, string>>(file, {
-      header: true,
-      skipEmptyLines: "greedy",
-      transformHeader: (h) => h.trim(),
-      complete: (res) => {
-        const headers = (res.meta.fields ?? []).filter(Boolean);
-        if (!headers.length || !res.data.length) return setParseError("That file has no rows we can read. Check it's a CSV with a header row.");
-        if (res.data.length > MAX_ROWS) return setParseError(`That file has ${count(res.data.length)} rows; the limit is ${count(MAX_ROWS)}.`);
-        setParsed({ fileName: file.name, headers, rows: res.data, seconds: (performance.now() - started) / 1000 });
-        setMapping(autoMap(headers));
-        if (!sourceName) setSourceName(file.name.replace(/\.csv$/i, ""));
+    // CSV, Excel (.xlsx) or JSON: the same reader as the Import Center.
+    parseTable(file).then(
+      async ({ headers, rows }) => {
+        if (!headers.length || !rows.length) return setParseError("That file has no rows we can read. Check it has a header row.");
+        if (rows.length > MAX_ROWS) return setParseError(`That file has ${count(rows.length)} rows; the limit is ${count(MAX_ROWS)}.`);
+        const src = sourceName || file.name.replace(/\.(csv|xlsx|json)$/i, "");
+        setParsed({ fileName: file.name, headers, rows, seconds: (performance.now() - started) / 1000 });
+        // A mapping saved for this source wins over matching by name (HubSpot, Pipedrive, Apollo and Notion names are built in).
+        const saved = await data.getImportMapping("lead", src).catch(() => null);
+        const auto = autoMap(headers);
+        setMapping(saved ? (Object.fromEntries(headers.map((h) => [h, h in saved ? saved[h] : auto[h]])) as ColumnMapping) : auto);
+        if (!sourceName) setSourceName(src);
         setPlan(null);
         setReport(null);
         setStep(2);
       },
-      error: (err) => setParseError(`Couldn't read the file: ${err.message}`),
-    });
+      (err: Error) => setParseError(`Couldn't read the file: ${err.message}`),
+    );
   };
 
   const buildPlan = async () => {
@@ -144,6 +145,7 @@ const Import = () => {
     if (!plan || !parsed) return;
     setRunning(true);
     try {
+      await data.saveImportMapping("lead", sourceName || parsed.fileName, mapping).catch(() => undefined);
       const job = await data.commitImport({
         fileName: parsed.fileName,
         sourceName,
@@ -276,9 +278,9 @@ const Import = () => {
               }}
               className={`flex cursor-pointer flex-col items-start gap-3 border border-dashed px-8 py-12 ${dragging ? "border-cyan bg-surface" : "border-line-button"}`}
             >
-              <span className="text-[24px] font-light">Drop a CSV here, or choose a file</span>
+              <span className="text-[24px] font-light">Drop a CSV, Excel or JSON file here, or choose one</span>
               <span className="text-[13px] text-text-2">One company per row, with a header row. Needs a company name and a phone or website.</span>
-              <input type="file" accept=".csv,text/csv" className="text-[13px] text-text-2 file:mr-4 file:h-10 file:border file:border-line-button file:bg-transparent file:px-4 file:text-[12px] font-medium file: file: file:text-text" onChange={(e) => onFile(e.target.files?.[0])} />
+              <input type="file" accept=".csv,.xlsx,.json,text/csv,application/json" className="text-[13px] text-text-2 file:mr-4 file:h-10 file:border file:border-line-button file:bg-transparent file:px-4 file:text-[12px] font-medium file: file: file:text-text" onChange={(e) => onFile(e.target.files?.[0])} />
             </label>
             {parseError ? (
               <p role="alert" className="m-0 text-[13px] text-coral">

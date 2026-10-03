@@ -12,7 +12,7 @@ const PW = (import.meta.env.VITE_DEMO_PASSWORD as string | undefined) || "atlas-
 const USERS = { admin: "rinor@atlas.test", bdr: "diego@atlas.test", implementer: "lena@atlas.test", viewer: "books@atlas.test" } as const;
 type RoleKey = keyof typeof USERS;
 
-const ADMIN_SECTIONS = ["users", "settings", "country-rules", "scoring", "cadences", "price-book", "opt-out", "jobs", "advisor", "integrations", "audit"];
+const ADMIN_SECTIONS = ["users", "settings", "company", "commissions", "fields", "import", "events", "country-rules", "scoring", "cadences", "price-book", "opt-out", "jobs", "advisor", "integrations", "audit", "trash"];
 const TASK_VIEWS = ["", "/board", "/my-work", "/inbox", "/timeline", "/workload", "/planner", "/automations", "/goals", "/import"];
 
 // jsdom gaps the app relies on.
