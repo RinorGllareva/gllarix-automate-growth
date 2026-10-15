@@ -73,7 +73,7 @@ vec3 gxRRT(vec3 v){ vec3 a = v * (v + 0.0245786) - 0.000090537; vec3 b = v * (0.
 vec3 gxACES(vec3 c){
   const mat3 I = mat3(vec3(0.59719, 0.07600, 0.02840), vec3(0.35458, 0.90834, 0.13383), vec3(0.04823, 0.01566, 0.83777));
   const mat3 O = mat3(vec3(1.60475, -0.10208, -0.00327), vec3(-0.53108, 1.10813, -0.07276), vec3(-0.07367, -0.00605, 1.07602));
-  c *= 1.0 / 0.6; c = I * c; c = gxRRT(c); c = O * c; return clamp(c, 0.0, 1.0);
+  c = max(c, 0.0) / 0.6; c = I * c; c = gxRRT(c); c = O * c; return clamp(c, 0.0, 1.0);
 }`;
 
 const GlassIntro = ({ onPhase, onComplete }: GlassIntroProps) => {
@@ -227,7 +227,12 @@ const GlassIntro = ({ onPhase, onComplete }: GlassIntroProps) => {
               "#include <opaque_fragment>",
               "#include <opaque_fragment>\n float dW = dot(vGW.xy, uWipeDir);\n gl_FragColor.a *= 1. - smoothstep(uWipe + .02, uWipe - .16, dW);",
             )
-            .replace("#include <tonemapping_fragment>", "gl_FragColor.rgb = gxACES(gl_FragColor.rgb);");
+            .replace(
+              "#include <tonemapping_fragment>",
+              // Outline look: the flat front and back faces (normal facing the camera) are fully see-through,
+              // so only the bevels and side walls of each segment show.
+              "gl_FragColor.rgb = gxACES(gl_FragColor.rgb);\n gl_FragColor.a *= 1. - smoothstep(.55, .9, abs(normalize(normal).z));",
+            );
       };
       m.customProgramCacheKey = () => "gllarix-glass";
     };
@@ -313,15 +318,21 @@ const GlassIntro = ({ onPhase, onComplete }: GlassIntroProps) => {
       rimMat.uniforms.uWipeDir = rimBase.uniforms.uWipeDir;
       const rim = new THREE.Mesh(geo, rimMat);
       rim.renderOrder = 1;
+      // Crisp outline around the segment's silhouette, on its front face.
+      const outlineGeo = new THREE.BufferGeometry().setFromPoints(pts.map(([x, y]) => new THREE.Vector3(x - cx, y - cy, DEPTH / 2 + BEVEL_T)));
+      const outlineMat = new THREE.LineBasicMaterial({ color: lin(0xeef3ff), transparent: true, opacity: 0, depthTest: false, depthWrite: false });
+      const outline = new THREE.LineLoop(outlineGeo, outlineMat);
+      outline.renderOrder = 1;
       const g = new THREE.Group();
-      g.add(glass, rim, flat);
+      g.add(glass, rim, outline, flat);
       logo.add(g);
-      disposables.push(geo, flatGeo, mat, rimMat);
+      disposables.push(geo, flatGeo, mat, rimMat, outlineGeo, outlineMat);
       return {
         g,
         flat,
         mat,
         rimMat,
+        outlineMat,
         cx,
         cy,
         ang: Math.atan2(cy, cx),
@@ -442,6 +453,7 @@ const GlassIntro = ({ onPhase, onComplete }: GlassIntroProps) => {
         p.g.scale.set(1, 1, zs);
         p.mat.opacity = eOutCubic(clamp01(k * 2.2));
         p.rimMat.uniforms.uOpacity.value = p.mat.opacity;
+        p.outlineMat.opacity = p.mat.opacity * 0.9;
         p.rimMat.uniforms.uRim.value = 0.6 + 0.9 * zs;
         p.flat.position.z = DEPTH / 2 + BEVEL_T + 0.004 / zs;
       });
@@ -498,10 +510,13 @@ const GlassIntro = ({ onPhase, onComplete }: GlassIntroProps) => {
     let last = 0;
     let speed = 1;
     let raf = 0;
+    // Dev only: localStorage "gllarix-intro-at" = "3.4" holds the intro at that point of the timeline, to tune the
+    // look (a URL parameter wouldn't survive: the app strips query strings on load).
+    const freezeAt = import.meta.env.DEV ? Number(localStorage.getItem("gllarix-intro-at")) || null : null;
     const frame = (now: number) => {
       const dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
       last = now;
-      t += dt * speed * CONFIG.speed;
+      t = freezeAt ?? t + dt * speed * CONFIG.speed;
       update(t);
       if (done) return;
       composer.render();
